@@ -1,0 +1,8 @@
+C:\Users\relev\Desktop\多通道上位机\Oscilloscope\Oscilloscope\bin\Release\Oscilloscope.exe
+C:\Users\relev\Desktop\多通道上位机\Oscilloscope\Oscilloscope\bin\Release\Oscilloscope.pdb
+C:\Users\relev\Desktop\多通道上位机\Oscilloscope\Oscilloscope\obj\x86\Release\Oscilloscope.Oscilloscope.resources
+C:\Users\relev\Desktop\多通道上位机\Oscilloscope\Oscilloscope\obj\x86\Release\Oscilloscope.Properties.Resources.resources
+C:\Users\relev\Desktop\多通道上位机\Oscilloscope\Oscilloscope\obj\x86\Release\Oscilloscope.csproj.GenerateResource.Cache
+C:\Users\relev\Desktop\多通道上位机\Oscilloscope\Oscilloscope\obj\x86\Release\Oscilloscope.exe
+C:\Users\relev\Desktop\多通道上位机\Oscilloscope\Oscilloscope\obj\x86\Release\Oscilloscope.pdb
+C:\Users\relev\Desktop\多通道上位机\Oscilloscope\Oscilloscope\obj\x86\Release\Oscilloscope.csprojResolveAssemblyReference.cache

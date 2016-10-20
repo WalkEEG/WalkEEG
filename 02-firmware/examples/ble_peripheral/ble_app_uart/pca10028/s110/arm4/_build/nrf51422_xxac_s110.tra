@@ -1,0 +1,43 @@
+*** Creating Trace Output File '.\_build\nrf51422_xxac_s110.tra' Ok.
+### Preparing for ADS-LD.
+### Creating ADS-LD Command Line
+### List of Objects: adding '".\_build\main.o"'
+### List of Objects: adding '".\_build\bsp.o"'
+### List of Objects: adding '".\_build\bsp_btn_ble.o"'
+### List of Objects: adding '".\_build\arm_startup_nrf51.o"'
+### List of Objects: adding '".\_build\system_nrf51.o"'
+### List of Objects: adding '".\_build\ble_advdata.o"'
+### List of Objects: adding '".\_build\ble_advertising.o"'
+### List of Objects: adding '".\_build\ble_conn_params.o"'
+### List of Objects: adding '".\_build\ble_nus.o"'
+### List of Objects: adding '".\_build\ble_srv_common.o"'
+### List of Objects: adding '".\_build\app_uart_fifo.o"'
+### List of Objects: adding '".\_build\nrf_delay.o"'
+### List of Objects: adding '".\_build\nrf_drv_common.o"'
+### List of Objects: adding '".\_build\nrf_drv_gpiote.o"'
+### List of Objects: adding '".\_build\nrf_drv_uart.o"'
+### List of Objects: adding '".\_build\pstorage.o"'
+### List of Objects: adding '".\_build\app_button.o"'
+### List of Objects: adding '".\_build\app_error.o"'
+### List of Objects: adding '".\_build\app_fifo.o"'
+### List of Objects: adding '".\_build\app_timer.o"'
+### List of Objects: adding '".\_build\app_trace.o"'
+### List of Objects: adding '".\_build\nrf_assert.o"'
+### List of Objects: adding '".\_build\retarget.o"'
+### List of Objects: adding '".\_build\softdevice_handler.o"'
+### ADS-LD Command completed:
+--cpu Cortex-M0 ".\_build\main.o" ".\_build\bsp.o" ".\_build\bsp_btn_ble.o" ".\_build\arm_startup_nrf51.o" ".\_build\system_nrf51.o" ".\_build\ble_advdata.o" ".\_build\ble_advertising.o" ".\_build\ble_conn_params.o" ".\_build\ble_nus.o" ".\_build\ble_srv_common.o" ".\_build\app_uart_fifo.o" ".\_build\nrf_delay.o" ".\_build\nrf_drv_common.o" ".\_build\nrf_drv_gpiote.o" ".\_build\nrf_drv_uart.o" ".\_build\pstorage.o" ".\_build\app_button.o" ".\_build\app_error.o" ".\_build\app_fifo.o" ".\_build\app_timer.o" ".\_build\app_trace.o" ".\_build\nrf_assert.o" ".\_build\retarget.o" ".\_build\softdevice_handler.o" 
+--library_type=microlib --strict --scatter ".\_build\nrf51422_xxac_s110.sct" 
+--summary_stderr --info summarysizes --map --xref --callgraph --symbols 
+--info sizes --info totals --info unused --info veneers 
+ --list ".\_build\nrf51422_xxac_s110.map" -o .\_build\nrf51422_xxac_s110.axf### Preparing Environment (PrepEnvAds)
+### ADS-LD Output File: '.\_build\nrf51422_xxac_s110.axf'
+### ADS-LD Command File: '.\_build\nrf51422_xxac_s110.lnp'
+### Checking for dirty Components...
+### Creating CmdFile '.\_build\nrf51422_xxac_s110.lnp', Handle=0x000003D8
+### Writing '.lnp' file
+### ADS-LD Command file '.\_build\nrf51422_xxac_s110.lnp' is ready.
+### ADS-LD: About to start ADS-LD Thread.
+### ADS-LD: executed with 0 errors
+### Updating obj list
+### LDADS_file() completed.
