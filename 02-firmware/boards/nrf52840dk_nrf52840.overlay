@@ -1,0 +1,59 @@
+/*
+ * NUS 物理串口改到 P12 排针空闲脚（避开主板/模块常用的 P0.06/P0.08）
+ *
+ *   P12 Pin25 = P0.13 = UART TX（52840 发出）
+ *   P12 Pin26 = P0.12 = UART RX（52840 接收）
+ *
+ * USB-TTL 交叉接线：
+ *   USB-TTL RX  -> P0.13 (TX)
+ *   USB-TTL TX  -> P0.12 (RX)
+ *   USB-TTL GND -> GND（共地必接）
+ *   波特率 115200 8N1
+ *
+ * 说明：
+ * - 手机 <-> 52840 走蓝牙 NUS（无线电），不经过这些 UART 脚
+ * - 电脑串口助手 <-> 52840 走 USB-TTL + P0.12/P0.13
+ * - 主板自带 COM（J-Link CDC / CH340）仍接默认脚，看不到这条 UART
+ *
+ * 官方 DK 上 P0.13=LED1、P0.12=Button2，需禁用以免和 UART 抢脚。
+ */
+
+/ {
+	chosen {
+		nordic,nus-uart = &uart0;
+	};
+};
+
+&button1 {
+	status = "disabled";
+};
+
+&led0 {
+	status = "disabled";
+};
+
+&pinctrl {
+	uart0_default: uart0_default {
+		group1 {
+			psels = <NRF_PSEL(UART_TX, 0, 13)>;
+		};
+		group2 {
+			psels = <NRF_PSEL(UART_RX, 0, 12)>;
+			bias-pull-up;
+		};
+	};
+
+	uart0_sleep: uart0_sleep {
+		group1 {
+			psels = <NRF_PSEL(UART_TX, 0, 13)>,
+				<NRF_PSEL(UART_RX, 0, 12)>;
+			low-power-enable;
+		};
+		/delete-node/ group2;
+	};
+};
+
+&uart0 {
+	status = "okay";
+	current-speed = <115200>;
+};

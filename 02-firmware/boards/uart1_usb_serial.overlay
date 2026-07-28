@@ -1,0 +1,22 @@
+/*
+ * Optional: use Arduino header UART1 + external USB-serial adapter (CP2102/CH340)
+ * when onboard J-Link VCOM (COM6) shows nothing in PuTTY.
+ *
+ * Wiring (nRF52840 DK Arduino header):
+ *   Adapter TX  -> DK pin D0 (P0.29 RX)
+ *   Adapter RX  -> DK pin D1 (P0.31 TX)
+ *   GND         -> GND
+ *
+ * Then build with:
+ *   west build -b nrf52840dk/nrf52840 -d build -- -DEXTRA_CONF_FILE=boards/uart1_usb_serial.conf
+ */
+
+/ {
+	chosen {
+		zephyr,shell-uart = &uart1;
+	};
+};
+
+&uart1 {
+	status = "okay";
+};
