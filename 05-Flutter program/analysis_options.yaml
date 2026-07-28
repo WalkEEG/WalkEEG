@@ -1,0 +1,6 @@
+# This file configures the analyzer to use the lint set recommended for Flutter apps.
+include: package:flutter_lints/flutter.yaml
+
+linter:
+  rules:
+    prefer_const_constructors: false
