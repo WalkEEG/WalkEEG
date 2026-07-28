@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WalkEEG — Open Source EEG Hardware Platform</title>
+  <meta name="description" content="WalkEEG is an open-source, wearable EEG system for brain-computer interface research and education. Full hardware, firmware, and software stack.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%236366f1'/%3E%3Ctext x='16' y='22' text-anchor='middle' font-family='Inter' font-weight='900' font-size='18' fill='white'%3EW%3C/text%3E%3C/svg%3E">
+</head>
+<body>
+
+  <!-- ===== Navbar ===== -->
+  <nav class="navbar" id="navbar">
+    <div class="container">
+      <a href="/" class="navbar-brand">
+        <span class="logo-icon">W</span>
+        WalkEEG
+      </a>
+      <ul class="navbar-links" id="navLinks">
+        <li><a href="#about">About</a></li>
+        <li><a href="#features">Features</a></li>
+        <li><a href="#how-it-works">How It Works</a></li>
+        <li><a href="#open-source">Open Source</a></li>
+        <li><a href="/app/" class="btn btn-sm btn-primary">Data Portal →</a></li>
+      </ul>
+      <button class="navbar-toggle" id="navToggle" aria-label="Menu">☰</button>
+    </div>
+  </nav>
+
+  <!-- ===== Hero ===== -->
+  <section class="hero">
+    <div class="hero-bg">
+      <div class="hero-bg-grid"></div>
+      <div class="hero-bg-glow"></div>
+      <div class="hero-bg-glow-2"></div>
+    </div>
+    <div class="container">
+      <div class="hero-content">
+        <div class="hero-badge">
+          <span class="hero-badge-dot"></span>
+          Open Source · v1.1
+        </div>
+        <h1>
+          Open Source<br>
+          <span class="highlight">Wearable EEG</span><br>
+          for Everyone
+        </h1>
+        <p>
+          WalkEEG is a complete, open-source electroencephalography platform — from the PCB design and firmware to the PC visualization software and MATLAB analysis toolkit. Built for researchers, educators, and BCI enthusiasts.
+        </p>
+        <div class="hero-actions">
+          <a href="https://github.com/WalkEEG/WalkEEG" target="_blank" class="btn btn-primary btn-lg">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+            View on GitHub
+          </a>
+          <a href="/app/" class="btn btn-secondary btn-lg">Data Portal →</a>
+        </div>
+        <div class="hero-stats">
+          <div class="hero-stat">
+            <h3>4</h3>
+            <p>Hardware Revisions</p>
+          </div>
+          <div class="hero-stat">
+            <h3>3</h3>
+            <p>Software Modules</p>
+          </div>
+          <div class="hero-stat">
+            <h3>Open</h3>
+            <p>MIT License</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== About ===== -->
+  <section class="section" id="about">
+    <div class="container">
+      <div class="preview-section">
+        <div class="preview-content">
+          <div class="preview-text">
+            <span class="section-label">About WalkEEG</span>
+            <h2>What is WalkEEG?</h2>
+            <p>WalkEEG is a complete, open-source EEG system designed to make brain-computer interface technology accessible. It captures, transmits, and visualizes electroencephalography signals in real-time.</p>
+            <p>The project covers the entire signal chain — from the analog front-end PCB and nRF-based wireless firmware to the PC oscilloscope application and MATLAB analysis scripts.</p>
+            <div class="tech-stack" style="justify-content:flex-start;margin-top:16px;">
+              <span class="tech-item">C / Firmware</span>
+              <span class="tech-item">LabVIEW</span>
+              <span class="tech-item">MATLAB</span>
+              <span class="tech-item">nRF SoC</span>
+              <span class="tech-item">BLE</span>
+            </div>
+          </div>
+          <div class="preview-image">
+            <div class="preview-placeholder">
+              <div class="icon">🧠</div>
+              <div class="signal-visualization">
+                <div class="signal-line"></div>
+              </div>
+              <p style="color:var(--text-muted);margin-top:12px;font-size:0.875rem;">EEG Signal Visualization</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Features ===== -->
+  <section class="section" id="features">
+    <div class="container">
+      <div class="text-center">
+        <span class="section-label">Complete Stack</span>
+        <h2 class="section-title">Everything You Need</h2>
+        <p class="section-subtitle mx-auto">From hardware to data processing — a fully open EEG pipeline.</p>
+      </div>
+      <div class="features-grid">
+        <div class="feature-card fade-in stagger-1">
+          <div class="feature-icon">🔧</div>
+          <h3>Hardware Design</h3>
+          <p>Complete PCB schematics and layout files for the EEG acquisition board. Analog front-end with instrumentation amplifiers, anti-aliasing filters, and high-precision ADC.</p>
+        </div>
+        <div class="feature-card fade-in stagger-2">
+          <div class="feature-icon">📡</div>
+          <h3>Wireless Firmware</h3>
+          <p>nRF52-based firmware with BLE and proprietary RF support. Low-power data streaming from the headset to your computer. Built on Nordic SDK with softdevice integration.</p>
+        </div>
+        <div class="feature-card fade-in stagger-3">
+          <div class="feature-icon">📊</div>
+          <h3>PC Oscilloscope</h3>
+          <p>Real-time waveform visualization software (LabVIEW-based). Supports multi-channel EEG display, signal monitoring, and data logging. Available in English and Chinese.</p>
+        </div>
+        <div class="feature-card fade-in stagger-4">
+          <div class="feature-icon">🧪</div>
+          <h3>MATLAB Analysis</h3>
+          <p>Comprehensive MATLAB toolchain for offline EEG data analysis. Includes demo scripts, filtering, FFT-based spectral analysis, and customizable signal processing pipelines.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== How It Works ===== -->
+  <section class="section" id="how-it-works">
+    <div class="container">
+      <div class="text-center">
+        <span class="section-label">Workflow</span>
+        <h2 class="section-title">How It Works</h2>
+        <p class="section-subtitle mx-auto">From electrode to insight — four simple steps.</p>
+      </div>
+      <div class="steps">
+        <div class="step fade-in stagger-1">
+          <div class="step-number">1</div>
+          <h3>Acquire</h3>
+          <p>EEG electrodes capture brain electrical activity. The analog front-end amplifies and filters the raw signal with precision instrumentation.</p>
+        </div>
+        <div class="step fade-in stagger-2">
+          <div class="step-number">2</div>
+          <h3>Transmit</h3>
+          <p>The nRF SoC digitizes the signal and streams it wirelessly via BLE or proprietary RF to your computer with low latency.</p>
+        </div>
+        <div class="step fade-in stagger-3">
+          <div class="step-number">3</div>
+          <h3>Visualize</h3>
+          <p>The PC oscilloscope application displays real-time EEG waveforms. Monitor multiple channels, adjust gain and timebase, and record sessions.</p>
+        </div>
+        <div class="step fade-in stagger-4">
+          <div class="step-number">4</div>
+          <h3>Analyze</h3>
+          <p>Export and process your data with MATLAB scripts — run FFT, filter artifacts, detect brainwave patterns, and build BCI applications.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Open Source ===== -->
+  <section class="section" id="open-source">
+    <div class="container">
+      <div class="oss-section">
+        <span class="section-label">100% Open Source</span>
+        <h2 class="section-title">Built in the Open</h2>
+        <p class="section-subtitle mx-auto" style="margin-top:12px;">
+          WalkEEG is free and open-source. Contribute, fork, or build upon it.
+        </p>
+        <div class="oss-badges">
+          <span class="oss-badge">📦 Hardware · PCB &amp; Schematics</span>
+          <span class="oss-badge">⚙️ Firmware · nRF52 SDK</span>
+          <span class="oss-badge">🖥️ Software · LabVIEW + MATLAB</span>
+        </div>
+        <a href="https://github.com/WalkEEG/WalkEEG" target="_blank" class="btn btn-primary btn-lg">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+          Star on GitHub
+        </a>
+        <div class="tech-stack">
+          <span class="tech-item">altium</span>
+          <span class="tech-item">nRF52</span>
+          <span class="tech-item">BLE 4.0</span>
+          <span class="tech-item">LabVIEW</span>
+          <span class="tech-item">MATLAB</span>
+          <span class="tech-item">C</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== CTA ===== -->
+  <section class="cta-section">
+    <div class="container">
+      <h2>Ready to Get Started?</h2>
+      <p>Download the source, build your own EEG, and start exploring brain activity today.</p>
+      <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;">
+        <a href="https://github.com/WalkEEG/WalkEEG" target="_blank" class="btn btn-primary btn-lg">Get the Source</a>
+        <a href="/app/" class="btn btn-secondary btn-lg">Upload Your Data</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Footer ===== -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a href="/" class="navbar-brand" style="margin-bottom:0;">
+            <span class="logo-icon">W</span>
+            WalkEEG
+          </a>
+          <p>Open-source wearable EEG platform for brain-computer interface research and education.</p>
+        </div>
+        <div class="footer-col">
+          <h4>Project</h4>
+          <ul>
+            <li><a href="#about">About</a></li>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#how-it-works">How It Works</a></li>
+            <li><a href="#open-source">Open Source</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Resources</h4>
+          <ul>
+            <li><a href="https://github.com/WalkEEG/WalkEEG" target="_blank">GitHub</a></li>
+            <li><a href="https://github.com/WalkEEG/WalkEEG/releases" target="_blank">Releases</a></li>
+            <li><a href="https://github.com/WalkEEG/WalkEEG/issues" target="_blank">Issues</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Data</h4>
+          <ul>
+            <li><a href="/app/">Data Portal</a></li>
+            <li><a href="/app/#register">Register</a></li>
+            <li><a href="/app/#upload">Upload Signal</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2026 WalkEEG. Open source project.</p>
+        <div class="footer-social">
+          <a href="https://github.com/WalkEEG" target="_blank" aria-label="GitHub">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+          </a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/assets/js/main.js"></script>
+</body>
+</html>

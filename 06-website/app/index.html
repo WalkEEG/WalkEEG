@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WalkEEG — Data Portal</title>
+  <meta name="description" content="WalkEEG data portal — upload, visualize, and analyze your EEG signals in the cloud.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="stylesheet" href="/assets/css/app.css">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%236366f1'/%3E%3Ctext x='16' y='22' text-anchor='middle' font-family='Inter' font-weight='900' font-size='18' fill='white'%3EW%3C/text%3E%3C/svg%3E">
+</head>
+<body>
+
+  <div id="toastContainer" class="toast-container"></div>
+  <div id="modalOverlay" class="modal-overlay"></div>
+
+  <!-- ===== Auth Page ===== -->
+  <div id="authPage" class="auth-page">
+    <div class="auth-card">
+      <a href="/" class="navbar-brand" style="justify-content:center;margin-bottom:32px;font-size:1.5rem;text-decoration:none;">
+        <span class="logo-icon">W</span>
+        WalkEEG
+      </a>
+
+      <!-- Login Form -->
+      <div id="loginForm">
+        <h1>Welcome Back</h1>
+        <p class="subtitle">Sign in to access your EEG data.</p>
+        <form id="loginFormElement">
+          <div class="form-group">
+            <label for="loginEmail">Email</label>
+            <input type="email" id="loginEmail" class="form-input" placeholder="you@example.com" required autocomplete="email">
+          </div>
+          <div class="form-group">
+            <label for="loginPassword">Password</label>
+            <input type="password" id="loginPassword" class="form-input" placeholder="Your password" required autocomplete="current-password">
+            <div class="form-error" id="loginError"></div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary btn-full btn-lg">Sign In</button>
+          </div>
+        </form>
+        <div class="form-footer">
+          Don't have an account? <a href="#" id="showRegister">Create one</a>
+        </div>
+      </div>
+
+      <!-- Register Form -->
+      <div id="registerForm" style="display:none;">
+        <h1>Create Account</h1>
+        <p class="subtitle">Register to upload and manage your EEG signals.</p>
+        <form id="registerFormElement">
+          <div class="form-group">
+            <label for="regName">Full Name</label>
+            <input type="text" id="regName" class="form-input" placeholder="Your name" required>
+          </div>
+          <div class="form-group">
+            <label for="regEmail">Email</label>
+            <input type="email" id="regEmail" class="form-input" placeholder="you@example.com" required autocomplete="email">
+          </div>
+          <div class="form-group">
+            <label for="regPassword">Password</label>
+            <input type="password" id="regPassword" class="form-input" placeholder="At least 8 characters" required minlength="8" autocomplete="new-password">
+            <div class="form-error" id="registerError"></div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary btn-full btn-lg">Create Account</button>
+          </div>
+        </form>
+        <div class="form-footer">
+          Already have an account? <a href="#" id="showLogin">Sign in</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== App Layout ===== -->
+  <div id="appLayout" class="app-layout" style="display:none;">
+
+    <!-- Sidebar -->
+    <aside class="app-sidebar">
+      <div class="app-sidebar-brand">
+        <a href="/">
+          <span class="logo-icon" style="width:32px;height:32px;font-size:0.75rem;">W</span>
+          WalkEEG
+        </a>
+      </div>
+      <nav class="app-nav">
+        <a class="app-nav-item active" data-page="dashboard" href="#dashboard">
+          <span class="nav-icon">📊</span> Dashboard
+        </a>
+        <a class="app-nav-item" data-page="upload" href="#upload">
+          <span class="nav-icon">📤</span> Upload
+        </a>
+        <a class="app-nav-item" data-page="signals" href="#signals">
+          <span class="nav-icon">📈</span> My Signals
+        </a>
+        <a class="app-nav-item" data-page="profile" href="#profile">
+          <span class="nav-icon">👤</span> Profile
+        </a>
+      </nav>
+      <div class="app-sidebar-footer">
+        <div class="app-sidebar-user">
+          <div class="user-avatar" id="userAvatar">U</div>
+          <div class="user-info">
+            <h4 id="userName">User</h4>
+            <p id="userEmail">user@example.com</p>
+          </div>
+        </div>
+        <button id="logoutBtn" class="btn btn-secondary btn-sm btn-full" style="margin-top:12px;">Sign Out</button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="app-main">
+
+      <!-- Dashboard Page -->
+      <div id="page-dashboard" class="app-page active">
+        <div class="app-header">
+          <div>
+            <h1>Dashboard</h1>
+            <p>Overview of your EEG data and activity.</p>
+          </div>
+          <a href="#upload" class="btn btn-primary btn-sm" data-page="upload">Upload New</a>
+        </div>
+        <div class="stats-grid" id="dashboardStats">
+          <div class="stat-card">
+            <h3>Total Recordings</h3>
+            <div class="stat-value" id="totalRecordings">—</div>
+          </div>
+          <div class="stat-card">
+            <h3>This Month</h3>
+            <div class="stat-value" id="monthRecordings">—</div>
+          </div>
+          <div class="stat-card">
+            <h3>Storage Used</h3>
+            <div class="stat-value" id="storageUsed">—</div>
+          </div>
+          <div class="stat-card">
+            <h3>Last Upload</h3>
+            <div class="stat-value" id="lastUpload" style="font-size:1.125rem;">—</div>
+          </div>
+        </div>
+        <div class="data-table-wrapper">
+          <div class="data-table-header">
+            <h2>Recent Recordings</h2>
+          </div>
+          <div id="recentRecordings">
+            <div class="empty-state">
+              <div class="empty-icon">🧠</div>
+              <h3>No Recordings Yet</h3>
+              <p>Upload your first EEG signal to start building your data library.</p>
+              <a href="#upload" class="btn btn-primary" data-page="upload">Upload Your First Signal</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Upload Page -->
+      <div id="page-upload" class="app-page">
+        <div class="app-header">
+          <div>
+            <h1>Upload EEG Signal</h1>
+            <p>Upload your recordings for cloud storage and analysis.</p>
+          </div>
+        </div>
+
+        <form id="uploadForm">
+          <div class="form-group">
+            <label for="signalName">Recording Name</label>
+            <input type="text" id="signalName" class="form-input" placeholder="e.g., Resting State - Session 1" required>
+          </div>
+          <div class="form-group">
+            <label for="signalDescription">Description (optional)</label>
+            <textarea id="signalDescription" class="form-input" rows="3" placeholder="Subject, conditions, notes..."></textarea>
+          </div>
+          <div class="form-group">
+            <label>Signal File</label>
+            <div class="upload-area" id="uploadArea">
+              <div class="upload-icon">📁</div>
+              <h3>Drop your EEG file here</h3>
+              <p>Supports CSV, TXT, EDF, and BDF formats</p>
+              <p style="margin-top:8px;font-size:0.75rem;">Maximum file size: 500 MB</p>
+              <input type="file" id="fileInput" accept=".csv,.txt,.edf,.bdf,.bin,.dat" style="display:none;">
+            </div>
+            <div id="selectedFile" style="display:none;margin-top:12px;">
+              <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-md);">
+                <span style="font-size:1.5rem;">📄</span>
+                <div style="flex:1;">
+                  <div style="font-weight:600;font-size:0.9375rem;" id="fileName">file.csv</div>
+                  <div style="font-size:0.8125rem;color:var(--text-muted);" id="fileSize">0 B</div>
+                </div>
+                <button type="button" id="removeFile" class="btn btn-sm btn-secondary" style="color:var(--danger);border-color:rgba(239,68,68,0.3);">Remove</button>
+              </div>
+            </div>
+          </div>
+          <div class="upload-progress" id="uploadProgress">
+            <div class="progress-bar">
+              <div class="progress-bar-fill" id="progressFill"></div>
+            </div>
+            <div class="upload-info">
+              <span id="progressText">Uploading...</span>
+              <span id="progressPercent">0%</span>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary btn-lg" id="uploadBtn">
+            <span id="uploadBtnText">Upload Signal</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- Signals Page -->
+      <div id="page-signals" class="app-page">
+        <div class="app-header">
+          <div>
+            <h1>My Signals</h1>
+            <p>Browse, analyze, and download your recorded EEG data.</p>
+          </div>
+        </div>
+        <div class="data-table-wrapper">
+          <div class="data-table-header">
+            <h2>All Recordings</h2>
+            <div style="display:flex;gap:8px;">
+              <input type="text" id="signalSearch" class="form-input" placeholder="Search..." style="width:200px;padding:8px 12px;font-size:0.8125rem;">
+            </div>
+          </div>
+          <div id="signalsList">
+            <div class="empty-state">
+              <div class="empty-icon">📊</div>
+              <h3>No Recordings</h3>
+              <p>When you upload EEG signals, they will appear here.</p>
+              <a href="#upload" class="btn btn-primary" data-page="upload">Upload Now</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Signal Detail / Viewer Page -->
+      <div id="page-signal-view" class="app-page">
+        <div class="app-header">
+          <div>
+            <a href="#signals" data-page="signals" style="font-size:0.875rem;color:var(--text-muted);display:inline-flex;align-items:center;gap:4px;margin-bottom:8px;text-decoration:none;">← Back to Signals</a>
+            <h1 id="viewSignalName">Signal Name</h1>
+            <p id="viewSignalMeta">Uploaded — Processing...</p>
+          </div>
+          <div class="signal-controls">
+            <button id="downloadSignalBtn" class="btn btn-sm btn-secondary">⬇ Download</button>
+            <button id="deleteSignalBtn" class="btn btn-sm btn-secondary" style="color:var(--danger);border-color:rgba(239,68,68,0.3);">🗑 Delete</button>
+          </div>
+        </div>
+        <div class="signal-viewer">
+          <div class="signal-viewer-header">
+            <h2>Signal Visualization</h2>
+            <div class="signal-controls">
+              <button class="btn btn-sm btn-secondary" id="zoomInBtn">🔍+</button>
+              <button class="btn btn-sm btn-secondary" id="zoomOutBtn">🔍−</button>
+              <button class="btn btn-sm btn-secondary" id="resetViewBtn">↺ Reset</button>
+            </div>
+          </div>
+          <div class="signal-canvas-wrapper">
+            <canvas id="signalChart"></canvas>
+          </div>
+          <div class="signal-info-grid">
+            <div class="signal-info-item">
+              <label>Duration</label>
+              <span id="signalDuration">—</span>
+            </div>
+            <div class="signal-info-item">
+              <label>Channels</label>
+              <span id="signalChannels">—</span>
+            </div>
+            <div class="signal-info-item">
+              <label>Sample Rate</label>
+              <span id="signalSampleRate">—</span>
+            </div>
+            <div class="signal-info-item">
+              <label>File Size</label>
+              <span id="signalFileSize">—</span>
+            </div>
+          </div>
+        </div>
+        <div class="preview-section" style="margin-top:24px;">
+          <div class="preview-content" style="grid-template-columns:1fr;">
+            <div class="preview-text" style="padding:32px;">
+              <h2 style="font-size:1.25rem;">Frequency Analysis</h2>
+              <p style="font-size:0.875rem;">FFT-based power spectrum helps identify dominant brainwave bands (delta, theta, alpha, beta, gamma).</p>
+              <div style="height:250px;margin-top:16px;">
+                <canvas id="fftChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Profile Page -->
+      <div id="page-profile" class="app-page">
+        <div class="app-header">
+          <div>
+            <h1>Profile</h1>
+            <p>Manage your account settings.</p>
+          </div>
+        </div>
+        <div style="max-width:500px;">
+          <form id="profileForm">
+            <div class="form-group">
+              <label>Avatar</label>
+              <div style="display:flex;align-items:center;gap:16px;">
+                <div class="user-avatar" id="profileAvatar" style="width:64px;height:64px;font-size:1.5rem;">U</div>
+                <div>
+                  <p style="font-size:0.875rem;color:var(--text-muted);">Gravatar from your email</p>
+                </div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="profileName">Name</label>
+              <input type="text" id="profileName" class="form-input" required>
+            </div>
+            <div class="form-group">
+              <label for="profileEmail">Email</label>
+              <input type="email" id="profileEmail" class="form-input" readonly style="opacity:0.6;">
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- ===== Chart.js CDN ===== -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="/assets/js/main.js"></script>
+  <script src="/assets/js/app.js"></script>
+</body>
+</html>

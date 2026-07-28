@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Redirecting...</title>
+  <script>
+    // SPA routing: redirect /app/* paths to app/index.html with hash
+    (function() {
+      var path = window.location.pathname;
+      if (path.startsWith('/app/') || path === '/app') {
+        var route = path.replace(/^\/app\/?/, '');
+        window.location.replace('/app/index.html#' + route);
+      } else if (path !== '/') {
+        window.location.replace('/');
+      }
+    })();
+  </script>
+</head>
+<body>
+  <p>Redirecting...</p>
+</body>
+</html>
