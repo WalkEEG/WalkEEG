@@ -1,0 +1,40 @@
+﻿{
+  "board": {
+    "design_settings": {
+      "rule_severities": {}
+    }
+  },
+  "boards": [],
+  "libraries": {
+    "pinned_footprint_libs": [],
+    "pinned_symbol_libs": []
+  },
+  "meta": {
+    "filename": "ad8232_module.kicad_pro",
+    "version": 3
+  },
+  "net_settings": {
+    "classes": []
+  },
+  "pcbnew": {
+    "last_paths": {}
+  },
+  "schematic": {
+    "legacy_lib_dir": "",
+    "legacy_lib_list": [],
+    "meta": {
+      "filename": "ad8232_module.kicad_sch",
+      "version": 1
+    },
+    "page_layout_descr_file": ""
+  },
+  "sheets": [
+    [
+      "uuid",
+      "main",
+      "ad8232_module.kicad_sch",
+      ""
+    ]
+  ],
+  "text_variables": {}
+}
