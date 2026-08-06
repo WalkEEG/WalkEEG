@@ -1,0 +1,49 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "NCS: Build (west build)",
+            "type": "shell",
+            "command": "west build -b nrf52840dk/nrf52840 -d build",
+            "options": {
+                "cwd": "${workspaceFolder}/02-firmware"
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "编译 WalkEEG 固件"
+        },
+        {
+            "label": "NCS: Flash (west flash)",
+            "type": "shell",
+            "command": "west flash -d build",
+            "options": {
+                "cwd": "${workspaceFolder}/02-firmware"
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "烧录到 nRF52840 DK"
+        },
+        {
+            "label": "NCS: Build + Flash",
+            "type": "shell",
+            "command": "west build -b nrf52840dk/nrf52840 -d build && west flash -d build",
+            "options": {
+                "cwd": "${workspaceFolder}/02-firmware"
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "编译并烧录"
+        },
+        {
+            "label": "NCS: Clean Build",
+            "type": "shell",
+            "command": "west build -b nrf52840dk/nrf52840 -d build -p always",
+            "options": {
+                "cwd": "${workspaceFolder}/02-firmware"
+            },
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "清理并重新编译"
+        }
+    ]
+}
