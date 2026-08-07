@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
@@ -125,7 +126,10 @@ class WalkEegBleController {
 
     try {
       await d.connect(timeout: const Duration(seconds: 10));
-      await d.requestMtu(512);
+      // requestMtu is Android-only; iOS negotiates MTU automatically.
+      if (Platform.isAndroid) {
+        await d.requestMtu(512);
+      }
 
       _setState(BleLinkState.connected, 'Discovering services…');
       final services = await d.discoverServices();

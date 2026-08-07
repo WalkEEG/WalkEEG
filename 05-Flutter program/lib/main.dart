@@ -38,6 +38,22 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  static const _sampleRateHz = 2000;
+
+  /// Y-axis ranges for 8/10/12/14/16-bit ADC modes (unsigned).
+  static const _yRanges = <(String, double)>[
+    ('8-bit · 0-255', 255),
+    ('10-bit · 0-1023', 1023),
+    ('12-bit · 0-4095', 4095),
+    ('14-bit · 0-16383', 16383),
+    ('16-bit · 0-65535', 65535),
+  ];
+
+  /// Oscilloscope-style time base: visible window.
+  /// First row: seconds; second row: milliseconds (at 2 kHz).
+  static const _windowsSec = <int>[1, 2, 5, 10];
+  static const _windowsMs = <int>[500, 250, 100, 50];
+
   final _ble = WalkEegBleController();
   final Set<int> _selected = {0, 1};
   StreamSubscription<void>? _tickSub;
@@ -45,6 +61,8 @@ class _HomePageState extends State<HomePage> {
   StreamSubscription<BleLinkState>? _stateSub;
   String _status = 'Idle';
   BleLinkState _state = BleLinkState.idle;
+  double _yMax = 65535;
+  int _windowMs = 2000;
 
   static const _colors = <Color>[
     Color(0xFF4ECDC4),
@@ -97,9 +115,12 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     final parser = _ble.parser;
     final series = _selected.toList()..sort();
-    final plotData = series
-        .map((ch) => downsample(parser.channels[ch].samples, 800))
-        .toList();
+    final windowSamples = _windowMs * _sampleRateHz ~/ 1000;
+    final plotData = series.map((ch) {
+      final all = parser.channels[ch].samples;
+      final start = all.length > windowSamples ? all.length - windowSamples : 0;
+      return downsample(all.sublist(start), 800);
+    }).toList();
     final plotColors = series.map((ch) => _colors[ch]).toList();
     final frames = parser.parsedFrames;
     final drops = parser.droppedFrames;
@@ -110,6 +131,21 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: const Text('WalkEEG'),
         actions: [
+          DropdownButtonHideUnderline(
+            child: DropdownButton<double>(
+              value: _yMax,
+              dropdownColor: const Color(0xFF16262C),
+              iconEnabledColor: Colors.white70,
+              style: const TextStyle(color: Colors.white, fontSize: 13),
+              items: [
+                for (final (label, max) in _yRanges)
+                  DropdownMenuItem(value: max, child: Text(label)),
+              ],
+              onChanged: (v) {
+                if (v != null) setState(() => _yMax = v);
+              },
+            ),
+          ),
           IconButton(
             tooltip: 'Connect',
             onPressed: _state == BleLinkState.scanning ||
@@ -159,14 +195,54 @@ class _HomePageState extends State<HomePage> {
                   painter: WaveformPainter(
                     series: plotData,
                     colors: plotColors,
+                    yMin: 0,
+                    yMax: _yMax,
                   ),
                   child: const SizedBox.expand(),
                 ),
               ),
             ),
             const SizedBox(height: 8),
+            SegmentedButton<int>(
+              segments: [
+                for (final s in _windowsSec)
+                  ButtonSegment(
+                    value: s * 1000,
+                    label: Text('${s}s'),
+                  ),
+              ],
+              selected: {_windowMs},
+              onSelectionChanged: (sel) {
+                setState(() => _windowMs = sel.first);
+              },
+              showSelectedIcon: false,
+              style: const ButtonStyle(
+                visualDensity: VisualDensity.compact,
+              ),
+            ),
+            const SizedBox(height: 4),
+            SegmentedButton<int>(
+              segments: [
+                for (final ms in _windowsMs)
+                  ButtonSegment(
+                    value: ms,
+                    label: Text('${ms}ms'),
+                  ),
+              ],
+              selected: {_windowMs},
+              onSelectionChanged: (sel) {
+                setState(() => _windowMs = sel.first);
+              },
+              showSelectedIcon: false,
+              style: const ButtonStyle(
+                visualDensity: VisualDensity.compact,
+              ),
+            ),
+            const SizedBox(height: 8),
             Text(
-              'Y axis: 0 … 32767  ·  CH offset +ch×2000  ·  8ch × 16-bit @ 2 kHz',
+              'Y: 0 … ${_yMax.round()}  ·  window '
+              '${_windowMs >= 1000 ? "${_windowMs ~/ 1000}s" : "${_windowMs}ms"}  ·  '
+              '8ch × 16-bit @ ${_sampleRateHz ~/ 1000}kHz',
               style: Theme.of(context).textTheme.bodySmall,
               textAlign: TextAlign.center,
             ),

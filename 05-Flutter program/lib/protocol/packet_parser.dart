@@ -2,7 +2,7 @@ import 'dart:typed_data';
 
 /// Per-channel rolling sample buffer for plotting.
 class ChannelBuffer {
-  ChannelBuffer({this.capacity = 4000});
+  ChannelBuffer({this.capacity = 20000});
 
   final int capacity;
   final List<int> samples = <int>[];
@@ -19,7 +19,8 @@ class ChannelBuffer {
 
 /// Parses WalkEEG NUS binary frames (see docs/WALKEEG_PACKET.md).
 class WalkEegPacketParser {
-  WalkEegPacketParser({this.channelCapacity = 4000}) {
+  /// Buffer capacity = max display window (10 s at 2 kHz).
+  WalkEegPacketParser({this.channelCapacity = 20000}) {
     channels = List.generate(
       8,
       (_) => ChannelBuffer(capacity: channelCapacity),
@@ -126,11 +127,9 @@ class WalkEegPacketParser {
       for (var ch = 0; ch < numChannels; ch++) {
         final lo = frame[off];
         final hi = frame[off + 1];
-        // WalkEEG test signal is non-negative ramp; treat as unsigned-ish int16
-        var v = lo | (hi << 8);
-        if (v > 32767) {
-          v -= 65536; // signed
-        }
+        // Raw unsigned 16-bit ADC value (8/10/12/14/16-bit modes).
+        // Y-axis ranges are selected in the UI (0..2^N-1).
+        final v = lo | (hi << 8);
         perCh[ch].add(v);
         off += 2;
       }

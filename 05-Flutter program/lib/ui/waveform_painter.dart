@@ -80,6 +80,12 @@ class WaveformPainter extends CustomPainter {
       axis,
     );
 
+    // Vertical grid: 10 divisions (oscilloscope style)
+    for (var i = 0; i <= 10; i++) {
+      final x = plot.left + plot.width * i / 10;
+      canvas.drawLine(Offset(x, plot.top), Offset(x, plot.bottom), grid);
+    }
+
     for (var s = 0; s < series.length; s++) {
       final samples = series[s];
       if (samples.length < 2) continue;
