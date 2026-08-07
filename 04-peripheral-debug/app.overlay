@@ -1,0 +1,25 @@
+/*
+ * WalkEEG debug peripheral - QingFeng nRF52832 board
+ *
+ * UART0 = CH340 USB-UART bridge.
+ * Pinout follows the stock nrf52dk/nrf52832 default (P0.06 TX / P0.08 RX).
+ * If the QingFeng board routes CH340 to different pins, adjust
+ * uart0_default below.
+ *
+ * SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
+ */
+
+/ {
+	chosen {
+		nordic,nus-uart = &uart0;
+	};
+};
+
+&uart0 {
+	compatible = "nordic,nrf-uarte";
+	status = "okay";
+	current-speed = <115200>;
+	pinctrl-0 = <&uart0_default>;
+	pinctrl-1 = <&uart0_sleep>;
+	pinctrl-names = "default", "sleep";
+};
