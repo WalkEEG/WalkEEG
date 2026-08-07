@@ -379,25 +379,6 @@ rule C_STATIC_LIBRARY_LINKER__subsys__bluetooth__host_
 #############################################
 # Rule for compiling C files.
 
-rule C_COMPILER__subsys__crc_
-  depfile = $DEP_FILE
-  deps = gcc
-  command = D:\ncs\toolchains\66cdf9b75e\opt\zephyr-sdk\arm-zephyr-eabi\bin\arm-zephyr-eabi-gcc.exe $DEFINES $INCLUDES $FLAGS -MD -MT $out -MF $DEP_FILE -o $out -c $in
-  description = Building C object $out
-
-
-#############################################
-# Rule for linking C static library.
-
-rule C_STATIC_LIBRARY_LINKER__subsys__crc_
-  command = cmd.exe /C "$PRE_LINK && D:\ncs\toolchains\66cdf9b75e\opt\bin\cmake.exe -E rm -f $TARGET_FILE && D:\ncs\toolchains\66cdf9b75e\opt\zephyr-sdk\arm-zephyr-eabi\bin\arm-zephyr-eabi-ar.exe qc $TARGET_FILE $LINK_FLAGS $in && D:\ncs\toolchains\66cdf9b75e\opt\zephyr-sdk\arm-zephyr-eabi\bin\arm-zephyr-eabi-ranlib.exe $TARGET_FILE && $POST_BUILD"
-  description = Linking C static library $TARGET_FILE
-  restat = $RESTAT
-
-
-#############################################
-# Rule for compiling C files.
-
 rule C_COMPILER__drivers__interrupt_controller_
   depfile = $DEP_FILE
   deps = gcc

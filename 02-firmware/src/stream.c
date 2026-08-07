@@ -143,9 +143,10 @@ static void sampler_thread(void *p1, void *p2, void *p3)
 			continue;
 		}
 
-		/* CH0 = real AD8232 signal scaled to 0..32767 */
+		/* CH0 = real AD8232 signal: raw 12-bit value (0..4095),
+		 * riding on half-scale (~2048) DC bias from REFOUT. */
 		memset(tp.ch, 0, sizeof(tp.ch));
-		tp.ch[0] = (int16_t)(((uint32_t)s.value * 32767U) / 4095U);
+		tp.ch[0] = s.value;
 
 		/* CH1 = sawtooth test signal, 0..4095 over 1 s (same range as 12-bit ADC) */
 		ramp_val = (int32_t)ramp_i * 4095 / (WALKEEG_SAMPLE_HZ - 1);

@@ -111,8 +111,6 @@ D:/GitHub/WalkEEG/02-firmware/build/zephyr/subsys/fb/CMakeFiles/edit_cache.dir
 D:/GitHub/WalkEEG/02-firmware/build/zephyr/subsys/fb/CMakeFiles/rebuild_cache.dir
 D:/GitHub/WalkEEG/02-firmware/build/zephyr/subsys/fs/CMakeFiles/edit_cache.dir
 D:/GitHub/WalkEEG/02-firmware/build/zephyr/subsys/fs/CMakeFiles/rebuild_cache.dir
-D:/GitHub/WalkEEG/02-firmware/build/zephyr/subsys/fs/nvs/CMakeFiles/edit_cache.dir
-D:/GitHub/WalkEEG/02-firmware/build/zephyr/subsys/fs/nvs/CMakeFiles/rebuild_cache.dir
 D:/GitHub/WalkEEG/02-firmware/build/zephyr/subsys/gnss/CMakeFiles/edit_cache.dir
 D:/GitHub/WalkEEG/02-firmware/build/zephyr/subsys/gnss/CMakeFiles/rebuild_cache.dir
 D:/GitHub/WalkEEG/02-firmware/build/zephyr/subsys/ipc/CMakeFiles/edit_cache.dir
@@ -170,9 +168,6 @@ D:/GitHub/WalkEEG/02-firmware/build/zephyr/subsys/bluetooth/services/CMakeFiles/
 D:/GitHub/WalkEEG/02-firmware/build/zephyr/subsys/bluetooth/services/CMakeFiles/rebuild_cache.dir
 D:/GitHub/WalkEEG/02-firmware/build/zephyr/subsys/bluetooth/lib/CMakeFiles/edit_cache.dir
 D:/GitHub/WalkEEG/02-firmware/build/zephyr/subsys/bluetooth/lib/CMakeFiles/rebuild_cache.dir
-D:/GitHub/WalkEEG/02-firmware/build/zephyr/subsys/crc/CMakeFiles/subsys__crc.dir
-D:/GitHub/WalkEEG/02-firmware/build/zephyr/subsys/crc/CMakeFiles/edit_cache.dir
-D:/GitHub/WalkEEG/02-firmware/build/zephyr/subsys/crc/CMakeFiles/rebuild_cache.dir
 D:/GitHub/WalkEEG/02-firmware/build/zephyr/subsys/settings/CMakeFiles/edit_cache.dir
 D:/GitHub/WalkEEG/02-firmware/build/zephyr/subsys/settings/CMakeFiles/rebuild_cache.dir
 D:/GitHub/WalkEEG/02-firmware/build/zephyr/subsys/settings/src/CMakeFiles/edit_cache.dir

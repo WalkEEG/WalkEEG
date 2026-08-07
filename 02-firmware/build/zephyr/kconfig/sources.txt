@@ -1,4 +1,3 @@
-D:\GitHub\WalkEEG\02-firmware\Kconfig
 D:\GitHub\WalkEEG\02-firmware\build\Kconfig\Kconfig.dts
 D:\GitHub\WalkEEG\02-firmware\build\Kconfig\Kconfig.modules
 D:\GitHub\WalkEEG\02-firmware\build\Kconfig\Kconfig.shield
@@ -393,6 +392,7 @@ D:\ncs\v3.2.1\nrfxlib\nrf_fuel_gauge\Kconfig
 D:\ncs\v3.2.1\nrfxlib\nrf_modem\Kconfig
 D:\ncs\v3.2.1\nrfxlib\nrf_rpc\Kconfig
 D:\ncs\v3.2.1\nrfxlib\openthread\Kconfig
+D:\ncs\v3.2.1\zephyr\Kconfig
 D:\ncs\v3.2.1\zephyr\Kconfig.constants
 D:\ncs\v3.2.1\zephyr\Kconfig.zephyr
 D:\ncs\v3.2.1\zephyr\arch\Kconfig

@@ -154,11 +154,6 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("D:/GitHub/WalkEEG/02-firmware/build/zephyr/subsys/crc/cmake_install.cmake")
-endif()
-
-if(NOT CMAKE_INSTALL_LOCAL_ONLY)
-  # Include the install script for the subdirectory.
   include("D:/GitHub/WalkEEG/02-firmware/build/zephyr/subsys/settings/cmake_install.cmake")
 endif()
 

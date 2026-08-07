@@ -41,10 +41,8 @@ cmake:
     files:
      - 'D:/ncs/v3.2.1/zephyr/boards/nordic/nrf52840dk/nrf52840dk_nrf52840_defconfig'
      - 'D:/GitHub/WalkEEG/02-firmware/prj.conf'
-     - 'D:/GitHub/WalkEEG/02-firmware/boards/nrf52840dk_nrf52840.conf'
     user-files:
      - 'D:/GitHub/WalkEEG/02-firmware/prj.conf'
-     - 'D:/GitHub/WalkEEG/02-firmware/boards/nrf52840dk_nrf52840.conf'
   toolchain:
     name: 'zephyr'
     path: 'D:/ncs/toolchains/66cdf9b75e/opt/zephyr-sdk'
