@@ -22,10 +22,18 @@ $env:PUB_HOSTED_URL="https://pub.flutter-io.cn"
 ## 运行
 
 ```bash
-cd mobile_walkeeg
+cd "05-Flutter program"
 flutter pub get
 flutter run
 ```
+
+## 云端同步
+
+`sam deploy` 后，将 `lib/config/app_config.dart` 填上 Cognito / API / S3 配置（参考 `app_config.example.dart` 与 [`../07-backend/INTEGRATION.md`](../07-backend/INTEGRATION.md)）。
+
+1. 连接设备后开始 **Start recording**（本地 CSV 分片，约 30s/片）
+2. **Stop recording** 保存到本地
+3. 登录云账号后点 **Sync** 增量上传到 `walkeeg-data`
 
 ## 使用
 

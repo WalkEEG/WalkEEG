@@ -41,6 +41,10 @@ class WalkEegPacketParser {
   int droppedFrames = 0;
   int? lastSeq;
   int? lastNSamples;
+  int totalSamples = 0;
+
+  /// Called after each parsed frame: (globalSampleIndex, perChannelSamples, n).
+  void Function(int sampleIndex, List<List<int>> perChannel, int n)? onFrame;
 
   void reset() {
     _buf.clear();
@@ -48,6 +52,7 @@ class WalkEegPacketParser {
     droppedFrames = 0;
     lastSeq = null;
     lastNSamples = null;
+    totalSamples = 0;
     for (final ch in channels) {
       ch.clear();
     }
@@ -138,5 +143,9 @@ class WalkEegPacketParser {
     for (var ch = 0; ch < numChannels; ch++) {
       channels[ch].addAll(perCh[ch]);
     }
+
+    final startIndex = totalSamples;
+    totalSamples += n;
+    onFrame?.call(startIndex, perCh, n);
   }
 }

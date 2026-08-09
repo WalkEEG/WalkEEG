@@ -2,7 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import 'auth/cognito_auth.dart';
 import 'ble/walkeeg_ble.dart';
+import 'config/app_config.dart';
+import 'storage/recording_service.dart';
+import 'storage/sync_service.dart';
+import 'ui/login_page.dart';
 import 'ui/waveform_painter.dart';
 
 void main() {
@@ -55,6 +60,9 @@ class _HomePageState extends State<HomePage> {
   static const _windowsMs = <int>[500, 250, 100, 50];
 
   final _ble = WalkEegBleController();
+  final _recording = RecordingService();
+  final _sync = SyncService();
+  final _auth = CognitoAuth();
   final Set<int> _selected = {0, 1};
   StreamSubscription<void>? _tickSub;
   StreamSubscription<String>? _statusSub;
@@ -63,6 +71,10 @@ class _HomePageState extends State<HomePage> {
   BleLinkState _state = BleLinkState.idle;
   double _yMax = 65535;
   int _windowMs = 2000;
+  CognitoSession? _session;
+  String _syncStatus = '';
+  bool _syncing = false;
+  int _pendingCount = 0;
 
   static const _colors = <Color>[
     Color(0xFF4ECDC4),
@@ -78,6 +90,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    _ble.parser.onFrame = (_, perCh, n) => _recording.onFrame(perCh, n);
     _tickSub = _ble.tickStream.listen((_) {
       if (mounted) setState(() {});
     });
@@ -87,6 +100,113 @@ class _HomePageState extends State<HomePage> {
     _stateSub = _ble.stateStream.listen((s) {
       if (mounted) setState(() => _state = s);
     });
+    _restoreSession();
+    _refreshPending();
+  }
+
+  Future<void> _restoreSession() async {
+    final session = await _auth.loadSession();
+    if (mounted) setState(() => _session = session);
+  }
+
+  Future<void> _refreshPending() async {
+    final pending = await _sync.loadPendingSessions();
+    if (mounted) {
+      setState(() => _pendingCount = pending.where((s) => !s.synced).length);
+    }
+  }
+
+  Future<void> _openLogin() async {
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (_) => LoginPage(
+          onLoggedIn: (session) {
+            setState(() => _session = session);
+            Navigator.of(context).pop();
+          },
+        ),
+      ),
+    );
+  }
+
+  Future<void> _logout() async {
+    await _auth.logout();
+    setState(() => _session = null);
+  }
+
+  Future<void> _toggleRecording() async {
+    if (_recording.isRecording) {
+      final session = await _recording.stopAndReturnSession();
+      if (session != null) {
+        await _sync.savePendingSession(session);
+      }
+      await _refreshPending();
+      if (mounted && session != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Saved ${session.segments.length} segment(s)')),
+        );
+      }
+    } else {
+      final name = 'session_${DateTime.now().millisecondsSinceEpoch}';
+      await _recording.start(name);
+      if (mounted) setState(() {});
+    }
+  }
+
+  Future<void> _syncPending() async {
+    if (_session == null) {
+      await _openLogin();
+      if (_session == null) return;
+    }
+    setState(() {
+      _syncing = true;
+      _syncStatus = 'Starting...';
+    });
+    try {
+      final fresh = await _auth.ensureFreshSession(_session!);
+      if (mounted) setState(() => _session = fresh);
+      final results = await _sync.syncAllPending(
+        fresh,
+        onStatus: (s) {
+          if (mounted) setState(() => _syncStatus = s);
+        },
+      );
+      await _refreshPending();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(results.isEmpty ? 'Nothing to sync' : results.join('\n')),
+          ),
+        );
+      }
+    } catch (e) {
+      final msg = e.toString();
+      if (mounted) {
+        final expired = msg.contains('Token expired') ||
+            msg.contains('Invalid login token') ||
+            msg.contains('Session expired');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              expired
+                  ? 'Login expired. Please sign in again, then Sync.'
+                  : 'Sync failed: $e',
+            ),
+          ),
+        );
+        if (expired) {
+          await _logout();
+          await _openLogin();
+        }
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _syncing = false;
+          _syncStatus = '';
+        });
+      }
+    }
   }
 
   @override
@@ -131,6 +251,21 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: const Text('WalkEEG'),
         actions: [
+          if (_session != null)
+            Padding(
+              padding: const EdgeInsets.only(right: 4),
+              child: Center(
+                child: Text(
+                  _session!.email,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
+            ),
+          IconButton(
+            tooltip: _session == null ? 'Sign in' : 'Sign out',
+            onPressed: _session == null ? _openLogin : _logout,
+            icon: Icon(_session == null ? Icons.login : Icons.logout),
+          ),
           DropdownButtonHideUnderline(
             child: DropdownButton<double>(
               value: _yMax,
@@ -171,9 +306,50 @@ class _HomePageState extends State<HomePage> {
             Text(
               'frames=$frames  seq=${parser.lastSeq ?? "-"}  '
               'drops=$drops  loss=${lossPct.toStringAsFixed(2)}%  '
-              'N=${parser.lastNSamples ?? "-"}',
+              'N=${parser.lastNSamples ?? "-"}  '
+              'samples=${parser.totalSamples}',
               style: Theme.of(context).textTheme.bodySmall,
             ),
+            if (!AppConfig.isConfigured)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(
+                  'Cloud not configured - set lib/config/app_config.dart after deploy.',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Colors.orangeAccent,
+                      ),
+                ),
+              ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                FilledButton.icon(
+                  onPressed: _toggleRecording,
+                  icon: Icon(_recording.isRecording ? Icons.stop : Icons.fiber_manual_record),
+                  label: Text(_recording.isRecording ? 'Stop recording' : 'Start recording'),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: _recording.isRecording ? Colors.red.shade700 : null,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                OutlinedButton.icon(
+                  onPressed: _syncing || _pendingCount == 0 ? null : _syncPending,
+                  icon: _syncing
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.cloud_upload),
+                  label: Text('Sync ($_pendingCount)'),
+                ),
+              ],
+            ),
+            if (_syncStatus.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text(_syncStatus, style: Theme.of(context).textTheme.bodySmall),
+              ),
             const SizedBox(height: 8),
             Wrap(
               spacing: 6,
@@ -182,7 +358,7 @@ class _HomePageState extends State<HomePage> {
                 return FilterChip(
                   label: Text('CH$ch'),
                   selected: on,
-                  selectedColor: _colors[ch].withOpacity(0.35),
+                  selectedColor: _colors[ch].withValues(alpha: 0.35),
                   onSelected: (_) => _toggleChannel(ch),
                 );
               }),
