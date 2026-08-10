@@ -9,9 +9,13 @@
  *
  *   w0 = 2*pi*F0/FS,  r = pole radius (0.99)
  *
- * Difference equation (b2 = 1):
- *   y[n] = x[n] + b1*x[n-1] + x[n-2] - a1*y[n-1] - a2*y[n-2]
- *   b1 = -2*cos(w0),  a1 = 2*r*cos(w0),  a2 = r^2
+ * Difference equation (b2 = 1, a1 defined POSITIVE):
+ *   y[n] = x[n] + b1*x[n-1] + x[n-2] + a1*y[n-1] - a2*y[n-2]
+ *   b1 = -2*cos(w0),  a1 = +2*r*cos(w0),  a2 = r^2
+ *
+ * NOTE: the a1 feedback term must be ADDED (positive feedback
+ * keeps the poles at +-w0).  A sign error here moves the poles
+ * to pi-w0 (~200 Hz) and turns the notch into a ~160x resonator.
  *
  * Float math runs on the Cortex-M4F FPU — negligible cost at 500 Hz.
  */
@@ -29,6 +33,7 @@ static float b1, a1, a2;   /* coefficients (b2 = 1) */
 static float x1, x2;       /* past inputs  */
 static float y1, y2;       /* past outputs */
 static bool  inited;
+static bool  primed;       /* warm-up done */
 
 static void notch_coeffs_init(void)
 {
@@ -52,6 +57,7 @@ void notch_reset(void)
 {
 	ensure_init();
 	x1 = x2 = y1 = y2 = 0.0f;
+	primed = false;
 }
 
 int16_t notch_50hz(int16_t x)
@@ -61,7 +67,18 @@ int16_t notch_50hz(int16_t x)
 
 	ensure_init();
 
-	yn = xn + b1 * x1 + x2 - a1 * y1 - a2 * y2;
+	if (!primed) {
+		/* Warm-up: seed the filter with the first sample so the
+		 * ~2.4 V DC baseline is not a step input (avoids start
+		 * transient ringing).  With constant input the output
+		 * stays ~x (DC gain ~1). */
+		x1 = x2 = xn;
+		y1 = y2 = xn;
+		primed = true;
+		return x;
+	}
+
+	yn = xn + b1 * x1 + x2 + a1 * y1 - a2 * y2;
 
 	x2 = x1;
 	x1 = xn;
