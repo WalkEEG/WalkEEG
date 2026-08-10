@@ -13,6 +13,7 @@ target_sources(app PRIVATE
   src/main.c
   src/stream.c
   src/adc_sample.c
+  src/notch.c
 )
 
 # NORDIC SDK APP END

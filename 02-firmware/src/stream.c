@@ -1,13 +1,15 @@
 /*
  * WalkEEG: AD8232 ECG framing + NUS Notify stream.
  *
- * 1 analog channel (SAADC AIN0 = P0.02) sampled at 500 Hz;
+ * 1 analog channel (SAADC AIN0 = P0.02) sampled at 500 Hz,
+ * 50 Hz mains notch filtered (see notch.c);
  * lead-off flags (LO+/LO-) are packed into the frame header flags byte:
  *   bit0 = LO+ (1 = lead attached), bit1 = LO- (1 = lead attached)
  */
 
 #include "stream.h"
 #include "adc_sample.h"
+#include "notch.h"
 
 #include <zephyr/kernel.h>
 #include <zephyr/sys/atomic.h>
@@ -144,9 +146,10 @@ static void sampler_thread(void *p1, void *p2, void *p3)
 		}
 
 		/* CH0 = real AD8232 signal: raw 12-bit value (0..4095),
-		 * riding on half-scale (~2048) DC bias from REFOUT. */
+		 * riding on half-scale (~2048) DC bias from REFOUT,
+		 * 50 Hz mains notch filtered before framing. */
 		memset(tp.ch, 0, sizeof(tp.ch));
-		tp.ch[0] = s.value;
+		tp.ch[0] = notch_50hz(s.value);
 
 		/* CH1 = sawtooth test signal, 0..4095 over 1 s (same range as 12-bit ADC) */
 		ramp_val = (int32_t)ramp_i * 4095 / (WALKEEG_SAMPLE_HZ - 1);
@@ -232,6 +235,7 @@ static void update_streaming_flag(void)
 
 	if (on) {
 		frame_seq = 0;
+		notch_reset();
 		ring_reset();
 		k_timer_start(&sample_timer, K_USEC(1000U * 1000U / WALKEEG_SAMPLE_HZ),
 			      K_USEC(1000U * 1000U / WALKEEG_SAMPLE_HZ));
