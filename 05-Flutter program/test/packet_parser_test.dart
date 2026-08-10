@@ -7,6 +7,7 @@ Uint8List buildFrame({
   required int seq,
   required int nSamples,
   required List<int> firstSampleCh,
+  bool constant = false,
 }) {
   final payloadLen = nSamples * 8 * 2;
   final frame = Uint8List(6 + payloadLen);
@@ -20,7 +21,7 @@ Uint8List buildFrame({
   var off = 6;
   for (var t = 0; t < nSamples; t++) {
     for (var ch = 0; ch < 8; ch++) {
-      final value = firstSampleCh[ch] + t;
+      final value = constant ? firstSampleCh[ch] : firstSampleCh[ch] + t;
       frame[off] = value & 0xFF;
       frame[off + 1] = (value >> 8) & 0xFF;
       off += 2;
@@ -30,14 +31,36 @@ Uint8List buildFrame({
 }
 
 void main() {
-  test('parses valid frame into 8 channels', () {
-    final parser = WalkEegPacketParser();
+  test('parses valid frame into 8 channels (raw, filter off)', () {
+    final parser = WalkEegPacketParser(filterOn: false);
     parser.feed(buildFrame(seq: 1, nSamples: 2, firstSampleCh: [100, 101, 102, 103, 104, 105, 106, 107]));
 
     expect(parser.parsedFrames, 1);
     expect(parser.lastSeq, 1);
     expect(parser.channels[0].samples, [100, 101]);
     expect(parser.channels[7].samples, [107, 108]);
+  });
+
+  test('filtered CH0 reaches steady state (transients settle)', () {
+    final parser = WalkEegPacketParser(filterOn: true);
+    // Feed ~1 s of constant samples (67 frames x 30 samples, matching the
+    // firmware's max frame size): the Q=20 notch has a long time constant
+    // (r=0.996) so it takes ~1 s to fully settle. Check the tail matches the
+    // input (both filters have unity DC gain).
+    for (var i = 0; i < 67; i++) {
+      parser.feed(buildFrame(
+          seq: i + 1,
+          nSamples: 30,
+          firstSampleCh: List.filled(8, 1000),
+          constant: true));
+    }
+
+    final ch0 = parser.channels[0].samples;
+    expect(ch0.length, 2010);
+    for (final v in ch0.skip(1900)) {
+      expect((v - 1000).abs(), lessThanOrEqualTo(1),
+          reason: 'CH0 steady state should track DC input 1000, got $v');
+    }
   });
 
   test('detects dropped frames via seq gap', () {
@@ -49,7 +72,7 @@ void main() {
   });
 
   test('resyncs after garbage prefix', () {
-    final parser = WalkEegPacketParser();
+    final parser = WalkEegPacketParser(filterOn: false);
     final garbage = Uint8List.fromList([0x00, 0x11, 0x22]);
     final frame = buildFrame(seq: 5, nSamples: 1, firstSampleCh: List.filled(8, 42));
 

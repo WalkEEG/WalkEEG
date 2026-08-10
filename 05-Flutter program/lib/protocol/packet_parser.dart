@@ -1,5 +1,8 @@
 import 'dart:typed_data';
 
+import '../dsp/butterworth_lowpass.dart';
+import '../dsp/mains_notch_filter.dart';
+
 /// Per-channel rolling sample buffer for plotting.
 class ChannelBuffer {
   ChannelBuffer({this.capacity = 20000});
@@ -20,12 +23,38 @@ class ChannelBuffer {
 /// Parses WalkEEG NUS binary frames (see docs/WALKEEG_PACKET.md).
 class WalkEegPacketParser {
   /// Buffer capacity = max display window (10 s at 2 kHz).
-  WalkEegPacketParser({this.channelCapacity = 20000}) {
+  WalkEegPacketParser({
+    this.channelCapacity = 20000,
+    bool filterOn = true,
+    int sampleRate = 2000,
+  }) : _filterOn = filterOn {
     channels = List.generate(
       8,
       (_) => ChannelBuffer(capacity: channelCapacity),
     );
+    _notch = MainsNotchFilter(sampleRate: sampleRate);
+    _lowpass = ButterworthLowPass();
   }
+
+  /// Applies the ECG processing chain to channel 0 (real ECG) when enabled:
+  /// single 50 Hz mains notch + 100 Hz low-pass (band-limit). This follows
+  /// standard ECG practice (AAMI EC57): one narrow notch for line hum, a
+  /// low-pass for broadband noise — harmonic notches are avoided because
+  /// they blunt QRS high-frequency content.
+  /// CH1 (12-bit calibration sawtooth) and the zero channels are left raw.
+  bool _filterOn;
+  bool get filterOn => _filterOn;
+  set filterOn(bool v) {
+    if (_filterOn != v) {
+      _filterOn = v;
+      // Clear filter state on toggle so the waveform doesn't jump.
+      _notch.reset();
+      _lowpass.reset();
+    }
+  }
+
+  late final MainsNotchFilter _notch;
+  late final ButterworthLowPass _lowpass;
 
   static const int magic = 0xA5;
   static const int version = 0x01;
@@ -48,6 +77,7 @@ class WalkEegPacketParser {
     droppedFrames = 0;
     lastSeq = null;
     lastNSamples = null;
+    _notch.reset();
     for (final ch in channels) {
       ch.clear();
     }
@@ -136,7 +166,17 @@ class WalkEegPacketParser {
     }
 
     for (var ch = 0; ch < numChannels; ch++) {
-      channels[ch].addAll(perCh[ch]);
+      if (filterOn && ch == 0) {
+        // 50 Hz notch + 100 Hz low-pass on the real ECG channel only. The
+        // raw values are 0..65535 unsigned; both filters are linear with
+        // unity DC gain, so output stays in range, but clamp defensively.
+        channels[ch].addAll(perCh[ch].map((v) {
+          final y = _lowpass.process(_notch.process(v.toDouble()));
+          return y.round().clamp(0, 65535);
+        }));
+      } else {
+        channels[ch].addAll(perCh[ch]);
+      }
     }
   }
 }

@@ -8,12 +8,17 @@ class WaveformPainter extends CustomPainter {
     required this.colors,
     this.yMin = 0,
     this.yMax = 32767,
+    this.acMode = false,
   });
 
   final List<List<int>> series;
   final List<Color> colors;
   final double yMin;
   final double yMax;
+
+  /// AC-coupled autoscale display (monitor style): each channel is centered
+  /// on its own mean and scaled so its peak-to-peak span fills the plot.
+  final bool acMode;
 
   static const double _axisPadLeft = 44;
   static const double _axisPadBottom = 4;
@@ -60,6 +65,11 @@ class WaveformPainter extends CustomPainter {
       canvas.drawLine(Offset(plot.left, y), Offset(plot.right, y), grid);
       canvas.drawLine(Offset(plot.left - 5, y), Offset(plot.left, y), tick);
 
+      if (acMode) {
+        // Numeric scale is meaningless when each channel autoscales.
+        continue;
+      }
+
       tp.text = TextSpan(
         text: value.round().toString(),
         style: const TextStyle(
@@ -71,6 +81,19 @@ class WaveformPainter extends CustomPainter {
       tp.layout(minWidth: 0, maxWidth: _axisPadLeft - 8);
       final labelY = (y - tp.height / 2).clamp(0.0, size.height - tp.height);
       tp.paint(canvas, Offset(_axisPadLeft - 8 - tp.width, labelY));
+    }
+
+    if (acMode) {
+      tp.text = const TextSpan(
+        text: 'AC',
+        style: TextStyle(
+          color: Color(0xCCFFFFFF),
+          fontSize: 10,
+          fontFeatures: [FontFeature.tabularFigures()],
+        ),
+      );
+      tp.layout(minWidth: 0, maxWidth: _axisPadLeft - 8);
+      tp.paint(canvas, Offset(_axisPadLeft - 8 - tp.width, 0));
     }
 
     // X baseline
@@ -96,6 +119,20 @@ class WaveformPainter extends CustomPainter {
         ..style = PaintingStyle.stroke
         ..isAntiAlias = true;
 
+      // AC-coupled autoscale: center on mean, span fills 90% of plot height.
+      final double mean;
+      final double span;
+      if (acMode) {
+        final stats = acStats(samples);
+        mean = stats.$1;
+        span = stats.$2;
+      } else {
+        mean = yMin;
+        span = range;
+      }
+      final centerY = plot.top + plot.height / 2;
+      final amp = acMode ? plot.height * 0.9 : plot.height;
+
       final path = Path();
       final n = samples.length;
       final dx = plot.width / (n - 1);
@@ -103,7 +140,9 @@ class WaveformPainter extends CustomPainter {
       for (var i = 0; i < n; i++) {
         final v = samples[i].toDouble().clamp(yMin, yMax);
         final x = plot.left + i * dx;
-        final y = plot.bottom - ((v - yMin) / range) * plot.height;
+        final y = acMode
+            ? centerY - ((v - mean) / span) * amp / 2
+            : plot.bottom - ((v - yMin) / range) * plot.height;
         if (i == 0) {
           path.moveTo(x, y);
         } else {
@@ -128,4 +167,20 @@ List<int> downsample(List<int> src, int maxPoints) {
     out.add(src[idx]);
   }
   return out;
+}
+
+/// AC-coupled autoscale stats for a sample set: (mean, peak-to-peak span).
+/// Span is floored at 1 so division never explodes.
+(double, double) acStats(List<int> samples) {
+  if (samples.isEmpty) return (0, 1);
+  var sum = 0;
+  var mn = samples.first;
+  var mx = samples.first;
+  for (final v in samples) {
+    sum += v;
+    if (v < mn) mn = v;
+    if (v > mx) mx = v;
+  }
+  final span = math.max(mx - mn, 1).toDouble();
+  return (sum / samples.length, span);
 }

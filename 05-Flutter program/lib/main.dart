@@ -40,8 +40,10 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   static const _sampleRateHz = 2000;
 
-  /// Y-axis ranges for 8/10/12/14/16-bit ADC modes (unsigned).
+  /// Y-axis display: AC auto (monitor-style autoscale) or fixed unsigned
+  /// ranges for 8/10/12/14/16-bit ADC modes.
   static const _yRanges = <(String, double)>[
+    ('AC Auto', -1),
     ('8-bit · 0-255', 255),
     ('10-bit · 0-1023', 1023),
     ('12-bit · 0-4095', 4095),
@@ -61,8 +63,9 @@ class _HomePageState extends State<HomePage> {
   StreamSubscription<BleLinkState>? _stateSub;
   String _status = 'Idle';
   BleLinkState _state = BleLinkState.idle;
-  double _yMax = 65535;
+  double _yMax = -1; // -1 = AC auto
   int _windowMs = 2000;
+  bool _filterOn = true; // false = raw passthrough, true = notch+lowpass
 
   static const _colors = <Color>[
     Color(0xFF4ECDC4),
@@ -108,6 +111,13 @@ class _HomePageState extends State<HomePage> {
         }
         _selected.add(ch);
       }
+    });
+  }
+
+  void _setFilter(bool on) {
+    setState(() {
+      _filterOn = on;
+      _ble.parser.filterOn = on; // parser resets filter state on change
     });
   }
 
@@ -196,10 +206,32 @@ class _HomePageState extends State<HomePage> {
                     series: plotData,
                     colors: plotColors,
                     yMin: 0,
-                    yMax: _yMax,
+                    yMax: _yMax < 0 ? 65535 : _yMax,
+                    acMode: _yMax < 0,
                   ),
                   child: const SizedBox.expand(),
                 ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            SegmentedButton<bool>(
+              segments: const [
+                ButtonSegment(
+                  value: false,
+                  label: Text('原始直通'),
+                  icon: Icon(Icons.data_object),
+                ),
+                ButtonSegment(
+                  value: true,
+                  label: Text('50Hz+100LP'),
+                  icon: Icon(Icons.graphic_eq),
+                ),
+              ],
+              selected: {_filterOn},
+              onSelectionChanged: (sel) => _setFilter(sel.first),
+              showSelectedIcon: false,
+              style: const ButtonStyle(
+                visualDensity: VisualDensity.compact,
               ),
             ),
             const SizedBox(height: 8),
@@ -240,9 +272,10 @@ class _HomePageState extends State<HomePage> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Y: 0 … ${_yMax.round()}  ·  window '
+              'Y: ${_yMax < 0 ? "AC auto" : "0 … ${_yMax.round()}"}  ·  window '
               '${_windowMs >= 1000 ? "${_windowMs ~/ 1000}s" : "${_windowMs}ms"}  ·  '
-              '8ch × 16-bit @ ${_sampleRateHz ~/ 1000}kHz',
+              '8ch × 16-bit @ ${_sampleRateHz ~/ 1000}kHz  ·  '
+              'filter:${_filterOn ? "on" : "raw"}',
               style: Theme.of(context).textTheme.bodySmall,
               textAlign: TextAlign.center,
             ),
