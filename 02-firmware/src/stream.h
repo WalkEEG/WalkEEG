@@ -1,5 +1,8 @@
 /*
- * WalkEEG 8-channel 16-bit @ 2 kHz test-signal stream over NUS.
+ * WalkEEG AD8232 ECG stream over NUS.
+ *  - 8-channel frame layout (App-compatible): CH0 = AD8232 ADC, CH1..7 = 0
+ *  - 500 Hz sample rate
+ *  - lead-off flags in frame header
  */
 #ifndef WALKEEG_STREAM_H_
 #define WALKEEG_STREAM_H_
@@ -8,7 +11,7 @@
 #include <stdbool.h>
 
 #define WALKEEG_NUM_CH        8
-#define WALKEEG_SAMPLE_HZ     2000
+#define WALKEEG_SAMPLE_HZ     500
 #define WALKEEG_MAGIC         0xA5
 #define WALKEEG_VERSION       0x01
 #define WALKEEG_HDR_LEN       6

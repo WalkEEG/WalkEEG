@@ -8,6 +8,7 @@ config PARTITION_MANAGER
 	default y if BOARD_THINGY53
 
 config MERGED_HEX_FILES
+	bool
 	default y if !SOC_SERIES_NRF54H
 
 config NRF_DEFAULT_IPC_RADIO

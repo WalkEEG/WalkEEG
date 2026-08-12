@@ -1,0 +1,8 @@
+[error] [SeggerBackend] - JLinkARM.dll reported error -256 at line 775.
+[error] [SeggerBackend] - JLinkARM.dll reported error -256 at line 652.
+69646215
+[error] [SeggerBackend] - JLinkARM.dll reported error -256 at line 4332.
+[error] [SeggerBackend] - JLinkARM.dll reported error -256 at line 988.
+[error] [SeggerBackend] - JLinkARM.dll reported error -256 at line 4332.
+[error] [SeggerBackend] - JLinkARM.dll reported error -256 at line 4332.
+[error] [SeggerBackend] - JLinkARM.dll reported error -256 at line 4332.

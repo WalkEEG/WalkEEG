@@ -1,0 +1,1478 @@
+(kicad_sch
+    (version 20250610)
+    (generator "eeschema")
+    (generator_version "10.0")
+    (uuid "27966414-12a3-4943-b449-4e74f80e0212")
+    (paper "A3")
+    (title_block
+        (title "AD8232 ECG Front-End Module")
+        (date "2026-08-06")
+        (rev "1.0")
+        (company "WalkEEG")
+    )
+    (lib_symbols
+    (symbol "WalkEEG:AD8232"
+        (pin_names (offset 1.016))
+        (in_bom yes)
+        (on_board yes)
+        (property "Reference" "U" (at 0 11.43 0) (effects (font (size 1.27 1.27))))
+        (property "Value" "AD8232" (at 0 -13.97 0) (effects (font (size 1.27 1.27))))
+        (property "Footprint" "Package_CSP:LFCSP-20-1EP_4x4mm_P0.5mm_EP2.5x2.5mm" (at 0 0 0) (effects (font (size 1.27 1.27)) (hide yes)))
+        (property "Datasheet" "https://www.analog.com/media/en/technical-documentation/data-sheets/ad8232.pdf" (at 0 0 0) (effects (font (size 1.27 1.27)) (hide yes)))
+        (property "Description" "Single-lead, Heart Rate Monitor Front End" (at 0 0 0) (effects (font (size 1.27 1.27)) (hide yes)))
+        (property "ki_keywords" "ECG heart monitor biopotential" (at 0 0 0) (effects (font (size 1.27 1.27)) (hide yes)))
+        (symbol "AD8232_0_1"
+            (rectangle (start -7.62 -10.16) (end 7.62 10.16)
+                (stroke (width 0.254) (type default))
+                (fill (type background))
+            )
+        )
+        (symbol "AD8232_1_1"
+            (pin passive line (at -10.16 8.89 0) (length 2.54)
+                (name "HPDRIVE" (effects (font (size 1.27 1.27))))
+                (number "1" (effects (font (size 1.27 1.27))))
+            )
+            (pin passive line (at -10.16 7.62 0) (length 2.54)
+                (name "+IN" (effects (font (size 1.27 1.27))))
+                (number "2" (effects (font (size 1.27 1.27))))
+            )
+            (pin passive line (at -10.16 6.35 0) (length 2.54)
+                (name "-IN" (effects (font (size 1.27 1.27))))
+                (number "3" (effects (font (size 1.27 1.27))))
+            )
+            (pin passive line (at -10.16 5.08 0) (length 2.54)
+                (name "RLDFB" (effects (font (size 1.27 1.27))))
+                (number "4" (effects (font (size 1.27 1.27))))
+            )
+            (pin passive line (at -10.16 3.81 0) (length 2.54)
+                (name "RLD" (effects (font (size 1.27 1.27))))
+                (number "5" (effects (font (size 1.27 1.27))))
+            )
+            (pin passive line (at -10.16 2.54 0) (length 2.54)
+                (name "SW" (effects (font (size 1.27 1.27))))
+                (number "6" (effects (font (size 1.27 1.27))))
+            )
+            (pin passive line (at -10.16 1.27 0) (length 2.54)
+                (name "OPAMP+" (effects (font (size 1.27 1.27))))
+                (number "7" (effects (font (size 1.27 1.27))))
+            )
+            (pin passive line (at -10.16 0.0 0) (length 2.54)
+                (name "REFOUT" (effects (font (size 1.27 1.27))))
+                (number "8" (effects (font (size 1.27 1.27))))
+            )
+            (pin passive line (at -10.16 -1.27 0) (length 2.54)
+                (name "OPAMP-" (effects (font (size 1.27 1.27))))
+                (number "9" (effects (font (size 1.27 1.27))))
+            )
+            (pin passive line (at -10.16 -2.54 0) (length 2.54)
+                (name "OUT" (effects (font (size 1.27 1.27))))
+                (number "10" (effects (font (size 1.27 1.27))))
+            )
+            (pin passive line (at 10.16 8.89 180) (length 2.54)
+                (name "LO-" (effects (font (size 1.27 1.27))))
+                (number "11" (effects (font (size 1.27 1.27))))
+            )
+            (pin passive line (at 10.16 7.62 180) (length 2.54)
+                (name "LO+" (effects (font (size 1.27 1.27))))
+                (number "12" (effects (font (size 1.27 1.27))))
+            )
+            (pin passive line (at 10.16 6.35 180) (length 2.54)
+                (name "SDN" (effects (font (size 1.27 1.27))))
+                (number "13" (effects (font (size 1.27 1.27))))
+            )
+            (pin passive line (at 10.16 5.08 180) (length 2.54)
+                (name "AC/DC" (effects (font (size 1.27 1.27))))
+                (number "14" (effects (font (size 1.27 1.27))))
+            )
+            (pin passive line (at 10.16 3.81 180) (length 2.54)
+                (name "FR" (effects (font (size 1.27 1.27))))
+                (number "15" (effects (font (size 1.27 1.27))))
+            )
+            (pin passive line (at 10.16 2.54 180) (length 2.54)
+                (name "GND" (effects (font (size 1.27 1.27))))
+                (number "16" (effects (font (size 1.27 1.27))))
+            )
+            (pin passive line (at 10.16 1.27 180) (length 2.54)
+                (name "+VS" (effects (font (size 1.27 1.27))))
+                (number "17" (effects (font (size 1.27 1.27))))
+            )
+            (pin passive line (at 10.16 0.0 180) (length 2.54)
+                (name "REFIN" (effects (font (size 1.27 1.27))))
+                (number "18" (effects (font (size 1.27 1.27))))
+            )
+            (pin passive line (at 10.16 -1.27 180) (length 2.54)
+                (name "IAOUT" (effects (font (size 1.27 1.27))))
+                (number "19" (effects (font (size 1.27 1.27))))
+            )
+            (pin passive line (at 10.16 -2.54 180) (length 2.54)
+                (name "HPSENSE" (effects (font (size 1.27 1.27))))
+                (number "20" (effects (font (size 1.27 1.27))))
+            )
+        )
+    )
+    )
+    (symbol
+        (lib_id "WalkEEG:AD8232")
+        (at 101.6 101.6 0)
+        (unit 1)
+        (exclude_from_sim no)
+        (in_bom yes)
+        (on_board yes)
+        (dnp no)
+        (uuid "b0e86977-da40-45e1-990b-d6187c8982ea")
+        (property "Reference" "U1"
+            (at 101.6 99.05999999999999 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Value" "AD8232"
+            (at 101.6 104.14 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Footprint" "Package_CSP:LFCSP-20-1EP_4x4mm_P0.5mm_EP2.5x2.5mm"
+            (at 101.6 101.6 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (property "Datasheet" ""
+            (at 101.6 101.6 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (pin "1" (uuid "92555dcd-d705-4edb-9408-18b4859ad8b9"))
+        (pin "2" (uuid "c4c6627b-bdb7-4331-88ed-53083484a150"))
+        (pin "3" (uuid "bb5c0a03-3208-4a52-8206-d5c8383c02f3"))
+        (pin "4" (uuid "73eb3f46-307d-482a-94b7-937a80d0a534"))
+        (pin "5" (uuid "2942af71-7c5d-4663-b393-7ae839f0ac1d"))
+        (pin "6" (uuid "f72c0878-1fb9-4cb4-bf09-92d7988155f5"))
+        (pin "7" (uuid "8d7319f2-4057-4c4e-8b90-a2dec516cbd0"))
+        (pin "8" (uuid "5a2d6b9d-c666-42f9-a2ac-f2eacc851a80"))
+        (pin "9" (uuid "d860ca64-892a-4d29-92eb-b65182a39c2e"))
+        (pin "10" (uuid "28181b21-765e-4105-b73d-ddfc4dbd27f4"))
+        (pin "11" (uuid "0853473f-0e70-46d2-b2d3-a78cd2562afd"))
+        (pin "12" (uuid "fcd5b64f-d257-41ae-a294-79959affe9fc"))
+        (pin "13" (uuid "78d2764d-31e2-4f73-ad6d-e72a20ccca31"))
+        (pin "14" (uuid "07e7d1df-8039-48c3-9dd7-0273dcf8e83b"))
+        (pin "15" (uuid "24c8d834-df8b-4adf-87be-cccb42ae4a2e"))
+        (pin "16" (uuid "b6edeb24-f540-4741-933d-f873b960af8c"))
+        (pin "17" (uuid "12596530-3514-4f29-969a-774a883337a3"))
+        (pin "18" (uuid "2f90582c-1677-4494-8b92-017b2870491a"))
+        (pin "19" (uuid "9828b9cc-ec78-4649-aa92-becbd8098134"))
+        (pin "20" (uuid "a6f0b598-1a79-4d69-82e5-cfe29e4bffaf"))
+        (instances
+            (project "ad8232_module"
+                (path "/ed3a34e4-161e-426c-95a8-b9054ed5b08d"
+                    (reference "U1")
+                    (unit 1)
+                )
+            )
+        )
+    )
+    (symbol
+        (lib_id "Device:R")
+        (at 31.75 139.7 0)
+        (unit 1)
+        (exclude_from_sim no)
+        (in_bom yes)
+        (on_board yes)
+        (dnp no)
+        (uuid "f2ea250c-ecc1-4428-937f-b2a8f23e6d88")
+        (property "Reference" "R1"
+            (at 31.75 137.16 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Value" "10M"
+            (at 31.75 142.23999999999998 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+            (at 31.75 139.7 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (property "Datasheet" ""
+            (at 31.75 139.7 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (instances
+            (project "ad8232_module"
+                (path "/6ee95a3c-fa49-4617-8ab8-41440b4beb75"
+                    (reference "R1")
+                    (unit 1)
+                )
+            )
+        )
+    )
+    (symbol
+        (lib_id "Device:R")
+        (at 31.75 165.1 0)
+        (unit 1)
+        (exclude_from_sim no)
+        (in_bom yes)
+        (on_board yes)
+        (dnp no)
+        (uuid "69ed4944-124e-402f-863d-e2f162c74850")
+        (property "Reference" "R2"
+            (at 31.75 162.56 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Value" "10M"
+            (at 31.75 167.64 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+            (at 31.75 165.1 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (property "Datasheet" ""
+            (at 31.75 165.1 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (instances
+            (project "ad8232_module"
+                (path "/e9d8e236-4162-49f9-8844-c8147fd67a5d"
+                    (reference "R2")
+                    (unit 1)
+                )
+            )
+        )
+    )
+    (symbol
+        (lib_id "Device:R")
+        (at 55.88 139.7 0)
+        (unit 1)
+        (exclude_from_sim no)
+        (in_bom yes)
+        (on_board yes)
+        (dnp no)
+        (uuid "4d99ce0d-db88-42aa-aabc-ca2cb1a098ff")
+        (property "Reference" "R3"
+            (at 55.88 137.16 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Value" "180k"
+            (at 55.88 142.23999999999998 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+            (at 55.88 139.7 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (property "Datasheet" ""
+            (at 55.88 139.7 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (instances
+            (project "ad8232_module"
+                (path "/a4d1efa2-70be-4a41-8e2d-ad85a8d56187"
+                    (reference "R3")
+                    (unit 1)
+                )
+            )
+        )
+    )
+    (symbol
+        (lib_id "Device:R")
+        (at 55.88 165.1 0)
+        (unit 1)
+        (exclude_from_sim no)
+        (in_bom yes)
+        (on_board yes)
+        (dnp no)
+        (uuid "02a5e19c-019e-4dd0-9760-7a3b68c73b2c")
+        (property "Reference" "R4"
+            (at 55.88 162.56 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Value" "180k"
+            (at 55.88 167.64 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+            (at 55.88 165.1 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (property "Datasheet" ""
+            (at 55.88 165.1 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (instances
+            (project "ad8232_module"
+                (path "/db046794-71ff-4f5b-8d4d-bcfec5fa4401"
+                    (reference "R4")
+                    (unit 1)
+                )
+            )
+        )
+    )
+    (symbol
+        (lib_id "Device:R")
+        (at 31.75 190.5 0)
+        (unit 1)
+        (exclude_from_sim no)
+        (in_bom yes)
+        (on_board yes)
+        (dnp no)
+        (uuid "b7a41230-735f-43d8-8edc-7b94a3b04d06")
+        (property "Reference" "R5"
+            (at 31.75 187.96 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Value" "360k"
+            (at 31.75 193.04 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+            (at 31.75 190.5 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (property "Datasheet" ""
+            (at 31.75 190.5 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (instances
+            (project "ad8232_module"
+                (path "/3bba684c-5ac3-4e92-a79d-d6d55d7932a4"
+                    (reference "R5")
+                    (unit 1)
+                )
+            )
+        )
+    )
+    (symbol
+        (lib_id "Device:C")
+        (at 55.88 120.65 0)
+        (unit 1)
+        (exclude_from_sim no)
+        (in_bom yes)
+        (on_board yes)
+        (dnp no)
+        (uuid "f46b0374-ac66-4f61-939d-51f4194f05c2")
+        (property "Reference" "C1"
+            (at 55.88 118.11 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Value" "1.5nF"
+            (at 55.88 123.19000000000001 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+            (at 55.88 120.65 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (property "Datasheet" ""
+            (at 55.88 120.65 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (instances
+            (project "ad8232_module"
+                (path "/883a15d4-aa9e-4563-a75c-1c8c0433abe2"
+                    (reference "C1")
+                    (unit 1)
+                )
+            )
+        )
+    )
+    (symbol
+        (lib_id "Device:C")
+        (at 55.88 190.5 0)
+        (unit 1)
+        (exclude_from_sim no)
+        (in_bom yes)
+        (on_board yes)
+        (dnp no)
+        (uuid "2313d812-8c8e-4ce5-9c20-a92702809020")
+        (property "Reference" "C2"
+            (at 55.88 187.96 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Value" "1nF"
+            (at 55.88 193.04 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+            (at 55.88 190.5 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (property "Datasheet" ""
+            (at 55.88 190.5 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (instances
+            (project "ad8232_module"
+                (path "/065ee0fd-be29-42f9-8040-247c900ae2d1"
+                    (reference "C2")
+                    (unit 1)
+                )
+            )
+        )
+    )
+    (symbol
+        (lib_id "Device:C")
+        (at 76.2 120.65 0)
+        (unit 1)
+        (exclude_from_sim no)
+        (in_bom yes)
+        (on_board yes)
+        (dnp no)
+        (uuid "c68b4e25-825f-44d1-a691-05276c77a924")
+        (property "Reference" "C3"
+            (at 76.2 118.11 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Value" "10nF"
+            (at 76.2 123.19000000000001 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+            (at 76.2 120.65 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (property "Datasheet" ""
+            (at 76.2 120.65 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (instances
+            (project "ad8232_module"
+                (path "/e674e9df-4cdf-4033-b6cf-dd2224a3007b"
+                    (reference "C3")
+                    (unit 1)
+                )
+            )
+        )
+    )
+    (symbol
+        (lib_id "Device:R")
+        (at 76.2 139.7 0)
+        (unit 1)
+        (exclude_from_sim no)
+        (in_bom yes)
+        (on_board yes)
+        (dnp no)
+        (uuid "51b20f7e-d6b6-40cf-a485-356591358681")
+        (property "Reference" "R6"
+            (at 76.2 137.16 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Value" "1M"
+            (at 76.2 142.23999999999998 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+            (at 76.2 139.7 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (property "Datasheet" ""
+            (at 76.2 139.7 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (instances
+            (project "ad8232_module"
+                (path "/195c414e-dc47-4204-86e6-d09f8d900c57"
+                    (reference "R6")
+                    (unit 1)
+                )
+            )
+        )
+    )
+    (symbol
+        (lib_id "Device:R")
+        (at 76.2 165.1 0)
+        (unit 1)
+        (exclude_from_sim no)
+        (in_bom yes)
+        (on_board yes)
+        (dnp no)
+        (uuid "f30645c7-b998-4e55-91b5-30f32c00495e")
+        (property "Reference" "R7"
+            (at 76.2 162.56 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Value" "1M"
+            (at 76.2 167.64 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+            (at 76.2 165.1 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (property "Datasheet" ""
+            (at 76.2 165.1 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (instances
+            (project "ad8232_module"
+                (path "/e18de331-c619-4dff-a93e-e137c981bf97"
+                    (reference "R7")
+                    (unit 1)
+                )
+            )
+        )
+    )
+    (symbol
+        (lib_id "Device:R")
+        (at 55.88 111.76 0)
+        (unit 1)
+        (exclude_from_sim no)
+        (in_bom yes)
+        (on_board yes)
+        (dnp no)
+        (uuid "30496b7c-8122-4133-8eb6-62ef77a4bbf6")
+        (property "Reference" "R8"
+            (at 55.88 109.22 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Value" "100k"
+            (at 55.88 114.30000000000001 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+            (at 55.88 111.76 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (property "Datasheet" ""
+            (at 55.88 111.76 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (instances
+            (project "ad8232_module"
+                (path "/2530d453-6482-4445-a624-1cabcca7707b"
+                    (reference "R8")
+                    (unit 1)
+                )
+            )
+        )
+    )
+    (symbol
+        (lib_id "Device:R")
+        (at 76.2 111.76 0)
+        (unit 1)
+        (exclude_from_sim no)
+        (in_bom yes)
+        (on_board yes)
+        (dnp no)
+        (uuid "6345b968-e1e2-4ddd-ad58-10fbfabdd037")
+        (property "Reference" "R9"
+            (at 76.2 109.22 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Value" "1M"
+            (at 76.2 114.30000000000001 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+            (at 76.2 111.76 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (property "Datasheet" ""
+            (at 76.2 111.76 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (instances
+            (project "ad8232_module"
+                (path "/41e33dbc-0edd-4822-b8a0-f98e6d78ede7"
+                    (reference "R9")
+                    (unit 1)
+                )
+            )
+        )
+    )
+    (symbol
+        (lib_id "Device:R")
+        (at 130.81 139.7 0)
+        (unit 1)
+        (exclude_from_sim no)
+        (in_bom yes)
+        (on_board yes)
+        (dnp no)
+        (uuid "f7f878e4-46f6-453b-a837-67f4e55637a4")
+        (property "Reference" "R10"
+            (at 130.81 137.16 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Value" "10M"
+            (at 130.81 142.23999999999998 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+            (at 130.81 139.7 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (property "Datasheet" ""
+            (at 130.81 139.7 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (instances
+            (project "ad8232_module"
+                (path "/125e86ab-d96f-4ca9-887f-1878dda51ab1"
+                    (reference "R10")
+                    (unit 1)
+                )
+            )
+        )
+    )
+    (symbol
+        (lib_id "Device:R")
+        (at 130.81 165.1 0)
+        (unit 1)
+        (exclude_from_sim no)
+        (in_bom yes)
+        (on_board yes)
+        (dnp no)
+        (uuid "8717c117-c33c-4afd-ad2b-c71774fd47b0")
+        (property "Reference" "R11"
+            (at 130.81 162.56 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Value" "10M"
+            (at 130.81 167.64 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+            (at 130.81 165.1 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (property "Datasheet" ""
+            (at 130.81 165.1 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (instances
+            (project "ad8232_module"
+                (path "/44df4d21-5b5f-4f15-8740-0640022f4442"
+                    (reference "R11")
+                    (unit 1)
+                )
+            )
+        )
+    )
+    (symbol
+        (lib_id "Device:R")
+        (at 149.86 165.1 0)
+        (unit 1)
+        (exclude_from_sim no)
+        (in_bom yes)
+        (on_board yes)
+        (dnp no)
+        (uuid "9cb515b8-9e73-4936-9d4b-e13a431ab1a0")
+        (property "Reference" "R12"
+            (at 149.86 162.56 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Value" "15"
+            (at 149.86 167.64 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+            (at 149.86 165.1 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (property "Datasheet" ""
+            (at 149.86 165.1 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (instances
+            (project "ad8232_module"
+                (path "/0d6916b0-4fc0-49cd-8e3f-e154d58ca802"
+                    (reference "R12")
+                    (unit 1)
+                )
+            )
+        )
+    )
+    (symbol
+        (lib_id "Device:R")
+        (at 130.81 190.5 0)
+        (unit 1)
+        (exclude_from_sim no)
+        (in_bom yes)
+        (on_board yes)
+        (dnp no)
+        (uuid "9850b4d5-cd03-4488-b893-b8c3f98c72de")
+        (property "Reference" "R13"
+            (at 130.81 187.96 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Value" "10M"
+            (at 130.81 193.04 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+            (at 130.81 190.5 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (property "Datasheet" ""
+            (at 130.81 190.5 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (instances
+            (project "ad8232_module"
+                (path "/68f588e4-d53b-4fb7-9329-90d8123d4f06"
+                    (reference "R13")
+                    (unit 1)
+                )
+            )
+        )
+    )
+    (symbol
+        (lib_id "Device:R")
+        (at 149.86 139.7 0)
+        (unit 1)
+        (exclude_from_sim no)
+        (in_bom yes)
+        (on_board yes)
+        (dnp no)
+        (uuid "b30f62fb-17c5-4a1d-8f19-3bcf634bc361")
+        (property "Reference" "R14"
+            (at 149.86 137.16 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Value" "10M"
+            (at 149.86 142.23999999999998 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+            (at 149.86 139.7 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (property "Datasheet" ""
+            (at 149.86 139.7 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (instances
+            (project "ad8232_module"
+                (path "/7af31218-51f1-453f-9cf0-121402b69272"
+                    (reference "R14")
+                    (unit 1)
+                )
+            )
+        )
+    )
+    (symbol
+        (lib_id "Device:R")
+        (at 149.86 120.65 0)
+        (unit 1)
+        (exclude_from_sim no)
+        (in_bom yes)
+        (on_board yes)
+        (dnp no)
+        (uuid "a983a638-29f7-46a0-bfe2-b0d43931439c")
+        (property "Reference" "R15"
+            (at 149.86 118.11 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Value" "10K"
+            (at 149.86 123.19000000000001 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+            (at 149.86 120.65 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (property "Datasheet" ""
+            (at 149.86 120.65 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (instances
+            (project "ad8232_module"
+                (path "/ce43b210-0f3c-47c7-9a28-028358a5ba1f"
+                    (reference "R15")
+                    (unit 1)
+                )
+            )
+        )
+    )
+    (symbol
+        (lib_id "Device:R")
+        (at 168.91 120.65 0)
+        (unit 1)
+        (exclude_from_sim no)
+        (in_bom yes)
+        (on_board yes)
+        (dnp no)
+        (uuid "b1c7769b-ca60-4346-b7a3-67a507435480")
+        (property "Reference" "R16"
+            (at 168.91 118.11 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Value" "1K"
+            (at 168.91 123.19000000000001 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+            (at 168.91 120.65 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (property "Datasheet" ""
+            (at 168.91 120.65 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (instances
+            (project "ad8232_module"
+                (path "/edce3d46-bbd0-4530-a0b5-433fe5c99880"
+                    (reference "R16")
+                    (unit 1)
+                )
+            )
+        )
+    )
+    (symbol
+        (lib_id "Device:R")
+        (at 130.81 120.65 0)
+        (unit 1)
+        (exclude_from_sim no)
+        (in_bom yes)
+        (on_board yes)
+        (dnp no)
+        (uuid "88d7eee9-90b7-491d-b966-289ea8a88c58")
+        (property "Reference" "R17"
+            (at 130.81 118.11 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Value" "0"
+            (at 130.81 123.19000000000001 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+            (at 130.81 120.65 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (property "Datasheet" ""
+            (at 130.81 120.65 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (instances
+            (project "ad8232_module"
+                (path "/3b4f4c05-42ff-4e78-8ce8-07b47a47945c"
+                    (reference "R17")
+                    (unit 1)
+                )
+            )
+        )
+    )
+    (symbol
+        (lib_id "Device:R")
+        (at 130.81 111.76 0)
+        (unit 1)
+        (exclude_from_sim no)
+        (in_bom yes)
+        (on_board yes)
+        (dnp no)
+        (uuid "83a11ea6-86bf-41d3-91ed-01feae6664ad")
+        (property "Reference" "R18"
+            (at 130.81 109.22 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Value" "NC"
+            (at 130.81 114.30000000000001 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+            (at 130.81 111.76 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (property "Datasheet" ""
+            (at 130.81 111.76 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (instances
+            (project "ad8232_module"
+                (path "/4b157370-6432-4bf6-80b4-e1277515772a"
+                    (reference "R18")
+                    (unit 1)
+                )
+            )
+        )
+    )
+    (symbol
+        (lib_id "Device:R")
+        (at 149.86 111.76 0)
+        (unit 1)
+        (exclude_from_sim no)
+        (in_bom yes)
+        (on_board yes)
+        (dnp no)
+        (uuid "d1c7544a-4ec3-41e1-a7cf-dad56763d811")
+        (property "Reference" "R19"
+            (at 149.86 109.22 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Value" "0"
+            (at 149.86 114.30000000000001 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+            (at 149.86 111.76 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (property "Datasheet" ""
+            (at 149.86 111.76 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (instances
+            (project "ad8232_module"
+                (path "/a60406f9-f885-47f9-a7ef-ba33ef8982fc"
+                    (reference "R19")
+                    (unit 1)
+                )
+            )
+        )
+    )
+    (symbol
+        (lib_id "Device:R")
+        (at 168.91 111.76 0)
+        (unit 1)
+        (exclude_from_sim no)
+        (in_bom yes)
+        (on_board yes)
+        (dnp no)
+        (uuid "e2ef9f7f-bb59-4bd1-ab0e-4c1cec2e1f1b")
+        (property "Reference" "R20"
+            (at 168.91 109.22 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Value" "NC"
+            (at 168.91 114.30000000000001 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Footprint" "Resistor_SMD:R_0603_1608Metric"
+            (at 168.91 111.76 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (property "Datasheet" ""
+            (at 168.91 111.76 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (instances
+            (project "ad8232_module"
+                (path "/e03b61ca-d20e-406c-ac82-5a4ac6b6b0a3"
+                    (reference "R20")
+                    (unit 1)
+                )
+            )
+        )
+    )
+    (symbol
+        (lib_id "Device:C")
+        (at 149.86 190.5 0)
+        (unit 1)
+        (exclude_from_sim no)
+        (in_bom yes)
+        (on_board yes)
+        (dnp no)
+        (uuid "72e8c7c8-9bf0-44ed-8e70-91d9e1bbfafe")
+        (property "Reference" "C4"
+            (at 149.86 187.96 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Value" "0.33uF"
+            (at 149.86 193.04 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+            (at 149.86 190.5 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (property "Datasheet" ""
+            (at 149.86 190.5 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (instances
+            (project "ad8232_module"
+                (path "/9ffa29c4-6ae7-4ae5-9b3c-5fad693f329d"
+                    (reference "C4")
+                    (unit 1)
+                )
+            )
+        )
+    )
+    (symbol
+        (lib_id "Device:C")
+        (at 168.91 139.7 0)
+        (unit 1)
+        (exclude_from_sim no)
+        (in_bom yes)
+        (on_board yes)
+        (dnp no)
+        (uuid "e0cbe590-efa4-4e77-a391-205c35e6c7c9")
+        (property "Reference" "C5"
+            (at 168.91 137.16 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Value" "0.1uF"
+            (at 168.91 142.23999999999998 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+            (at 168.91 139.7 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (property "Datasheet" ""
+            (at 168.91 139.7 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (instances
+            (project "ad8232_module"
+                (path "/6043cd00-feb1-4390-a241-010fc5e7c0c3"
+                    (reference "C5")
+                    (unit 1)
+                )
+            )
+        )
+    )
+    (symbol
+        (lib_id "Device:C")
+        (at 168.91 165.1 0)
+        (unit 1)
+        (exclude_from_sim no)
+        (in_bom yes)
+        (on_board yes)
+        (dnp no)
+        (uuid "b918c8bd-e210-4fba-a729-a7d63b0acbad")
+        (property "Reference" "C6"
+            (at 168.91 162.56 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Value" "0.33uF"
+            (at 168.91 167.64 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
+            (at 168.91 165.1 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (property "Datasheet" ""
+            (at 168.91 165.1 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (instances
+            (project "ad8232_module"
+                (path "/6ba97d09-d59b-441d-9321-e2b388af9be3"
+                    (reference "C6")
+                    (unit 1)
+                )
+            )
+        )
+    )
+    (symbol
+        (lib_id "Device:C")
+        (at 168.91 190.5 0)
+        (unit 1)
+        (exclude_from_sim no)
+        (in_bom yes)
+        (on_board yes)
+        (dnp no)
+        (uuid "9e15fbcd-dbdf-42c4-8e46-503acb5a7ed6")
+        (property "Reference" "C7"
+            (at 168.91 187.96 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Value" "0.1uF"
+            (at 168.91 193.04 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
+            (at 168.91 190.5 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (property "Datasheet" ""
+            (at 168.91 190.5 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (instances
+            (project "ad8232_module"
+                (path "/29854d01-9ff2-4481-907a-3fc00720b090"
+                    (reference "C7")
+                    (unit 1)
+                )
+            )
+        )
+    )
+    (symbol
+        (lib_id "Device:LED")
+        (at 190.5 120.65 0)
+        (unit 1)
+        (exclude_from_sim no)
+        (in_bom yes)
+        (on_board yes)
+        (dnp no)
+        (uuid "f399a0d4-1d2e-4bac-97ba-1cca09d16c21")
+        (property "Reference" "D1"
+            (at 190.5 118.11 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Value" "LED"
+            (at 190.5 123.19000000000001 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Footprint" "LED_SMD:LED_0603_1608Metric"
+            (at 190.5 120.65 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (property "Datasheet" ""
+            (at 190.5 120.65 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (instances
+            (project "ad8232_module"
+                (path "/784bec7e-33a5-4948-a008-666a98019ab1"
+                    (reference "D1")
+                    (unit 1)
+                )
+            )
+        )
+    )
+    (symbol
+        (lib_id "Connector_Generic:Conn_01x06")
+        (at 218.44 152.4 0)
+        (unit 1)
+        (exclude_from_sim no)
+        (in_bom yes)
+        (on_board yes)
+        (dnp no)
+        (uuid "664754d9-acda-475c-a164-50d88f58b1b9")
+        (property "Reference" "J1"
+            (at 218.44 149.86 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Value" "TTL-6PIN"
+            (at 218.44 154.94 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x06_P2.54mm_Vertical"
+            (at 218.44 152.4 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (property "Datasheet" ""
+            (at 218.44 152.4 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (instances
+            (project "ad8232_module"
+                (path "/a6e8a59b-9eaf-4eb5-aa4b-9ba0785dacde"
+                    (reference "J1")
+                    (unit 1)
+                )
+            )
+        )
+    )
+    (symbol
+        (lib_id "Connector_Audio:AudioJack3")
+        (at 15.24 60.96 0)
+        (unit 1)
+        (exclude_from_sim no)
+        (in_bom yes)
+        (on_board yes)
+        (dnp no)
+        (uuid "78f71083-4600-41bc-ad6f-1cdd59353926")
+        (property "Reference" "JP1"
+            (at 15.24 58.42 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Value" "PJ-328"
+            (at 15.24 63.5 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Footprint" "Connector_Audio:Jack_3.5mm_PJ328A_SMT"
+            (at 15.24 60.96 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (property "Datasheet" ""
+            (at 15.24 60.96 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (instances
+            (project "ad8232_module"
+                (path "/93328ae6-a0b5-4567-89ef-b8dd4bd9bda3"
+                    (reference "JP1")
+                    (unit 1)
+                )
+            )
+        )
+    )
+    (symbol
+        (lib_id "power:+3V3")
+        (at 101.6 130.81 0)
+        (unit 1)
+        (exclude_from_sim no)
+        (in_bom yes)
+        (on_board yes)
+        (dnp no)
+        (uuid "7975912a-5e7a-4e22-b7d0-782f89998198")
+        (property "Reference" "PWR1"
+            (at 101.6 128.27 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Value" "+3V3"
+            (at 101.6 133.35 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Footprint" ""
+            (at 101.6 130.81 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (property "Datasheet" ""
+            (at 101.6 130.81 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (pin "1" (uuid "586add96-b709-432c-9590-1cce1129e45d"))
+        (instances
+            (project "ad8232_module"
+                (path "/480c662b-036a-40c0-8113-38335d535d67"
+                    (reference "PWR1")
+                    (unit 1)
+                )
+            )
+        )
+    )
+    (symbol
+        (lib_id "power:GND")
+        (at 101.6 71.12 0)
+        (unit 1)
+        (exclude_from_sim no)
+        (in_bom yes)
+        (on_board yes)
+        (dnp no)
+        (uuid "5ef636df-9e4f-4b1b-8397-5fafcfa13e98")
+        (property "Reference" "PWR2"
+            (at 101.6 68.58 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Value" "GND"
+            (at 101.6 73.66000000000001 0)
+            (effects (font (size 1.27 1.27)))
+        )
+        (property "Footprint" ""
+            (at 101.6 71.12 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (property "Datasheet" ""
+            (at 101.6 71.12 0)
+            (effects (font (size 1.27 1.27)) (hide yes))
+        )
+        (pin "1" (uuid "323b90b5-a387-4b6c-89b6-452e4f34d940"))
+        (instances
+            (project "ad8232_module"
+                (path "/92dc1efe-6a85-46cf-88eb-af38854ba004"
+                    (reference "PWR2")
+                    (unit 1)
+                )
+            )
+        )
+    )
+    (wire
+        (pts (xy 91.44 92.71000000000001) (xy 96.52 92.71000000000001))
+        (stroke (width 0) (type solid))
+        (uuid "435d77dd-6e75-4e58-b395-32701f1bc1bd")
+    )
+    (wire
+        (pts (xy 91.44 93.98) (xy 96.52 93.98))
+        (stroke (width 0) (type solid))
+        (uuid "4e4ef3e4-9f6f-41cb-bda0-427024438f3b")
+    )
+    (wire
+        (pts (xy 91.44 95.25) (xy 96.52 95.25))
+        (stroke (width 0) (type solid))
+        (uuid "35671e61-c2a0-48e0-b231-b952a5b87ad7")
+    )
+    (wire
+        (pts (xy 91.44 96.52) (xy 96.52 96.52))
+        (stroke (width 0) (type solid))
+        (uuid "0bd07f3e-9086-4167-9dc4-a052ec3fb97a")
+    )
+    (wire
+        (pts (xy 91.44 97.79) (xy 96.52 97.79))
+        (stroke (width 0) (type solid))
+        (uuid "4555b06d-6005-44d1-b372-3892d1e1e4fb")
+    )
+    (wire
+        (pts (xy 91.44 99.06) (xy 96.52 99.06))
+        (stroke (width 0) (type solid))
+        (uuid "8f00992c-41f2-42fa-98c1-b80ac03fac76")
+    )
+    (wire
+        (pts (xy 91.44 100.33) (xy 96.52 100.33))
+        (stroke (width 0) (type solid))
+        (uuid "b7ef69da-8f9a-41e5-b5f3-41fbab6bc48f")
+    )
+    (wire
+        (pts (xy 91.44 101.6) (xy 96.52 101.6))
+        (stroke (width 0) (type solid))
+        (uuid "e92c381a-37ba-48fc-a19c-2ba50348dd8d")
+    )
+    (wire
+        (pts (xy 91.44 102.87) (xy 96.52 102.87))
+        (stroke (width 0) (type solid))
+        (uuid "ae0acd00-26f4-4278-a9b5-55a81356378f")
+    )
+    (wire
+        (pts (xy 91.44 104.14) (xy 96.52 104.14))
+        (stroke (width 0) (type solid))
+        (uuid "4faecff3-cf87-49c8-954c-f979c96d0bdb")
+    )
+    (wire
+        (pts (xy 111.76 92.71000000000001) (xy 106.68 92.71000000000001))
+        (stroke (width 0) (type solid))
+        (uuid "55d1c133-0075-4f83-b962-0b44a7dbaca5")
+    )
+    (wire
+        (pts (xy 111.76 93.98) (xy 106.68 93.98))
+        (stroke (width 0) (type solid))
+        (uuid "5407d458-d07e-47e3-b330-b7ea5d3443ad")
+    )
+    (wire
+        (pts (xy 111.76 95.25) (xy 106.68 95.25))
+        (stroke (width 0) (type solid))
+        (uuid "6efb661a-3909-4fb1-b299-396193acf764")
+    )
+    (wire
+        (pts (xy 111.76 96.52) (xy 106.68 96.52))
+        (stroke (width 0) (type solid))
+        (uuid "b7d1e14e-0ca4-48d5-9681-edda6456d9f3")
+    )
+    (wire
+        (pts (xy 111.76 97.79) (xy 106.68 97.79))
+        (stroke (width 0) (type solid))
+        (uuid "66695fc1-eee6-47bb-9898-8e524b270918")
+    )
+    (wire
+        (pts (xy 111.76 99.06) (xy 106.68 99.06))
+        (stroke (width 0) (type solid))
+        (uuid "98a23b69-81de-466e-ac41-95d7abd485ef")
+    )
+    (wire
+        (pts (xy 111.76 100.33) (xy 106.68 100.33))
+        (stroke (width 0) (type solid))
+        (uuid "4fdb3e3b-3de9-49a3-9ea7-f8f5508d7581")
+    )
+    (wire
+        (pts (xy 111.76 101.6) (xy 106.68 101.6))
+        (stroke (width 0) (type solid))
+        (uuid "f5dcd932-f846-4b1e-9360-b9077de9ca17")
+    )
+    (wire
+        (pts (xy 111.76 102.87) (xy 106.68 102.87))
+        (stroke (width 0) (type solid))
+        (uuid "905d3445-472d-4a56-bb02-edd5d47ea976")
+    )
+    (wire
+        (pts (xy 111.76 104.14) (xy 106.68 104.14))
+        (stroke (width 0) (type solid))
+        (uuid "7f565036-827c-40c3-8c9c-9ceff1a4bf8f")
+    )
+    (wire
+        (pts (xy 101.6 130.81) (xy 101.6 135.89000000000001))
+        (stroke (width 0) (type solid))
+        (uuid "70675dd7-0864-4569-8cbb-fb23327f4096")
+    )
+    (wire
+        (pts (xy 101.6 71.12) (xy 101.6 66.04))
+        (stroke (width 0) (type solid))
+        (uuid "00790a94-8346-47a6-aec3-900448888da9")
+    )
+    (label "HPDRIVE"
+        (at 96.52 92.71000000000001 0)
+        (effects (font (size 1.27 1.27)) (justify left bottom))
+        (uuid "76febeee-2592-4f90-86ff-be8ae36dcb1b")
+    )
+    (label "+IN"
+        (at 96.52 93.98 0)
+        (effects (font (size 1.27 1.27)) (justify left bottom))
+        (uuid "1497f307-7570-4cb1-b002-d8926d007ea4")
+    )
+    (label "-IN"
+        (at 96.52 95.25 0)
+        (effects (font (size 1.27 1.27)) (justify left bottom))
+        (uuid "52175987-45d9-4519-a24f-97f8bdc10d0f")
+    )
+    (label "RLDFB"
+        (at 96.52 96.52 0)
+        (effects (font (size 1.27 1.27)) (justify left bottom))
+        (uuid "909ca711-4c61-4750-815c-66fd330ebc48")
+    )
+    (label "RLD"
+        (at 96.52 97.79 0)
+        (effects (font (size 1.27 1.27)) (justify left bottom))
+        (uuid "eec61871-66cb-465e-a6f5-803c2aeb0aad")
+    )
+    (label "SW"
+        (at 96.52 99.06 0)
+        (effects (font (size 1.27 1.27)) (justify left bottom))
+        (uuid "186550e5-39db-491d-9450-98066857264e")
+    )
+    (label "OPAMP+"
+        (at 96.52 100.33 0)
+        (effects (font (size 1.27 1.27)) (justify left bottom))
+        (uuid "da0f1c9a-86bd-4e0b-a88e-e62dae125c14")
+    )
+    (label "REFOUT"
+        (at 96.52 101.6 0)
+        (effects (font (size 1.27 1.27)) (justify left bottom))
+        (uuid "7714c1f2-59d4-4175-a5f9-70b9e9cbebe0")
+    )
+    (label "OPAMP-"
+        (at 96.52 102.87 0)
+        (effects (font (size 1.27 1.27)) (justify left bottom))
+        (uuid "75c631d6-122f-4f62-9dea-369011c3300b")
+    )
+    (label "OUT"
+        (at 96.52 104.14 0)
+        (effects (font (size 1.27 1.27)) (justify left bottom))
+        (uuid "ecde927d-0bf5-4a78-a387-0c9d0490298e")
+    )
+    (label "LO-"
+        (at 106.68 92.71000000000001 180)
+        (effects (font (size 1.27 1.27)) (justify left bottom))
+        (uuid "37d1c95e-dd47-4d97-abb2-13ec0ec3c76c")
+    )
+    (label "LO+"
+        (at 106.68 93.98 180)
+        (effects (font (size 1.27 1.27)) (justify left bottom))
+        (uuid "71df09b1-fcef-47ca-9d8d-5c214a0993dd")
+    )
+    (label "SDN"
+        (at 106.68 95.25 180)
+        (effects (font (size 1.27 1.27)) (justify left bottom))
+        (uuid "92a3ba43-2db9-4710-b444-aee8a1f948f6")
+    )
+    (label "ACDC"
+        (at 106.68 96.52 180)
+        (effects (font (size 1.27 1.27)) (justify left bottom))
+        (uuid "8ccc8d64-4ef1-4ac9-aca2-d777ed5c2ac8")
+    )
+    (label "FR"
+        (at 106.68 97.79 180)
+        (effects (font (size 1.27 1.27)) (justify left bottom))
+        (uuid "429ef66f-a6eb-40f3-9fdb-3a5dfdaed01b")
+    )
+    (label "GND"
+        (at 106.68 99.06 180)
+        (effects (font (size 1.27 1.27)) (justify left bottom))
+        (uuid "8a8d88f4-2484-4946-8bed-017d4572400a")
+    )
+    (label "+3V3"
+        (at 106.68 100.33 180)
+        (effects (font (size 1.27 1.27)) (justify left bottom))
+        (uuid "06ed60dc-9462-48e4-ba07-2bc10fa3d453")
+    )
+    (label "REFIN"
+        (at 106.68 101.6 180)
+        (effects (font (size 1.27 1.27)) (justify left bottom))
+        (uuid "d25d5fb6-cb8e-41c3-b613-590540f50398")
+    )
+    (label "IAOUT"
+        (at 106.68 102.87 180)
+        (effects (font (size 1.27 1.27)) (justify left bottom))
+        (uuid "4c048130-ec83-46c7-8835-46b59d53750f")
+    )
+    (label "HPSENSE"
+        (at 106.68 104.14 180)
+        (effects (font (size 1.27 1.27)) (justify left bottom))
+        (uuid "3b15ab1e-1aa3-49cd-aa88-5a06d6ee533d")
+    )
+    (label "+3V3"
+        (at 101.6 135.89000000000001 90)
+        (effects (font (size 1.27 1.27)) (justify left bottom))
+        (uuid "e4a486b1-ff84-4a0a-8ea5-32d120116a4c")
+    )
+    (label "GND"
+        (at 101.6 66.04 270)
+        (effects (font (size 1.27 1.27)) (justify left bottom))
+        (uuid "541800a0-da59-4620-9c0a-fe0adfb6e2cc")
+    )
+)

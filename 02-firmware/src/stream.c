@@ -1,8 +1,13 @@
 /*
- * WalkEEG: 0.5 ms ramp test signal + framed NUS Notify stream.
+ * WalkEEG: AD8232 ECG framing + NUS Notify stream.
+ *
+ * 1 analog channel (SAADC AIN0 = P0.02) sampled at 500 Hz;
+ * lead-off flags (LO+/LO-) are packed into the frame header flags byte:
+ *   bit0 = LO+ (1 = lead attached), bit1 = LO- (1 = lead attached)
  */
 
 #include "stream.h"
+#include "adc_sample.h"
 
 #include <zephyr/kernel.h>
 #include <zephyr/sys/atomic.h>
@@ -17,12 +22,13 @@
 
 LOG_MODULE_REGISTER(walkeeg_stream, LOG_LEVEL_INF);
 
-#define RING_CAPACITY   512  /* timepoints; ~256 ms @ 2 kHz */
+#define RING_CAPACITY   512  /* timepoints; ~1 s @ 500 Hz */
 #define STREAM_STACK    2048
 #define STREAM_PRIO     5
 
 struct sample_tp {
 	int16_t ch[WALKEEG_NUM_CH];
+	uint8_t flags;   /* lead-off bits */
 };
 
 static struct sample_tp ring[RING_CAPACITY];
@@ -32,27 +38,20 @@ static uint16_t ring_count;
 static struct k_mutex ring_mutex;
 static struct k_sem samples_sem;
 
-static uint16_t ramp_i;   /* 0..1999 within second */
-static uint8_t ramp_sec;  /* 0..31 */
+static uint16_t ramp_i;   /* 0..499 within second (CH1 sawtooth) */
 
 static atomic_t streaming; /* connected && notify enabled */
 static atomic_t notify_on;
 static struct bt_conn *stream_conn;
 static uint16_t frame_seq;
 
+/* tick_sem: 500 Hz timer -> sampler thread (one per sample)
+ * samples_sem: sampler -> TX thread (one per pushed sample)
+ */
+static struct k_sem adc_tick_sem;
+
 static K_THREAD_STACK_DEFINE(stream_stack, STREAM_STACK);
 static struct k_thread stream_thread_data;
-
-static int16_t clamp_i16(int32_t v)
-{
-	if (v < 0) {
-		return 0;
-	}
-	if (v > 32767) {
-		return 32767;
-	}
-	return (int16_t)v;
-}
 
 static void ring_push(const struct sample_tp *tp)
 {
@@ -102,40 +101,71 @@ static void ring_reset(void)
 	while (k_sem_take(&samples_sem, K_NO_WAIT) == 0) {
 		/* drain */
 	}
+	while (k_sem_take(&adc_tick_sem, K_NO_WAIT) == 0) {
+		/* drain */
+	}
 }
 
+/* 500 Hz tick: only wakes the sampler thread (no blocking work in timer ctx). */
 static void sample_timer_handler(struct k_timer *timer)
 {
-	struct sample_tp tp;
-	int32_t base;
-	uint8_t ch;
-
 	ARG_UNUSED(timer);
 
-	if (!atomic_get(&streaming)) {
-		return;
-	}
-
-	base = (int32_t)ramp_sec * 1000 + (int32_t)ramp_i;
-
-	/* Offset each channel by 2000 so CH0..CH7 are visually distinct on a 0..32767 plot. */
-	for (ch = 0; ch < WALKEEG_NUM_CH; ch++) {
-		tp.ch[ch] = clamp_i16(base + (int32_t)ch * 2000);
-	}
-
-	ring_push(&tp);
-
-	ramp_i++;
-	if (ramp_i >= WALKEEG_SAMPLE_HZ) {
-		ramp_i = 0;
-		ramp_sec++;
-		if (ramp_sec >= 32) {
-			ramp_sec = 0;
-		}
+	if (atomic_get(&streaming)) {
+		k_sem_give(&adc_tick_sem);
 	}
 }
 
 K_TIMER_DEFINE(sample_timer, sample_timer_handler, NULL);
+
+/* Dedicated sampler thread: ADC read (blocking) + framing + ring push. */
+static void sampler_thread(void *p1, void *p2, void *p3)
+{
+	struct sample_tp tp;
+	struct walkeeg_adc_sample s;
+	int32_t ramp_val;
+	int err;
+
+	ARG_UNUSED(p1);
+	ARG_UNUSED(p2);
+	ARG_UNUSED(p3);
+
+	for (;;) {
+		k_sem_take(&adc_tick_sem, K_FOREVER);
+
+		if (!atomic_get(&streaming)) {
+			continue;
+		}
+
+		err = walkeeg_adc_read(&s);
+		if (err) {
+			LOG_WRN("adc_read err %d", err);
+			continue;
+		}
+
+		/* CH0 = real AD8232 signal: raw 12-bit value (0..4095),
+		 * riding on half-scale (~2048) DC bias from REFOUT,
+		 * passed through unfiltered. */
+		memset(tp.ch, 0, sizeof(tp.ch));
+		tp.ch[0] = s.value;
+
+		/* CH1 = sawtooth test signal, 0..4095 over 1 s (same range as 12-bit ADC) */
+		ramp_val = (int32_t)ramp_i * 4095 / (WALKEEG_SAMPLE_HZ - 1);
+		tp.ch[1] = (int16_t)ramp_val;
+		ramp_i++;
+		if (ramp_i >= WALKEEG_SAMPLE_HZ) {
+			ramp_i = 0;
+		}
+
+		/* CH2..7 = 0 (already memset) */
+		tp.flags = (s.lo_plus  ? 0x01 : 0) | (s.lo_minus ? 0x02 : 0);
+
+		ring_push(&tp);
+	}
+}
+
+static K_THREAD_STACK_DEFINE(sampler_stack, 1024);
+static struct k_thread sampler_thread_data;
 
 static uint8_t choose_n(struct bt_conn *conn)
 {
@@ -143,13 +173,13 @@ static uint8_t choose_n(struct bt_conn *conn)
 	uint32_t payload_room;
 	uint8_t n;
 
-	/* ATT notify payload max = MTU - 3; frame = 6 + N*16 */
-	if (mtu < (WALKEEG_HDR_LEN + 16 + 3)) {
+	/* ATT notify payload max = MTU - 3; frame = 6 + N*2 */
+	if (mtu < (WALKEEG_HDR_LEN + 2 + 3)) {
 		return 1;
 	}
 
 	payload_room = mtu - 3 - WALKEEG_HDR_LEN;
-	n = (uint8_t)(payload_room / 16U);
+	n = (uint8_t)(payload_room / (WALKEEG_NUM_CH * 2U));
 
 	if (n > WALKEEG_MAX_N) {
 		n = WALKEEG_MAX_N;
@@ -176,9 +206,10 @@ static int send_frame(struct bt_conn *conn, const struct sample_tp *tps, uint8_t
 	buf[1] = WALKEEG_VERSION;
 	sys_put_le16(frame_seq, &buf[2]);
 	buf[4] = n;
-	buf[5] = 0; /* flags */
+	buf[5] = 0; /* flags: bit0=LO+ attached, bit1=LO- attached */
 
 	for (i = 0; i < n; i++) {
+		buf[5] |= tps[i].flags;
 		for (ch = 0; ch < WALKEEG_NUM_CH; ch++) {
 			sys_put_le16((uint16_t)tps[i].ch[ch], &buf[off]);
 			off += 2;
@@ -201,16 +232,15 @@ static void update_streaming_flag(void)
 	atomic_set(&streaming, on ? 1 : 0);
 
 	if (on) {
-		ramp_i = 0;
-		ramp_sec = 0;
 		frame_seq = 0;
 		ring_reset();
-		k_timer_start(&sample_timer, K_USEC(500), K_USEC(500));
-		LOG_INF("WalkEEG stream started");
+		k_timer_start(&sample_timer, K_USEC(1000U * 1000U / WALKEEG_SAMPLE_HZ),
+			      K_USEC(1000U * 1000U / WALKEEG_SAMPLE_HZ));
+		LOG_INF("WalkEEG ECG stream started (%d Hz)", WALKEEG_SAMPLE_HZ);
 	} else {
 		k_timer_stop(&sample_timer);
 		ring_reset();
-		LOG_INF("WalkEEG stream stopped");
+		LOG_INF("WalkEEG ECG stream stopped");
 	}
 }
 
@@ -287,6 +317,7 @@ void walkeeg_stream_init(void)
 {
 	k_mutex_init(&ring_mutex);
 	k_sem_init(&samples_sem, 0, RING_CAPACITY);
+	k_sem_init(&adc_tick_sem, 0, RING_CAPACITY);
 	atomic_set(&streaming, 0);
 	atomic_set(&notify_on, 0);
 
@@ -296,7 +327,14 @@ void walkeeg_stream_init(void)
 			STREAM_PRIO, 0, K_NO_WAIT);
 	k_thread_name_set(&stream_thread_data, "walkeeg_tx");
 
-	LOG_INF("WalkEEG stream module ready");
+	/* Sampler thread: does blocking ADC reads (never in timer ctx) */
+	k_thread_create(&sampler_thread_data, sampler_stack,
+			K_THREAD_STACK_SIZEOF(sampler_stack),
+			sampler_thread, NULL, NULL, NULL,
+			STREAM_PRIO + 1, 0, K_NO_WAIT);
+	k_thread_name_set(&sampler_thread_data, "walkeeg_adc");
+
+	LOG_INF("WalkEEG ECG stream module ready");
 }
 
 void walkeeg_stream_on_connected(struct bt_conn *conn)

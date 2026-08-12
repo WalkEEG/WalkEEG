@@ -1,0 +1,26 @@
+{
+    "nrf-connect.topdir": "D:/ncs/v3.2.1",
+    "nrf-connect.toolchain": "D:\\ncs\\toolchains\\66cdf9b75e",
+    "nrf-connect.board": "nrf52840dk/nrf52840",
+
+    "cmake.cmakePath": "D:\\ncs\\toolchains\\66cdf9b75e\\opt\\bin\\cmake.exe",
+
+    "C_Cpp.default.includePath": [
+        "${workspaceFolder}/02-firmware/**",
+        "${nrf-connect.topdir}/zephyr/include/**",
+        "${nrf-connect.topdir}/nrf/include/**",
+        "${nrf-connect.topdir}/modules/**"
+    ],
+    "C_Cpp.default.intelliSenseMode": "gcc-arm",
+    "C_Cpp.default.compilerPath": "",
+
+    "files.exclude": {
+        "**/build*": true,
+        "**/cmake-build*": true
+    },
+
+    "files.associations": {
+        "*.overlay": "devicetree",
+        "*.conf": "kconfig"
+    }
+}

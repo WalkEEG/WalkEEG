@@ -45,8 +45,13 @@ $RECYCLE.BIN/
 Network Trash Folder
 Temporary Items
 .apdisk
-02-firmware/components/ant/ant_profiles/ant_sdm/simulator/ant_sdm_simulator 2.c
-02-firmware/components/serialization/application/codecs/s130/serializers/ble_opt_set 2.c
-02-firmware/components/serialization/connectivity/codecs/s110/serializers/ble_gatts_conn 2.h
-02-firmware/components/softdevice/s110/toolchain/iar/iar_s110_nrf51822_xxaa 2.icf
-02-firmware/build/zephyr/zephyr.dts.d
+
+# =========================
+# Zephyr / NCS build
+# =========================
+build/
+cmake-build-*/
+*.log
+*.cmd
+*.lck
+

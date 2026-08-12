@@ -34,6 +34,7 @@
 #include <zephyr/logging/log.h>
 
 #include "stream.h"
+#include "adc_sample.h"
 
 /* 定义日志模块名称 */	
 #define LOG_MODULE_NAME peripheral_uart   // 定义日志模块名称		
@@ -57,6 +58,18 @@ LOG_MODULE_REGISTER(LOG_MODULE_NAME);   // 注册日志模块
 #define UART_BUF_SIZE CONFIG_BT_NUS_UART_BUFFER_SIZE  // 定义UART缓冲区大小
 #define UART_WAIT_FOR_BUF_DELAY K_MSEC(50)  // 定义UART等待缓冲区延迟时间
 #define UART_WAIT_FOR_RX CONFIG_BT_NUS_UART_RX_WAIT_TIME  // 定义UART等待接收时间	
+
+/* NCS v3.2.x removed the NUS Kconfig options this sample used;
+ * keep fixed fallbacks so the code still builds on the current SDK. */
+#ifndef CONFIG_BT_NUS_THREAD_STACK_SIZE
+#define CONFIG_BT_NUS_THREAD_STACK_SIZE 2048
+#endif
+#ifndef CONFIG_BT_NUS_UART_BUFFER_SIZE
+#define CONFIG_BT_NUS_UART_BUFFER_SIZE 256
+#endif
+#ifndef CONFIG_BT_NUS_UART_RX_WAIT_TIME
+#define CONFIG_BT_NUS_UART_RX_WAIT_TIME 50
+#endif
 
 static K_SEM_DEFINE(ble_init_ok, 0, 1);  // 定义BLE初始化信号量	
 
@@ -716,6 +729,11 @@ int main(void)
 	}
 
 	walkeeg_stream_init();
+
+	err = walkeeg_adc_init();
+	if (err) {
+		LOG_ERR("ADC init failed (err: %d)", err);
+	}
 
 	k_work_init(&adv_work, adv_work_handler);
 	advertising_start();// 开始广播
