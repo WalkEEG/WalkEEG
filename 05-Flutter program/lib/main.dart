@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import 'ble/walkeeg_ble.dart';
+import 'protocol/packet_parser.dart';
 import 'ui/waveform_painter.dart';
 
 void main() {
@@ -65,7 +66,17 @@ class _HomePageState extends State<HomePage> {
   BleLinkState _state = BleLinkState.idle;
   double _yMax = -1; // -1 = AC auto
   int _windowMs = 2000;
-  bool _filterOn = true; // false = raw passthrough, true = notch+lowpass
+  FilterMode _mode = FilterMode.notchLp;
+
+  /// Labels for the five processing schemes (kept short for the segmented
+  /// control; full meaning in the status line).
+  static const _modeLabels = <FilterMode, String>{
+    FilterMode.raw: '原始',
+    FilterMode.notchLp: '50Hz+LP',
+    FilterMode.bandpass: '带通',
+    FilterMode.qrs: 'QRS',
+    FilterMode.hrv: 'HRV',
+  };
 
   static const _colors = <Color>[
     Color(0xFF4ECDC4),
@@ -114,10 +125,10 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  void _setFilter(bool on) {
+  void _setMode(FilterMode m) {
     setState(() {
-      _filterOn = on;
-      _ble.parser.filterOn = on; // parser resets filter state on change
+      _mode = m;
+      _ble.parser.mode = m; // parser resets filter/QRS state on change
     });
   }
 
@@ -136,6 +147,32 @@ class _HomePageState extends State<HomePage> {
     final drops = parser.droppedFrames;
     final total = frames + drops;
     final lossPct = total == 0 ? 0.0 : drops * 100.0 / total;
+
+    // QRS beat markers mapped into the visible window (fractions 0..1).
+    final ch0All = parser.channels[0].samples;
+    final ch0Start =
+        ch0All.length > windowSamples ? ch0All.length - windowSamples : 0;
+    final beatFracs = (_mode == FilterMode.qrs || _mode == FilterMode.hrv)
+        ? parser.beatIndices
+            .where((b) => b >= ch0Start && b < ch0All.length)
+            .map((b) => (b - ch0Start) / windowSamples)
+            .toList()
+        : <double>[];
+
+    // Heart rate / HRV readouts for the qrs/hrv modes.
+    final bpm = parser.bpm;
+    final sdnn = parser.sdnnMs;
+    final rmssd = parser.rmssdMs;
+    final metrics = StringBuffer();
+    if (_mode == FilterMode.qrs || _mode == FilterMode.hrv) {
+      metrics.write('HR ${bpm ?? "--"} bpm');
+      if (_mode == FilterMode.hrv) {
+        metrics.write(
+            '   ·   SDNN ${sdnn?.toStringAsFixed(0) ?? "--"} ms   '
+            'RMSSD ${rmssd?.toStringAsFixed(0) ?? "--"} ms');
+      }
+      metrics.write('   ·   beats ${parser.qrsBeatCount}');
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -198,6 +235,14 @@ class _HomePageState extends State<HomePage> {
               }),
             ),
             const SizedBox(height: 8),
+            if (metrics.isNotEmpty)
+              Text(
+                metrics.toString(),
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: const Color(0xFF4ECDC4),
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
             Expanded(
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(8),
@@ -208,27 +253,20 @@ class _HomePageState extends State<HomePage> {
                     yMin: 0,
                     yMax: _yMax < 0 ? 65535 : _yMax,
                     acMode: _yMax < 0,
+                    beatFracs: beatFracs,
                   ),
                   child: const SizedBox.expand(),
                 ),
               ),
             ),
             const SizedBox(height: 8),
-            SegmentedButton<bool>(
-              segments: const [
-                ButtonSegment(
-                  value: false,
-                  label: Text('原始直通'),
-                  icon: Icon(Icons.data_object),
-                ),
-                ButtonSegment(
-                  value: true,
-                  label: Text('50Hz+100LP'),
-                  icon: Icon(Icons.graphic_eq),
-                ),
+            SegmentedButton<FilterMode>(
+              segments: [
+                for (final m in FilterMode.values)
+                  ButtonSegment(value: m, label: Text(_modeLabels[m]!)),
               ],
-              selected: {_filterOn},
-              onSelectionChanged: (sel) => _setFilter(sel.first),
+              selected: {_mode},
+              onSelectionChanged: (sel) => _setMode(sel.first),
               showSelectedIcon: false,
               style: const ButtonStyle(
                 visualDensity: VisualDensity.compact,
@@ -275,7 +313,7 @@ class _HomePageState extends State<HomePage> {
               'Y: ${_yMax < 0 ? "AC auto" : "0 … ${_yMax.round()}"}  ·  window '
               '${_windowMs >= 1000 ? "${_windowMs ~/ 1000}s" : "${_windowMs}ms"}  ·  '
               '8ch × 16-bit @ ${_sampleRateHz ~/ 1000}kHz  ·  '
-              'filter:${_filterOn ? "on" : "raw"}',
+              'mode:${_modeLabels[_mode]}',
               style: Theme.of(context).textTheme.bodySmall,
               textAlign: TextAlign.center,
             ),

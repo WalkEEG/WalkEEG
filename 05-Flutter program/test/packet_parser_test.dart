@@ -32,7 +32,7 @@ Uint8List buildFrame({
 
 void main() {
   test('parses valid frame into 8 channels (raw, filter off)', () {
-    final parser = WalkEegPacketParser(filterOn: false);
+    final parser = WalkEegPacketParser(filterMode: FilterMode.raw);
     parser.feed(buildFrame(seq: 1, nSamples: 2, firstSampleCh: [100, 101, 102, 103, 104, 105, 106, 107]));
 
     expect(parser.parsedFrames, 1);
@@ -42,7 +42,7 @@ void main() {
   });
 
   test('filtered CH0 reaches steady state (transients settle)', () {
-    final parser = WalkEegPacketParser(filterOn: true);
+    final parser = WalkEegPacketParser(filterMode: FilterMode.notchLp);
     // Feed ~1 s of constant samples (67 frames x 30 samples, matching the
     // firmware's max frame size): the Q=20 notch has a long time constant
     // (r=0.996) so it takes ~1 s to fully settle. Check the tail matches the
@@ -71,8 +71,29 @@ void main() {
     expect(parser.droppedFrames, 1);
   });
 
+  test('bandpass chain re-centers on half scale (DC removed, no 0-clip)', () {
+    final parser = WalkEegPacketParser(filterMode: FilterMode.bandpass);
+    // 8 s: the 0.5 Hz high-pass has a ~3 s settle time (slow poles), so feed
+    // enough constant data for the steady state to be reached.
+    for (var i = 0; i < 534; i++) {
+      parser.feed(buildFrame(
+          seq: i + 1,
+          nSamples: 30,
+          firstSampleCh: List.filled(8, 1000),
+          constant: true));
+    }
+    final ch0 = parser.channels[0].samples;
+    expect(ch0.length, 16020);
+    // DC input -> high-pass kills it -> +32768 re-centering. Steady tail
+    // should sit at ~32768, NOT clipped at 0.
+    for (final v in ch0.skip(15000)) {
+      expect((v - 32768).abs(), lessThanOrEqualTo(2),
+          reason: 'steady value should center on 32768, got $v');
+    }
+  });
+
   test('resyncs after garbage prefix', () {
-    final parser = WalkEegPacketParser(filterOn: false);
+    final parser = WalkEegPacketParser(filterMode: FilterMode.raw);
     final garbage = Uint8List.fromList([0x00, 0x11, 0x22]);
     final frame = buildFrame(seq: 5, nSamples: 1, firstSampleCh: List.filled(8, 42));
 

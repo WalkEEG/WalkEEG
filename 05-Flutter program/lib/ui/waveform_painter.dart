@@ -9,6 +9,7 @@ class WaveformPainter extends CustomPainter {
     this.yMin = 0,
     this.yMax = 32767,
     this.acMode = false,
+    this.beatFracs = const [],
   });
 
   final List<List<int>> series;
@@ -19,6 +20,10 @@ class WaveformPainter extends CustomPainter {
   /// AC-coupled autoscale display (monitor style): each channel is centered
   /// on its own mean and scaled so its peak-to-peak span fills the plot.
   final bool acMode;
+
+  /// QRS beat positions as fractions of the visible window (0..1), drawn as
+  /// vertical tick markers at the top of the plot.
+  final List<double> beatFracs;
 
   static const double _axisPadLeft = 44;
   static const double _axisPadBottom = 4;
@@ -107,6 +112,19 @@ class WaveformPainter extends CustomPainter {
     for (var i = 0; i <= 10; i++) {
       final x = plot.left + plot.width * i / 10;
       canvas.drawLine(Offset(x, plot.top), Offset(x, plot.bottom), grid);
+    }
+
+    // QRS beat markers (vertical ticks at the top edge).
+    final beatPaint = Paint()
+      ..color = const Color(0xFFFF6B6B)
+      ..strokeWidth = 2;
+    for (final f in beatFracs) {
+      final x = plot.left + f * plot.width;
+      canvas.drawLine(
+        Offset(x, plot.top),
+        Offset(x, plot.top + 10),
+        beatPaint,
+      );
     }
 
     for (var s = 0; s < series.length; s++) {
