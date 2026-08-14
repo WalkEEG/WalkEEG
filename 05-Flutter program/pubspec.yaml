@@ -11,6 +11,10 @@ dependencies:
     sdk: flutter
   flutter_blue_plus: ^1.35.2
   permission_handler: ^11.3.1
+  http: ^1.2.2
+  shared_preferences: ^2.3.3
+  path_provider: ^2.1.4
+  aws_client: ^0.7.1
 
 dev_dependencies:
   flutter_test:

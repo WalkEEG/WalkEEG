@@ -71,24 +71,26 @@ function initSmoothScroll() {
 
 /* ===== API Client ===== */
 const API = {
-  BASE_URL: '/api',
+  get BASE_URL() {
+    return window.WALKEEG_CONFIG?.apiBaseUrl || '/api';
+  },
 
   async request(endpoint, options = {}) {
     const token = localStorage.getItem('walkeeg_token');
     const headers = {
       'Content-Type': 'application/json',
-      ...(token && { 'Authorization': `Bearer ${token}` }),
+      ...(token && { Authorization: `Bearer ${token}` }),
       ...options.headers,
     };
 
     try {
       const res = await fetch(`${API.BASE_URL}${endpoint}`, { ...options, headers });
       const data = await res.json();
-      if (!res.ok) throw { status: res.status, ...data };
+      if (!res.ok) throw { status: res.status, message: data.error || data.message, ...data };
       return data;
     } catch (err) {
       if (err.status === 401) {
-        localStorage.removeItem('walkeeg_token');
+        WalkEEGAuth?.clearSession?.();
         window.location.hash = '#login';
       }
       throw err;

@@ -98,6 +98,9 @@ class WalkEegPacketParser {
   int? lastSeq;
   int? lastNSamples;
 
+  /// Optional hook for recording: called with raw per-channel samples each frame.
+  void Function(int seq, List<List<int>> perChannel, int n)? onFrame;
+
   void reset() {
     _buf.clear();
     parsedFrames = 0;
@@ -210,6 +213,9 @@ class WalkEegPacketParser {
         channels[ch].addAll(perCh[ch]);
       }
     }
+
+    // Raw samples for CSV recording / cloud Sync (before display filters).
+    onFrame?.call(seq, perCh, n);
 
     // QRS detection runs on the RAW channel 0 (Pan-Tompkins band-passes
     // internally), parallel to the display chain.

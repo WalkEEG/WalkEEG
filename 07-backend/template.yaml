@@ -1,0 +1,275 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: WalkEEG backend - Cognito, S3 data bucket, DynamoDB, API Gateway, Lambda
+
+Parameters:
+  Environment:
+    Type: String
+    Default: prod
+    AllowedValues: [dev, prod]
+  WebsiteOrigin:
+    Type: String
+    Default: https://www.walkeeg.com
+    Description: CORS origin for S3 and API
+
+Globals:
+  Function:
+    Runtime: nodejs20.x
+    Timeout: 30
+    MemorySize: 256
+    Architectures: [x86_64]
+    Environment:
+      Variables:
+        SIGNALS_TABLE: !Ref SignalsTable
+        DATA_BUCKET: !Ref DataBucket
+        USER_POOL_ID: !Ref UserPool
+
+Resources:
+  # ── Cognito User Pool ──────────────────────────────────────────────
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: !Sub walkeeg-users-${Environment}
+      AutoVerifiedAttributes: [email]
+      UsernameAttributes: [email]
+      Schema:
+        - Name: email
+          Required: true
+          Mutable: true
+        - Name: name
+          Required: false
+          Mutable: true
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+          RequireLowercase: true
+          RequireNumbers: true
+          RequireSymbols: false
+          RequireUppercase: false
+
+  UserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: !Sub walkeeg-web-${Environment}
+      UserPoolId: !Ref UserPool
+      GenerateSecret: false
+      ExplicitAuthFlows:
+        - ALLOW_USER_SRP_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+        - ALLOW_USER_PASSWORD_AUTH
+      PreventUserExistenceErrors: ENABLED
+
+  # ── Cognito Identity Pool ──────────────────────────────────────────
+  IdentityPool:
+    Type: AWS::Cognito::IdentityPool
+    Properties:
+      IdentityPoolName: !Sub walkeeg_identity_${Environment}
+      AllowUnauthenticatedIdentities: false
+      CognitoIdentityProviders:
+        - ClientId: !Ref UserPoolClient
+          ProviderName: !GetAtt UserPool.ProviderName
+
+  AuthenticatedRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub walkeeg-auth-role-${Environment}
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: cognito-identity.amazonaws.com
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                cognito-identity.amazonaws.com:aud: !Ref IdentityPool
+              ForAnyValue:StringLike:
+                cognito-identity.amazonaws.com:amr: authenticated
+      Policies:
+        - PolicyName: S3UserPrefixAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:GetObject
+                  - s3:DeleteObject
+                # Use constructed bucket name (not !Ref DataBucket) to avoid
+                # circular deps with S3 event triggers / bucket policies.
+                Resource: !Sub
+                  - arn:aws:s3:::walkeeg-data-${Environment}/${cognitoSub}/*
+                  - Environment: !Ref Environment
+                    cognitoSub: '${cognito-identity.amazonaws.com:sub}'
+              - Effect: Allow
+                Action: s3:ListBucket
+                Resource: !Sub arn:aws:s3:::walkeeg-data-${Environment}
+                Condition:
+                  StringLike:
+                    s3:prefix:
+                      - !Sub
+                        - '${cognitoSub}/*'
+                        - cognitoSub: '${cognito-identity.amazonaws.com:sub}'
+                      - !Sub
+                        - '${cognitoSub}'
+                        - cognitoSub: '${cognito-identity.amazonaws.com:sub}'
+
+  IdentityPoolRoleAttachment:
+    Type: AWS::Cognito::IdentityPoolRoleAttachment
+    Properties:
+      IdentityPoolId: !Ref IdentityPool
+      Roles:
+        authenticated: !GetAtt AuthenticatedRole.Arn
+
+  # ── S3 Data Bucket ─────────────────────────────────────────────────
+  DataBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub walkeeg-data-${Environment}
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders: ['*']
+            AllowedMethods: [GET, PUT, POST, DELETE, HEAD]
+            AllowedOrigins:
+              - !Ref WebsiteOrigin
+              - http://localhost:3000
+              - http://127.0.0.1:5500
+            ExposedHeaders: [ETag]
+            MaxAge: 3600
+      # Versioning omitted: walkeeg-deploy currently lacks s3:PutBucketVersioning.
+      # Can re-enable later when IAM is expanded.
+
+  # ── DynamoDB ───────────────────────────────────────────────────────
+  SignalsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub walkeeg-signals-${Environment}
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: signalId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: userId
+          KeyType: HASH
+        - AttributeName: signalId
+          KeyType: RANGE
+
+  # ── HTTP API + JWT Authorizer ──────────────────────────────────────
+  HttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: !Ref Environment
+      CorsConfiguration:
+        AllowOrigins:
+          - !Ref WebsiteOrigin
+          - http://localhost:3000
+          - http://127.0.0.1:5500
+        AllowHeaders: [Authorization, Content-Type]
+        AllowMethods: [GET, POST, PUT, DELETE, OPTIONS]
+        MaxAge: 3600
+      Auth:
+        DefaultAuthorizer: CognitoAuthorizer
+        Authorizers:
+          CognitoAuthorizer:
+            IdentitySource: $request.header.Authorization
+            JwtConfiguration:
+              issuer: !Sub https://cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}
+              audience:
+                - !Ref UserPoolClient
+
+  # ── Lambda Functions ───────────────────────────────────────────────
+  ApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub walkeeg-api-${Environment}
+      Handler: src/handlers/api.handler
+      CodeUri: .
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref SignalsTable
+        - S3CrudPolicy:
+            BucketName: !Ref DataBucket
+      Events:
+        GetMe:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /me
+            Method: GET
+        GetSignals:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /signals
+            Method: GET
+        PostSignals:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /signals
+            Method: POST
+        GetSignal:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /signals/{id}
+            Method: GET
+        DeleteSignal:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /signals/{id}
+            Method: DELETE
+
+  # FFT/process skeleton. No S3 event trigger here — attaching
+  # s3:ObjectCreated on DataBucket creates a circular dependency
+  # (bucket ↔ Lambda). Wire EventBridge later if needed.
+  ProcessFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub walkeeg-process-${Environment}
+      Handler: src/handlers/process.handler
+      CodeUri: .
+      Timeout: 120
+      MemorySize: 512
+      Policies:
+        - S3ReadPolicy:
+            BucketName: !Ref DataBucket
+        - DynamoDBCrudPolicy:
+            TableName: !Ref SignalsTable
+Outputs:
+  UserPoolId:
+    Value: !Ref UserPool
+    Export:
+      Name: !Sub ${AWS::StackName}-UserPoolId
+  UserPoolClientId:
+    Value: !Ref UserPoolClient
+    Export:
+      Name: !Sub ${AWS::StackName}-UserPoolClientId
+  IdentityPoolId:
+    Value: !Ref IdentityPool
+    Export:
+      Name: !Sub ${AWS::StackName}-IdentityPoolId
+  DataBucketName:
+    Value: !Ref DataBucket
+    Export:
+      Name: !Sub ${AWS::StackName}-DataBucket
+  SignalsTableName:
+    Value: !Ref SignalsTable
+    Export:
+      Name: !Sub ${AWS::StackName}-SignalsTable
+  ApiEndpoint:
+    Value: !Sub https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com/${Environment}
+    Export:
+      Name: !Sub ${AWS::StackName}-ApiEndpoint
+  CognitoRegion:
+    Value: !Ref AWS::Region
+  WebsiteOrigin:
+    Value: !Ref WebsiteOrigin

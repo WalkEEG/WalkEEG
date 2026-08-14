@@ -1,0 +1,14 @@
+version = 0.1
+
+[default.deploy.parameters]
+stack_name = "walkeeg-backend"
+resolve_s3 = true
+s3_prefix = "walkeeg-backend"
+region = "us-west-2"
+confirm_changeset = true
+capabilities = "CAPABILITY_NAMED_IAM"
+parameter_overrides = "Environment=prod WebsiteOrigin=https://www.walkeeg.com"
+
+[default.build.parameters]
+cached = true
+parallel = true

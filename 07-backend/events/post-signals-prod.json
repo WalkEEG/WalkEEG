@@ -1,0 +1,20 @@
+{
+  "rawPath": "/prod/signals",
+  "body": "{\"name\":\"test\",\"s3Key\":\"us-west-2:abc/signals/test.csv\",\"identityId\":\"us-west-2:abc\"}",
+  "requestContext": {
+    "stage": "prod",
+    "http": {
+      "method": "POST",
+      "path": "/prod/signals"
+    },
+    "authorizer": {
+      "jwt": {
+        "claims": {
+          "sub": "test-user-id",
+          "email": "test@example.com",
+          "name": "Test"
+        }
+      }
+    }
+  }
+}
