@@ -42,4 +42,13 @@ config ZMS
 config NVS
 	default y if !(SOC_FLASH_NRF_RRAM || SOC_FLASH_NRF_MRAM)
 
+config WALKEEG_USE_ADS1293
+	bool "Use TI ADS1293 3-channel ECG AFE (SPI) instead of AD8232"
+	default y
+	help
+	  Streams 3 ECG leads (Lead I/II/III, 24-bit, 533 sps) from the TI
+	  ADS1293 over SPI1. The AD8232 SAADC path stays compiled in but is
+	  not sampled. Requires the ads1293 SPI node in the board overlay
+	  (already present for nrf52840dk). Set to n to go back to AD8232.
+
 endmenu

@@ -8,6 +8,7 @@
 
 #include "stream.h"
 #include "adc_sample.h"
+#include "ads1293.h"
 
 #include <zephyr/kernel.h>
 #include <zephyr/sys/atomic.h>
@@ -122,8 +123,6 @@ K_TIMER_DEFINE(sample_timer, sample_timer_handler, NULL);
 static void sampler_thread(void *p1, void *p2, void *p3)
 {
 	struct sample_tp tp;
-	struct walkeeg_adc_sample s;
-	int32_t ramp_val;
 	int err;
 
 	ARG_UNUSED(p1);
@@ -137,28 +136,58 @@ static void sampler_thread(void *p1, void *p2, void *p3)
 			continue;
 		}
 
-		err = walkeeg_adc_read(&s);
-		if (err) {
-			LOG_WRN("adc_read err %d", err);
-			continue;
+#if WALKEEG_ADS1293_AVAILABLE
+		{
+			struct ads1293_sample s3;
+
+			err = walkeeg_ads1293_read(&s3);
+			if (err) {
+				LOG_WRN("ads1293_read err %d", err);
+				continue;
+			}
+
+			/* CH0..2 = Lead I/II/III. ADS1293 24-bit code is offset
+			 * binary (0V diff input = 0x400000); convert to int16
+			 * centered at 0: (raw - 0x400000) >> 8  ->  +/-0x8000. */
+			memset(tp.ch, 0, sizeof(tp.ch));
+			tp.ch[0] = (int16_t)((s3.ch[0] - 0x400000U) >> 8);
+			tp.ch[1] = (int16_t)((s3.ch[1] - 0x400000U) >> 8);
+			tp.ch[2] = (int16_t)((s3.ch[2] - 0x400000U) >> 8);
+
+			/* Lead-off: ERROR_LOD bit set = lead off. Map IN1->bit0,
+			 * IN2->bit1 as "attached" to match AD8232 flag semantics. */
+			tp.flags = ((s3.lod & 0x01) ? 0 : 0x01) |
+				   ((s3.lod & 0x02) ? 0 : 0x02);
 		}
+#else
+		{
+			struct walkeeg_adc_sample s;
+			int32_t ramp_val;
 
-		/* CH0 = real AD8232 signal: raw 12-bit value (0..4095),
-		 * riding on half-scale (~2048) DC bias from REFOUT,
-		 * passed through unfiltered. */
-		memset(tp.ch, 0, sizeof(tp.ch));
-		tp.ch[0] = s.value;
+			err = walkeeg_adc_read(&s);
+			if (err) {
+				LOG_WRN("adc_read err %d", err);
+				continue;
+			}
 
-		/* CH1 = sawtooth test signal, 0..4095 over 1 s (same range as 12-bit ADC) */
-		ramp_val = (int32_t)ramp_i * 4095 / (WALKEEG_SAMPLE_HZ - 1);
-		tp.ch[1] = (int16_t)ramp_val;
-		ramp_i++;
-		if (ramp_i >= WALKEEG_SAMPLE_HZ) {
-			ramp_i = 0;
+			/* CH0 = real AD8232 signal: raw 12-bit value (0..4095),
+			 * riding on half-scale (~2048) DC bias from REFOUT,
+			 * passed through unfiltered. */
+			memset(tp.ch, 0, sizeof(tp.ch));
+			tp.ch[0] = s.value;
+
+			/* CH1 = sawtooth test signal, 0..4095 over 1 s (same range as 12-bit ADC) */
+			ramp_val = (int32_t)ramp_i * 4095 / (WALKEEG_SAMPLE_HZ - 1);
+			tp.ch[1] = (int16_t)ramp_val;
+			ramp_i++;
+			if (ramp_i >= WALKEEG_SAMPLE_HZ) {
+				ramp_i = 0;
+			}
+
+			/* CH2..7 = 0 (already memset) */
+			tp.flags = (s.lo_plus  ? 0x01 : 0) | (s.lo_minus ? 0x02 : 0);
 		}
-
-		/* CH2..7 = 0 (already memset) */
-		tp.flags = (s.lo_plus  ? 0x01 : 0) | (s.lo_minus ? 0x02 : 0);
+#endif /* WALKEEG_ADS1293_AVAILABLE */
 
 		ring_push(&tp);
 	}

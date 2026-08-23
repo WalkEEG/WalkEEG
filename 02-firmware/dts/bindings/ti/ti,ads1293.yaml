@@ -1,0 +1,18 @@
+description: TI ADS1293 3-channel, 24-bit ECG analog front-end (SPI)
+
+compatible: "ti,ads1293"
+
+include: [spi-device.yaml]
+
+properties:
+  drdy-gpios:
+    type: phandle-array
+    required: true
+    description: |
+      Data-ready output (active low). Asserted when a new sample is
+      available; deasserted on the 14th rising SCLK edge of a read.
+
+  reset-gpios:
+    type: phandle-array
+    required: false
+    description: Active-low hardware reset input (optional).

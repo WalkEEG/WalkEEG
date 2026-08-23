@@ -71,3 +71,51 @@
 	status = "okay";
 	current-speed = <115200>;
 };
+
+/*
+ * TI ADS1293 3-channel ECG AFE (SPI1).
+ *
+ *   SCLK  P1.00  (SPIM1 SCK)      -> ADS1293 SCLK
+ *   MOSI  P1.01  (SPIM1 MOSI)     -> ADS1293 SDI
+ *   MISO  P1.02  (SPIM1 MISO)     <- ADS1293 SDO
+ *   CS    P1.03  (GPIO, act-low)  -> ADS1293 CSB
+ *   DRDY  P1.04  (GPIO input)     <- ADS1293 DRDYB (data ready)
+ *   RESET P1.05  (GPIO, act-low)  -> ADS1293 RSTB (optional)
+ *
+ * These pins do NOT overlap the AD8232 interface (P0.02 / P1.13-15)
+ * or the UART (P0.12 / P0.13). AD8232 nodes above are left untouched.
+ */
+&pinctrl {
+	ads1293_spi_default: ads1293_spi_default {
+		group1 {
+			psels = <NRF_PSEL(SPIM_SCK, 1, 0)>,
+				<NRF_PSEL(SPIM_MOSI, 1, 1)>,
+				<NRF_PSEL(SPIM_MISO, 1, 2)>;
+		};
+	};
+
+	ads1293_spi_sleep: ads1293_spi_sleep {
+		group1 {
+			psels = <NRF_PSEL(SPIM_SCK, 1, 0)>,
+				<NRF_PSEL(SPIM_MOSI, 1, 1)>,
+				<NRF_PSEL(SPIM_MISO, 1, 2)>;
+			low-power-enable;
+		};
+	};
+};
+
+&spi1 {
+	status = "okay";
+	pinctrl-0 = <&ads1293_spi_default>;
+	pinctrl-1 = <&ads1293_spi_sleep>;
+	pinctrl-names = "default", "sleep";
+
+	ads1293: ads1293@0 {
+		compatible = "ti,ads1293";
+		reg = <0>;
+		spi-max-frequency = <4000000>;
+		cs-gpios = <&gpio1 3 GPIO_ACTIVE_LOW>;
+		drdy-gpios = <&gpio1 4 GPIO_ACTIVE_LOW>;
+		reset-gpios = <&gpio1 5 GPIO_ACTIVE_LOW>;
+	};
+};

@@ -35,6 +35,7 @@
 
 #include "stream.h"
 #include "adc_sample.h"
+#include "ads1293.h"
 
 /* 定义日志模块名称 */	
 #define LOG_MODULE_NAME peripheral_uart   // 定义日志模块名称		
@@ -730,10 +731,17 @@ int main(void)
 
 	walkeeg_stream_init();
 
+#if WALKEEG_ADS1293_AVAILABLE
+	err = walkeeg_ads1293_init();
+	if (err) {
+		LOG_ERR("ADS1293 init failed (err: %d)", err);
+	}
+#else
 	err = walkeeg_adc_init();
 	if (err) {
 		LOG_ERR("ADC init failed (err: %d)", err);
 	}
+#endif
 
 	k_work_init(&adv_work, adv_work_handler);
 	advertising_start();// 开始广播
