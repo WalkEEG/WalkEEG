@@ -4032,16 +4032,6 @@
 		)
 		(uuid "93f7f60c-5aa7-49cb-85f4-7677e3c56851")
 	)
-	(label "VBUS"
-		(at 25.4 146.05 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "a15863e7-cae0-48a6-9421-f0c4ebd0afdf")
-	)
 	(label "CH340_D-"
 		(at 161.29 48.26 0)
 		(effects
@@ -7435,5 +7425,35 @@
 				)
 			)
 		)
+	)
+
+	(no_connect
+		(at 193.04 88.9 0)
+		(uuid "df35c6e4-0968-4f37-b743-837346e2ea3e")
+	)
+
+	(no_connect
+		(at 213.36 96.52 0)
+		(uuid "81db9989-fe70-4681-8c58-39845816f344")
+	)
+
+	(no_connect
+		(at 213.36 99.06 0)
+		(uuid "7a98e0fb-15ff-4443-8e1c-4b15f2710d59")
+	)
+
+	(no_connect
+		(at 213.36 101.6 0)
+		(uuid "98ec6f0c-8f01-4be9-809f-62bdfec75bb0")
+	)
+
+	(no_connect
+		(at 213.36 104.14 0)
+		(uuid "9ec58288-5b36-4004-8f95-e0380160766e")
+	)
+
+	(no_connect
+		(at 157.48 50.8 0)
+		(uuid "f76fa637-7608-48f2-b79b-ea2fb2b0216c")
 	)
 )

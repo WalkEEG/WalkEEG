@@ -5916,8 +5916,7 @@
 			)
 		)
 	)
-	(global_label "P0.19{slash}LED2"
-		(shape passive)
+	(label "P0.19{slash}LED2"
 		(at 49.53 185.42 0)
 		(effects
 			(font
@@ -5926,17 +5925,6 @@
 			(justify left)
 		)
 		(uuid "1c3201be-26ed-4cd4-a8aa-bbc7e395bed7")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 49.53 185.42 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
 	)
 	(global_label "GND"
 		(shape passive)
@@ -6354,8 +6342,7 @@
 			)
 		)
 	)
-	(global_label "P1.01"
-		(shape passive)
+	(label "P1.01"
 		(at 76.2 160.02 180)
 		(effects
 			(font
@@ -6364,21 +6351,8 @@
 			(justify right)
 		)
 		(uuid "843192b6-2870-4df1-ab80-75b9ce9893b9")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 76.2 160.02 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-			)
-		)
 	)
-	(global_label "P0.17{slash}LED1"
-		(shape passive)
+	(label "P0.17{slash}LED1"
 		(at 30.48 185.42 0)
 		(effects
 			(font
@@ -6387,17 +6361,6 @@
 			(justify left)
 		)
 		(uuid "8afaf917-f9ac-4f94-969e-732f9e487de7")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 30.48 185.42 0)
-			(hide yes)
-			(show_name no)
-			(do_not_autoplace no)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
 	)
 	(global_label "P0.26"
 		(shape passive)
@@ -8187,24 +8150,26 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "2222993d-b931-4366-8d30-73426dd11a84")
-		(property "Reference" "R_LO-"
-			(at 240.03 146.05 0)
+		(property "Reference" "R13"
+			(at 247.65 142.2399 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
+				(justify left)
 			)
 		)
 		(property "Value" "10k"
-			(at 250.19 140.97 0)
+			(at 247.65 144.7799 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
+				(justify left)
 			)
 		)
 		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
@@ -8255,7 +8220,7 @@
 			)
 			(project "walkeeg_v3.0"
 				(path "/e697d0ae-258a-4ffe-a80f-5c30fd5207ba/76b461a0-7f1d-4d4a-9fb9-de3608d0b7fc"
-					(reference "R_LO-")
+					(reference "R13")
 					(unit 1)
 				)
 			)
@@ -11904,24 +11869,26 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "b3586e0a-6752-4eef-a78c-411fde493abc")
-		(property "Reference" "R_SDN"
-			(at 240.03 90.17 0)
+		(property "Reference" "R11"
+			(at 247.65 86.3599 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
+				(justify left)
 			)
 		)
 		(property "Value" "10k"
-			(at 250.19 85.09 0)
+			(at 247.65 88.8999 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
+				(justify left)
 			)
 		)
 		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
@@ -11972,7 +11939,7 @@
 			)
 			(project "walkeeg_v3.0"
 				(path "/e697d0ae-258a-4ffe-a80f-5c30fd5207ba/76b461a0-7f1d-4d4a-9fb9-de3608d0b7fc"
-					(reference "R_SDN")
+					(reference "R11")
 					(unit 1)
 				)
 			)
@@ -13242,24 +13209,26 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "ef21cc30-83b4-4c18-8782-18eec3e29038")
-		(property "Reference" "R_LO+"
-			(at 240.03 119.38 0)
+		(property "Reference" "R12"
+			(at 247.65 115.5699 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
+				(justify left)
 			)
 		)
 		(property "Value" "10k"
-			(at 250.19 114.3 0)
+			(at 247.65 118.1099 0)
 			(show_name no)
 			(do_not_autoplace no)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
+				(justify left)
 			)
 		)
 		(property "Footprint" "Resistor_SMD:R_0603_1608Metric"
@@ -13310,7 +13279,7 @@
 			)
 			(project "walkeeg_v3.0"
 				(path "/e697d0ae-258a-4ffe-a80f-5c30fd5207ba/76b461a0-7f1d-4d4a-9fb9-de3608d0b7fc"
-					(reference "R_LO+")
+					(reference "R12")
 					(unit 1)
 				)
 			)
@@ -13485,5 +13454,23 @@
 				)
 			)
 		)
+	)
+
+
+
+
+
+
+
+
+
+	(no_connect
+		(at 243.84 62.23 0)
+		(uuid "8dbf804e-e7f4-460f-bda5-364e154055ec")
+	)
+
+	(no_connect
+		(at 256.54 62.23 0)
+		(uuid "37d8167b-c5bc-436d-85e1-206edd04f3fd")
 	)
 )
