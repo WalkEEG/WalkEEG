@@ -2,9 +2,154 @@
 	(version 20260306)
 	(generator "eeschema")
 	(generator_version "10.0")
-	(uuid e697d0ae-258a-4ffe-a80f-5c30fd5207ba)
+	(uuid "e697d0ae-258a-4ffe-a80f-5c30fd5207ba")
 	(paper "A4")
 	(lib_symbols)
+	(text "           Peripherals = 电源/USB/存储 (AMS1117, USB 磁珠防护, SPI Flash, SD, CH340)"
+		(exclude_from_sim no)
+		(at 85.598 67.582 0)
+		(effects
+			(font
+				(size 2 2)
+			)
+			(justify left)
+		)
+		(uuid "092f0c98-6f4a-4e70-a687-df43879afe4d")
+	)
+	(text "WalkEEG v3.0  ——  8 通道便携脑电采集板"
+		(exclude_from_sim no)
+		(at 87.63 56.896 0)
+		(effects
+			(font
+				(size 3.5 3.5)
+			)
+			(justify left)
+		)
+		(uuid "103ece61-18f6-4adf-91c0-8e9be761dea8")
+	)
+	(text "主控: nRF52840 模块 (青风)  |  模拟前端: 8x AD8232 + ADS1293"
+		(exclude_from_sim no)
+		(at 85.598 84.582 0)
+		(effects
+			(font
+				(size 2 2)
+			)
+			(justify left)
+		)
+		(uuid "9c9ce231-0430-49c0-bc65-f42000ccfa27")
+	)
+	(text "页面说明:  MotherBroad = 主控接口/模拟前端 (J1 J2 排针, 8x AD8232, ADS1293, 测试点)"
+		(exclude_from_sim no)
+		(at 85.598 72.582 0)
+		(effects
+			(font
+				(size 2 2)
+			)
+			(justify left)
+		)
+		(uuid "adbe0fd8-3bb2-44ac-8bef-01e966a17c62")
+	)
+	(text "外设: SPI Flash (W25Q80) / MicroSD / CH340C USB 串口"
+		(exclude_from_sim no)
+		(at 85.598 79.582 0)
+		(effects
+			(font
+				(size 2 2)
+			)
+			(justify left)
+		)
+		(uuid "f4c82264-1486-4561-94b3-7b96e5fa12a1")
+	)
+	(sheet
+		(at 92.38 94.6)
+		(size 45.72 30.48)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 255 255 255 0)
+		)
+		(uuid "76b461a0-7f1d-4d4a-9fb9-de3608d0b7fc")
+		(property "Sheetname" "MotherBroad"
+			(at 13.97 -2.032 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "walkeeg_v3.0_mother_broad.kicad_sch"
+			(at 15.24 -27.94 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "walkeeg_v3.0"
+				(path "/e697d0ae-258a-4ffe-a80f-5c30fd5207ba"
+					(page "2")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 161.27 94.6)
+		(size 45.72 30.48)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 255 255 255 0)
+		)
+		(uuid "9766c2eb-3f8b-46e1-9f2f-ff532d770e9c")
+		(property "Sheetname" "Peripherals"
+			(at 22.86 -2.032 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "walkeeg_v3.0_peripherals.kicad_sch"
+			(at 24.13 -27.94 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "walkeeg_v3.0"
+				(path "/e697d0ae-258a-4ffe-a80f-5c30fd5207ba"
+					(page "3")
+				)
+			)
+		)
+	)
 	(sheet_instances
 		(path "/"
 			(page "1")
