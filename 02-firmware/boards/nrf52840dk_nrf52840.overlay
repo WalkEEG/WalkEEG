@@ -22,6 +22,17 @@
 	chosen {
 		nordic,nus-uart = &uart0;
 	};
+
+	/* AD8232 lead-off / SDN pins (青风 nRF52840 board, P13 header):
+	 * OUTPUT -> P0.02 (AIN0, see &adc channel@0 below)
+	 * LO+ -> P1.13, LO- -> P1.15, SDN -> P1.14 */
+	walkeeg_ecg: walkeeg-ecg {
+		compatible = "walkeeg,ecg-pins";
+		io-channels = <&adc 0>;
+		lo-plus-gpios  = <&gpio1 13 GPIO_PULL_UP>;
+		lo-minus-gpios = <&gpio1 15 GPIO_PULL_UP>;
+		sdn-gpios      = <&gpio1 14 GPIO_ACTIVE_HIGH>;
+	};
 };
 
 /* AD8232 ECG channel: AIN0 = P0.02 (P13 pin 8), gain 1/6 -> 0..3.6 V */

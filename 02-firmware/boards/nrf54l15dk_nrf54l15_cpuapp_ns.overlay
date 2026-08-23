@@ -2,6 +2,21 @@
  * Copyright (c) 2026 Nordic Semiconductor ASA
  *
  * SPDX-License-Identifier: LicenseRef-Nordic-5-Clause
+ *
+ * nRF54L15-DK (PCA10156) adaptation for the WalkEEG NUS ECG stream firmware.
+ *
+ * Build target (NCS v3.2.x):
+ *   west build -b nrf54l15dk/nrf54l15/cpuapp_ns --sysbuild -d build-nrf54l15
+ *
+ * This overlay extends the default RRAM partition layout (TF-M + non-secure
+ * app) with:
+ *   1. nordic,nus-uart chosen -> uart20 (DK VCOM, P1.04/P1.05)
+ *   2. ADC channel AIN4 = P1.11 (free pin on the "PORT P1" expansion header)
+ *   3. walkeeg,ecg-pins node: AD8232 lead-off / SDN GPIOs
+ *      (occupies SW0 = P1.13 and LED3 = P1.14; see comment below for
+ *       alternative wiring using UART20 RTS/CTS)
+ *   4. Explicit status = "okay" for adc and GPIO ports (disabled by default
+ *      in the nRF54L15 SoC dtsi)
  */
 
 /delete-node/ &slot0_partition;
@@ -10,6 +25,68 @@
 /delete-node/ &tfm_its_partition;
 /delete-node/ &tfm_otp_partition;
 /delete-node/ &tfm_ps_partition;
+
+/ {
+	chosen {
+		/* NUS bridge UART = DK VCOM (UART20 on P1.04/P1.05).
+		 * main.c requires this chosen (or zephyr,shell-uart) to build. */
+		nordic,nus-uart = &uart20;
+	};
+
+	/* AD8232 ECG wiring on the DK "PORT P1" expansion header.
+	 * Default (option A): OUTPUT -> P1.11 (AIN4), LO+ -> P1.12,
+	 *                     LO- -> P1.14 (LED3), SDN -> P1.13 (SW0).
+	 * Option B (keep buttons/LED): move LO-/SDN to P1.06/P1.07 and drop
+	 * UART20 RTS/CTS (edit uart20 pinctrl in the board dtsi).
+	 * NOTE: exact pins still need hardware verification. */
+	walkeeg_ecg: walkeeg-ecg {
+		compatible = "walkeeg,ecg-pins";
+		io-channels = <&adc 0>;
+		lo-plus-gpios  = <&gpio1 12 GPIO_PULL_UP>;      /* P1.12 */
+		lo-minus-gpios = <&gpio1 14 GPIO_PULL_UP>;      /* P1.14 (LED3) */
+		sdn-gpios      = <&gpio1 13 GPIO_ACTIVE_HIGH>;  /* P1.13 (SW0) */
+	};
+};
+
+/* AD8232 ECG channel: AIN4 = P1.11 (free pin on the expansion header).
+ * gain 1/4 + internal reference gives ~3.6 V full scale if the internal
+ * reference is 0.9 V (verify against the nRF54L15 PS; adjust if needed). */
+&adc {
+	status = "okay";
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	channel@0 {
+		reg = <0>;
+		zephyr,gain = "ADC_GAIN_1_4";
+		zephyr,reference = "ADC_REF_INTERNAL";
+		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+		zephyr,input-positive = <NRF_SAADC_AIN4>; /* P1.11 */
+	};
+};
+
+/* nRF54L15 GPIO ports are disabled by default in the SoC dtsi;
+ * the DK needs gpio0/1/2 (LEDs, buttons, expansion header). */
+&gpio0 {
+	status = "okay";
+};
+
+&gpio1 {
+	status = "okay";
+};
+
+&gpio2 {
+	status = "okay";
+};
+
+/* Pins taken over by the ECG hookup: LED3 = P1.14 (LO-), SW0 = P1.13 (SDN). */
+&led3 {
+	status = "disabled";
+};
+
+&button0 {
+	status = "disabled";
+};
 
 &cpuapp_rram {
 	partitions {

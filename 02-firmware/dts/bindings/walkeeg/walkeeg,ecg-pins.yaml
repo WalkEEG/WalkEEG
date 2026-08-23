@@ -1,0 +1,24 @@
+description: WalkEEG AD8232 ECG 连接引脚（ADC 通道 + 导联脱落 GPIO + SDN）
+
+compatible: "walkeeg,ecg-pins"
+
+properties:
+  io-channels:
+    type: phandle-array
+    required: true
+    description: 指向 &adc 及其通道序号（channel@N 定义 gain/ref/输入脚）
+
+  lo-plus-gpios:
+    type: phandle-array
+    required: true
+    description: LO+ 导联检测输入（上拉）
+
+  lo-minus-gpios:
+    type: phandle-array
+    required: true
+    description: LO- 导联检测输入（上拉）
+
+  sdn-gpios:
+    type: phandle-array
+    required: true
+    description: SDN 关断控制（输出高 = 使能 AD8232）
