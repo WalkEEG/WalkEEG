@@ -1,0 +1,18 @@
+(version 1)
+
+# ---- WalkEEG v3.0 自定义设计规则 ----
+
+# TP 阵列行距 2.54mm < PinSocket_1x01 courtyard 半宽(1.77mm)，允许 courtyard 交叠
+# （焊盘间隙 0.84mm 无实际影响；全板 courtyard 交叠仅存在于 TP 阵列）
+(rule "TP courtyard exemption"
+  (constraint courtyard_clearance (min -1.2mm)))
+
+# 电源网络最小线宽 0.4mm（VBUS/3V3/GND 主链）
+(rule "Power trace width"
+  (condition "A.NetClass == 'Power'")
+  (constraint track_width (min 0.4mm)))
+
+# 模拟网络最小间距 0.25mm（ADC 输入走线，防数字串扰）
+(rule "Analog spacing"
+  (condition "A.NetClass == 'Analog' || B.NetClass == 'Analog'")
+  (constraint clearance (min 0.25mm)))
