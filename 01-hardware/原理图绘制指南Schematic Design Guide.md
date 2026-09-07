@@ -227,6 +227,19 @@
 
 ---
 
+## 11. 实战排版补充（2026-09-05 BALANX2 电源页复盘）/ Practical Layout Rules
+
+> 来源：对比“程序生成块”与人工精修块的差异，沉淀为团队排版习惯。/ From comparing generated vs hand-polished blocks.
+
+1. **器件方向随走线旋转**：允许 0/90/180/270，让连线最短最直。电阻可横可竖；电容可用 180° 把文字摆向空位。不要为了“统一竖放”而让线绕远。/ **Rotate parts to serve routing** (0/90/180/270°) so wires stay short and straight; e.g., a resistor lying across two stubs, or a cap flipped 180° to park its text in empty space.
+2. **位号 + Value 跟随器件**：旋转时文字一起转；用 justify（left/right）把文字贴器件外侧，**严禁文字压线或压到符号体**。长 Value（如 `10uF_16V_10%`）尤其要留好空间。/ **Ref & Value follow the part**: rotate with it and use justification to hug the outside edge; never let text overlap wires or bodies — mind long values.
+3. **布局节奏**：块内信号左进右出；元件间距留足（≥1.27~2.54mm）；先排主干再填空隙，不硬塞。/ **Pace**: left-in/right-out flow, ≥1.27–2.54mm spacing, place the backbone first and fill gaps after.
+4. **标签克制**：能物理连线就不堆 net label；网络名一次定清楚（如 `CHG_EN`），不留冗余副本；顺手删死线/残留注释。/ **Labels are a last resort**: wire physically when possible; name nets once and deliberately; delete dead wires and stale notes.
+5. **自查视角 = 人眼**：每放一批料，zoom 看文字是否压线、流向是否顺、图是否“毛线团”；而不是只看网表。/ **Self-check by eye**: zoom each placement for text/wire collisions and readability, not just netlist correctness.
+6. 每个功能块顶部保留一行标题注释（沿用 §5.2）。/ Keep one-line titles above each block (per §5.2).
+
+---
+
 *整理日期 / Date: 2026-09-04*
 *说明：本文基于电子设计工程实践整理，可随团队习惯持续增补（位号规则、模板路径、符号库规范等）。/ Note: compiled from electronics design engineering practice; extend it with your team's own conventions (designator rules, template paths, symbol library standards, etc.).*
 
