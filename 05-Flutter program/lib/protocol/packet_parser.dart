@@ -38,7 +38,7 @@ class WalkEegPacketParser {
   WalkEegPacketParser({
     this.channelCapacity = 20000,
     FilterMode filterMode = FilterMode.notchLp,
-    int sampleRate = 2000,
+    int sampleRate = 500,
   }) : _mode = filterMode {
     channels = List.generate(
       8,

@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WALKEEG LIVE</title>
+<style>
+  :root{
+    --bg:#0b0f1a; --card:#111827; --line:#1e293b; --text:#f1f5f9;
+    --muted:#94a3b8; --primary:#6366f1; --accent:#06b6d4; --ok:#22c55e; --warn:#f59e0b;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+  header{padding:18px 24px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  .brand{font-weight:800;letter-spacing:.12em;font-size:14px}
+  .brand span{color:var(--accent)}
+  .pill{font-size:12px;color:var(--muted);border:1px solid var(--line);padding:4px 10px;border-radius:999px}
+  .dot{width:8px;height:8px;border-radius:50%;background:#64748b;display:inline-block;margin-right:6px}
+  .dot.on{background:var(--ok);box-shadow:0 0 10px rgba(34,197,94,.7)}
+  main{padding:18px 24px;max-width:1280px;margin:0 auto}
+  .bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+  input{background:#0f172a;border:1px solid var(--line);color:var(--text);border-radius:8px;padding:8px 10px;font-size:13px;width:260px}
+  button{background:var(--card);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:8px 14px;font-size:13px;cursor:pointer}
+  button.primary{background:linear-gradient(135deg,var(--primary),var(--accent));border:0;color:#fff;font-weight:700}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+  .stat b{display:block;font-size:20px;margin-top:4px}
+  .stat span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+  .canvasWrap{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px;position:relative}
+  canvas{width:100%;height:380px;display:block}
+  .foot{font-size:12px;color:var(--muted);margin-top:10px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  @media(max-width:760px){.stats{grid-template-columns:repeat(2,1fr)}canvas{height:280px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">WALKEEG <span>LIVE</span></div>
+  <div class="pill"><span id="dot" class="dot"></span><span id="conn">disconnected</span></div>
+  <div class="pill">500 Hz · 8 ch</div>
+  <div class="pill" id="clock">--:--:--</div>
+</header>
+<main>
+  <div class="bar">
+    <input id="host" value="" placeholder="ws://192.168.1.10:8787/live">
+    <button id="connect" class="primary">Connect</button>
+    <button id="pause">Pause</button>
+    <button id="clear">Clear</button>
+    <button id="csv">Export CSV</button>
+  </div>
+  <div class="stats">
+    <div class="stat"><span>Samples/s</span><b id="sps">0</b></div>
+    <div class="stat"><span>Latency</span><b id="lat">-- ms</b></div>
+    <div class="stat"><span>Dropped</span><b id="drops">0</b></div>
+    <div class="stat"><span>Buffered</span><b id="buf">0</b></div>
+  </div>
+  <div class="canvasWrap"><canvas id="wave"></canvas></div>
+  <div class="foot">
+    <span id="hint">Waiting for data…</span>
+    <span>CH0 · 5 s window</span>
+  </div>
+</main>
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const canvas = $('wave');
+  const ctx = canvas.getContext('2d');
+  const defaultHost = location.protocol.startsWith('http')
+    ? `ws://${location.host}/live`
+    : 'ws://localhost:8787/live';
+  $('host').value = defaultHost;
+
+  let ws = null;
+  let paused = false;
+  let seqLast = null;
+  let drops = 0;
+  let samples = []; // {t, ch:[8]}
+  let winSamples = 2500; // 5 s at 500 Hz
+  let lastSampleAt = 0;
+  let lastT = 0;
+  let sampleCount = 0;
+  let spsWindow = [];
+
+  const MAGIC = 0x57, VERSION = 1, HDR = 13;
+
+  function setConn(on, text) {
+    $('dot').classList.toggle('on', on);
+    $('conn').textContent = text;
+  }
+
+  function parseFrame(buf) {
+    if (buf.byteLength < HDR || buf.getUint8(0) !== MAGIC || buf.getUint8(1) !== VERSION) return null;
+    const seq = buf.getUint16(2, true);
+    const t = Number(buf.getBigUint64(4, true));
+    const n = buf.getUint8(12);
+    if (n < 1 || buf.byteLength < HDR + n * 16) return null;
+    const out = [];
+    let off = HDR;
+    for (let i = 0; i < n; i++) {
+      const ch = new Array(8);
+      for (let c = 0; c < 8; c++) { ch[c] = buf.getUint16(off, true); off += 2; }
+      out.push({ t, ch });
+    }
+    return { seq, t, n, samples: out };
+  }
+
+  function connect() {
+    if (ws) { try { ws.close(); } catch (_) {} ws = null; }
+    const url = $('host').value.trim();
+    setConn(false, 'connecting…');
+    try { ws = new WebSocket(url); } catch (e) { setConn(false, 'bad url'); return; }
+    ws.binaryType = 'arraybuffer';
+    ws.onopen = () => setConn(true, 'connected');
+    ws.onclose = () => setConn(false, 'disconnected');
+    ws.onerror = () => setConn(false, 'error');
+    ws.onmessage = (ev) => {
+      if (paused) return;
+      const f = parseFrame(new DataView(ev.data));
+      if (!f) return;
+      if (f.seq !== 0 && seqLast !== null) {
+        const expected = (seqLast + 1) & 0xffff;
+        const gap = (f.seq - expected) & 0xffff;
+        if (gap > 0 && gap < 1000) drops += gap;
+      }
+      if (f.seq !== 0) seqLast = f.seq;
+      samples.push(...f.samples);
+      if (samples.length > 20000) samples.splice(0, samples.length - 20000);
+      lastT = f.t;
+      lastSampleAt = Date.now();
+      sampleCount += f.n;
+      spsWindow.push({ at: lastSampleAt, n: f.n });
+      $('drops').textContent = drops;
+      $('buf').textContent = samples.length;
+    };
+  }
+
+  function draw() {
+    const dpr = window.devicePixelRatio || 1;
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    if (canvas.width !== w * dpr || canvas.height !== h * dpr) {
+      canvas.width = w * dpr; canvas.height = h * dpr;
+    }
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, w, h);
+    // grid
+    ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 1;
+    for (let i = 0; i <= 10; i++) {
+      const x = (w * i) / 10;
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+    }
+    for (let i = 0; i <= 8; i++) {
+      const y = (h * i) / 8;
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+    }
+    const view = samples.slice(-winSamples);
+    if (view.length > 1) {
+      let min = 65535, max = 0;
+      for (const s of view) { const v = s.ch[0]; if (v < min) min = v; if (v > max) max = v; }
+      if (max - min < 20) { min -= 10; max += 10; }
+      const pad = (max - min) * 0.1; min -= pad; max += pad;
+      const grad = ctx.createLinearGradient(0, 0, w, 0);
+      grad.addColorStop(0, '#6366f1'); grad.addColorStop(1, '#06b6d4');
+      ctx.strokeStyle = grad; ctx.lineWidth = 2;
+      ctx.beginPath();
+      for (let i = 0; i < view.length; i++) {
+        const x = (i / (view.length - 1)) * w;
+        const y = h - ((view[i].ch[0] - min) / (max - min)) * h;
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+      $('hint').textContent = `CH0  min=${min.toFixed(0)}  max=${max.toFixed(0)}`;
+    }
+    // sps / latency
+    const now = Date.now();
+    spsWindow = spsWindow.filter((x) => now - x.at < 1000);
+    const sps = spsWindow.reduce((a, x) => a + x.n, 0);
+    $('sps').textContent = sps;
+    if (lastT) {
+      const age = Date.now() - lastT;
+      $('lat').textContent = (age >= 0 && age < 600000) ? `${age} ms` : 'clock skew';
+    }
+    $('clock').textContent = new Date().toLocaleTimeString();
+    requestAnimationFrame(draw);
+  }
+
+  $('connect').addEventListener('click', connect);
+  $('pause').addEventListener('click', () => {
+    paused = !paused;
+    $('pause').textContent = paused ? 'Resume' : 'Pause';
+  });
+  $('clear').addEventListener('click', () => { samples = []; drops = 0; seqLast = null; $('drops').textContent = '0'; });
+  $('csv').addEventListener('click', () => {
+    const rows = ['t_ms,ch0,ch1,ch2,ch3,ch4,ch5,ch6,ch7'];
+    for (const s of samples) rows.push([s.t, ...s.ch].join(','));
+    const blob = new Blob([rows.join('\n')], { type: 'text/csv' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `walkeeg-${Date.now()}.csv`;
+    a.click();
+  });
+
+  connect();
+  requestAnimationFrame(draw);
+})();
+</script>
+</body>
+</html>

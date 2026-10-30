@@ -1,0 +1,17 @@
+{
+  "name": "08-realtime",
+  "version": "1.0.0",
+  "description": "Local-only link: AD8232 → nRF52840 → BLE → iPad/iPhone → WebSocket → this server → browser. No disk persistence; 10 s ring buffer; web shows the same data as the iPad.",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "ws": "^8.22.0"
+  }
+}

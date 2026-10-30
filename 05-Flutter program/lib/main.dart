@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'auth/cognito_auth.dart';
 import 'ble/walkeeg_ble.dart';
 import 'protocol/packet_parser.dart';
+import 'relay/relay_service.dart';
 import 'storage/recording_service.dart';
 import 'storage/sync_service.dart';
 import 'ui/login_page.dart';
@@ -21,7 +22,7 @@ class WalkEegApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'WalkEEG',
+      title: 'WALKEEG',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
@@ -43,7 +44,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  static const _sampleRateHz = 2000;
+  static const _sampleRateHz = 500;
 
   /// Y-axis display: AC auto (monitor-style autoscale) or fixed unsigned
   /// ranges for 8/10/12/14/16-bit ADC modes.
@@ -63,6 +64,7 @@ class _HomePageState extends State<HomePage> {
 
   final _ble = WalkEegBleController();
   final _recording = RecordingService();
+  final _relay = RelayService();
   final _sync = SyncService();
   final _auth = CognitoAuth();
   final Set<int> _selected = {0, 1};
@@ -103,7 +105,11 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    _ble.parser.onFrame = (_, perCh, n) => _recording.onFrame(perCh, n);
+    _ble.parser.onFrame = (seq, perCh, n) {
+      _recording.onFrame(perCh, n);
+      _relay.onFrame(seq, perCh, n);
+    };
+    _relay.addListener(_onRelayChanged);
     _tickSub = _ble.tickStream.listen((_) {
       if (mounted) setState(() {});
     });
@@ -145,6 +151,62 @@ class _HomePageState extends State<HomePage> {
   Future<void> _logout() async {
     await _auth.logout();
     setState(() => _session = null);
+  }
+
+  void _onRelayChanged() {
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _openRelay() async {
+    final hostCtl = TextEditingController(text: _relay.host);
+    final portCtl = TextEditingController(text: '${_relay.port}');
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setD) => AlertDialog(
+          title: const Text('Relay to local server'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: hostCtl,
+                decoration: const InputDecoration(labelText: 'Host / IP'),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: portCtl,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: 'Port'),
+              ),
+              const SizedBox(height: 12),
+              Text('Status: ${_relay.status}',
+                  style: Theme.of(ctx).textTheme.bodySmall),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                await _relay.disconnect();
+                setD(() {});
+              },
+              child: const Text('Disconnect'),
+            ),
+            FilledButton(
+              onPressed: () async {
+                await _relay.connect(
+                  host: hostCtl.text.trim(),
+                  port: int.tryParse(portCtl.text.trim()) ?? 8787,
+                );
+                setD(() {});
+              },
+              child: const Text('Connect'),
+            ),
+          ],
+        ),
+      ),
+    );
+    hostCtl.dispose();
+    portCtl.dispose();
   }
 
   Future<void> _toggleRecording() async {
@@ -229,6 +291,8 @@ class _HomePageState extends State<HomePage> {
     _tickSub?.cancel();
     _statusSub?.cancel();
     _stateSub?.cancel();
+    _relay.removeListener(_onRelayChanged);
+    _relay.dispose();
     _ble.dispose();
     super.dispose();
   }
@@ -297,7 +361,7 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('WalkEEG'),
+        title: const Text('WALKEEG'),
         actions: [
           if (_session != null)
             Padding(
@@ -330,6 +394,13 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           IconButton(
+            tooltip: _relay.connected ? 'Relay connected' : 'Relay to local server',
+            onPressed: _openRelay,
+            icon: Icon(_relay.connected
+                ? Icons.wifi_tethering
+                : Icons.wifi_tethering_off),
+          ),
+          IconButton(
             tooltip: 'Connect',
             onPressed: _state == BleLinkState.scanning ||
                     _state == BleLinkState.connecting
@@ -349,7 +420,8 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(_status, style: Theme.of(context).textTheme.bodyMedium),
+            Text('$_status  ·  relay=${_relay.status}',
+                style: Theme.of(context).textTheme.bodyMedium),
             const SizedBox(height: 4),
             Text(
               'frames=$frames  seq=${parser.lastSeq ?? "-"}  '
@@ -487,7 +559,7 @@ class _HomePageState extends State<HomePage> {
             Text(
               'Y: ${_yMax < 0 ? "AC auto" : "0 … ${_yMax.round()}"}  ·  window '
               '${_windowMs >= 1000 ? "${_windowMs ~/ 1000}s" : "${_windowMs}ms"}  ·  '
-              '8ch × 16-bit @ ${_sampleRateHz ~/ 1000}kHz  ·  '
+              '8ch × 16-bit @ ${_sampleRateHz}Hz  ·  '
               'mode:${_modeLabels[_mode]}',
               style: Theme.of(context).textTheme.bodySmall,
               textAlign: TextAlign.center,
