@@ -746,6 +746,10 @@ int main(void)
 	k_work_init(&adv_work, adv_work_handler);
 	advertising_start();// 开始广播
 
+	/* 烧录完成指示:运行灯常亮 1.5 s(固件已写入并启动成功),随后恢复 1 Hz 闪烁 */
+	dk_set_led_on(RUN_STATUS_LED);
+	k_sleep(K_MSEC(1500));
+
 	/* Slow UART heartbeat so it does not interfere with BLE streaming */
 	k_timer_start(&uart_heartbeat_timer, K_SECONDS(10), K_SECONDS(30));
 
