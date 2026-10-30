@@ -390,16 +390,29 @@ static int uart_init(void)
 	return err;
 }
 
+/* ===== 诊断用：不依赖日志系统，用 LED 闪次数报告启动进度 ===== */
+static void diag_blink(int times)
+{
+	for (int i = 0; i < times; i++) {
+		dk_set_led_on(RUN_STATUS_LED);
+		k_sleep(K_MSEC(120));
+		dk_set_led_off(RUN_STATUS_LED);
+		k_sleep(K_MSEC(250));
+	}
+	k_sleep(K_MSEC(600));
+}
+
 static void adv_work_handler(struct k_work *work)
 {
 	int err = bt_le_adv_start(BT_LE_ADV_CONN, ad, ARRAY_SIZE(ad), sd, ARRAY_SIZE(sd));
 
 	if (err) {
-		LOG_ERR("Advertising failed to start (err %d)", err);
-		return;
+		LOG_ERR("[diag] adv_start FAILED err=%d (0x%x)", err, (unsigned)err);
+		diag_blink(8);        /* [8] adv_start FAILED */
 	}
 
-	LOG_INF("Advertising successfully started");
+	LOG_INF("[diag] adv_start OK");
+	diag_blink(4);            /* [4] adv_start OK */
 }
 
 static void advertising_start(void)
@@ -711,17 +724,28 @@ int main(void)
 		}
 	}
 
+	if (IS_ENABLED(CONFIG_SETTINGS)) {
+		err = settings_subsys_init();
+		if (err) {
+			LOG_ERR("settings_subsys_init failed (err: %d)", err);
+		}
+	}
+
 	err = bt_enable(NULL); //启用蓝牙
 	if (err) {
 		error();
 	}
 
 	LOG_INF("Bluetooth initialized");
+	diag_blink(1);            /* [1] bt_enable OK */
 
 	k_sem_give(&ble_init_ok);
 
 	if (IS_ENABLED(CONFIG_SETTINGS)) {
-		settings_load();
+		err = settings_load();
+		if (err) {
+			LOG_ERR("settings_load failed (err: %d)", err);
+		}
 	}
 
 	err = bt_nus_init(&nus_cb); //初始化NUS服务
@@ -729,8 +753,11 @@ int main(void)
 		LOG_ERR("Failed to initialize UART service (err: %d)", err);
 		return 0;
 	}
+	LOG_INF("[diag] bt_nus_init OK");
+	diag_blink(2);            /* [2] bt_nus_init OK */
 
 	walkeeg_stream_init();
+	LOG_INF("[diag] walkeeg_stream_init done");
 
 #if WALKEEG_ADS1293_AVAILABLE
 	err = walkeeg_ads1293_init();
@@ -741,10 +768,14 @@ int main(void)
 	err = walkeeg_adc_init();
 	if (err) {
 		LOG_ERR("ADC init failed (err: %d)", err);
+	} else {
+		LOG_INF("[diag] walkeeg_adc_init OK");
+		diag_blink(3);        /* [3] adc_init OK */
 	}
 #endif
 
 	k_work_init(&adv_work, adv_work_handler);
+	LOG_INF("[diag] submitting adv_work");
 	advertising_start();// 开始广播
 
 	/* 烧录完成指示:运行灯常亮 1.5 s(固件已写入并启动成功),随后恢复 1 Hz 闪烁 */
