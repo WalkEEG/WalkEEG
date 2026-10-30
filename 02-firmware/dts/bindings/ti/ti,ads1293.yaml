@@ -5,6 +5,13 @@ compatible: "ti,ads1293"
 include: [spi-device.yaml]
 
 properties:
+  cs-gpios:
+    type: phandle-array
+    required: false
+    description: |
+      Optional explicit chip-select GPIO. When present, the driver asserts it
+      manually and the SPI controller runs without hardware CS.
+
   drdy-gpios:
     type: phandle-array
     required: true

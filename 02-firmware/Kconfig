@@ -33,14 +33,8 @@ config BT_NUS_UART_RX_WAIT_TIME
 	help
 	  Wait for RX complete event time in microseconds
 
-config SETTINGS
-	default y
+# SETTINGS/ZMS/NVS are upstream Zephyr symbols: enable via prj.conf, not here.
 
-config ZMS
-	default y if (SOC_FLASH_NRF_RRAM || SOC_FLASH_NRF_MRAM)
-
-config NVS
-	default y if !(SOC_FLASH_NRF_RRAM || SOC_FLASH_NRF_MRAM)
 
 config WALKEEG_USE_ADS1293
 	bool "Use TI ADS1293 3-channel ECG AFE (SPI) instead of AD8232"

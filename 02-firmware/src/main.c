@@ -7,7 +7,9 @@
 /** @file
  *  @brief Nordic UART Bridge Service (NUS) sample
  */
+#ifdef CONFIG_UART_ASYNC_ADAPTER
 #include <uart_async_adapter.h>
+#endif
 
 #include <zephyr/types.h>
 #include <zephyr/kernel.h>
@@ -390,7 +392,7 @@ static int uart_init(void)
 
 static void adv_work_handler(struct k_work *work)
 {
-	int err = bt_le_adv_start(BT_LE_ADV_CONN_FAST_2, ad, ARRAY_SIZE(ad), sd, ARRAY_SIZE(sd));
+	int err = bt_le_adv_start(BT_LE_ADV_CONN, ad, ARRAY_SIZE(ad), sd, ARRAY_SIZE(sd));
 
 	if (err) {
 		LOG_ERR("Advertising failed to start (err %d)", err);
@@ -410,7 +412,7 @@ static void connected(struct bt_conn *conn, uint8_t err)
 	char addr[BT_ADDR_LE_STR_LEN];
 
 	if (err) {
-		LOG_ERR("Connection failed, err 0x%02x %s", err, bt_hci_err_to_str(err));
+		LOG_ERR("Connection failed, err 0x%02x %s", err, "");
 		return;
 	}
 
@@ -445,7 +447,7 @@ static void disconnected(struct bt_conn *conn, uint8_t reason)
 
 	bt_addr_le_to_str(bt_conn_get_dst(conn), addr, sizeof(addr));
 
-	LOG_INF("Disconnected: %s, reason 0x%02x %s", addr, reason, bt_hci_err_to_str(reason));
+	LOG_INF("Disconnected: %s, reason 0x%02x %s", addr, reason, "");
 
 	if (auth_conn) {
 		bt_conn_unref(auth_conn);
@@ -479,7 +481,7 @@ static void security_changed(struct bt_conn *conn, bt_security_t level,
 		LOG_INF("Security changed: %s level %u", addr, level);
 	} else {
 		LOG_WRN("Security failed: %s level %u err %d %s", addr, level, err,
-			bt_security_err_to_str(err));
+			"");
 	}
 }
 #endif
@@ -487,7 +489,6 @@ static void security_changed(struct bt_conn *conn, bt_security_t level,
 BT_CONN_CB_DEFINE(conn_callbacks) = {
 	.connected        = connected,
 	.disconnected     = disconnected,
-	.recycled         = recycled_cb,
 #ifdef CONFIG_BT_NUS_SECURITY_ENABLED
 	.security_changed = security_changed,
 #endif
@@ -548,7 +549,7 @@ static void pairing_failed(struct bt_conn *conn, enum bt_security_err reason)
 	bt_addr_le_to_str(bt_conn_get_dst(conn), addr, sizeof(addr));
 
 	LOG_INF("Pairing failed conn: %s, reason %d %s", addr, reason,
-		bt_security_err_to_str(reason));
+		"");
 }
 
 static struct bt_conn_auth_cb conn_auth_callbacks = {
