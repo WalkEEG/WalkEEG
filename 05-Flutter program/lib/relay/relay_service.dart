@@ -20,7 +20,7 @@ class RelayService extends ChangeNotifier {
   bool _want = false;
 
   String status = 'off';
-  String host = '192.168.1.100';
+  String host = '192.168.10.106';
   int port = 8787;
   int sentSamples = 0;
 

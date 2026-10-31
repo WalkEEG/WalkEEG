@@ -363,55 +363,73 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: const Text('WALKEEG'),
         actions: [
-          if (_session != null)
-            Padding(
-              padding: const EdgeInsets.only(right: 4),
-              child: Center(
-                child: Text(
-                  _session!.email,
-                  style: const TextStyle(fontSize: 12, color: Colors.white70),
-                ),
-              ),
-            ),
           IconButton(
-            tooltip: _session == null ? 'Sign in' : 'Sign out',
-            onPressed: _session == null ? _openLogin : _logout,
-            icon: Icon(_session == null ? Icons.login : Icons.logout),
-          ),
-          DropdownButtonHideUnderline(
-            child: DropdownButton<double>(
-              value: _yMax,
-              dropdownColor: const Color(0xFF16262C),
-              iconEnabledColor: Colors.white70,
-              style: const TextStyle(color: Colors.white, fontSize: 13),
-              items: [
-                for (final (label, max) in _yRanges)
-                  DropdownMenuItem(value: max, child: Text(label)),
-              ],
-              onChanged: (v) {
-                if (v != null) setState(() => _yMax = v);
-              },
-            ),
-          ),
-          IconButton(
-            tooltip: _relay.connected ? 'Relay connected' : 'Relay to local server',
+            tooltip: _relay.connected
+                ? 'Relay connected'
+                : 'Relay to local server',
             onPressed: _openRelay,
             icon: Icon(_relay.connected
                 ? Icons.wifi_tethering
                 : Icons.wifi_tethering_off),
           ),
+          PopupMenuButton<String>(
+            tooltip: 'More',
+            onSelected: (v) {
+              if (v == 'account') {
+                if (_session == null) {
+                  _openLogin();
+                } else {
+                  _logout();
+                }
+                return;
+              }
+              if (v.startsWith('y:')) {
+                final max = double.tryParse(v.substring(2));
+                if (max != null) setState(() => _yMax = max);
+              }
+            },
+            itemBuilder: (ctx) => [
+              PopupMenuItem(
+                value: 'account',
+                child: Text(_session == null ? 'Sign in' : 'Sign out'),
+              ),
+              const PopupMenuDivider(),
+              for (final (label, max) in _yRanges)
+                PopupMenuItem(
+                  value: 'y:$max',
+                  child: Row(
+                    children: [
+                      if (_yMax == max)
+                        const Icon(Icons.check, size: 16)
+                      else
+                        const SizedBox(width: 16),
+                      const SizedBox(width: 8),
+                      Text(label),
+                    ],
+                  ),
+                ),
+            ],
+          ),
           IconButton(
-            tooltip: 'Connect',
+            tooltip: (_state == BleLinkState.connected ||
+                    _state == BleLinkState.streaming)
+                ? 'Disconnect'
+                : 'Connect',
             onPressed: _state == BleLinkState.scanning ||
                     _state == BleLinkState.connecting
                 ? null
-                : () => _ble.startScanAndConnect(),
-            icon: const Icon(Icons.bluetooth_searching),
-          ),
-          IconButton(
-            tooltip: 'Disconnect',
-            onPressed: () => _ble.disconnect(),
-            icon: const Icon(Icons.link_off),
+                : () {
+                    if (_state == BleLinkState.connected ||
+                        _state == BleLinkState.streaming) {
+                      _ble.disconnect();
+                    } else {
+                      _ble.startScanAndConnect();
+                    }
+                  },
+            icon: Icon((_state == BleLinkState.connected ||
+                    _state == BleLinkState.streaming)
+                ? Icons.link_off
+                : Icons.bluetooth_searching),
           ),
         ],
       ),
