@@ -4,10 +4,12 @@ import 'package:flutter/material.dart';
 
 import 'auth/cognito_auth.dart';
 import 'ble/walkeeg_ble.dart';
+import 'dsp/eeg_analyzer.dart';
 import 'protocol/packet_parser.dart';
 import 'relay/relay_service.dart';
 import 'storage/recording_service.dart';
 import 'storage/sync_service.dart';
+import 'ui/eeg_page.dart';
 import 'ui/login_page.dart';
 import 'ui/waveform_painter.dart';
 
@@ -65,6 +67,7 @@ class _HomePageState extends State<HomePage> {
   final _ble = WalkEegBleController();
   final _recording = RecordingService();
   final _relay = RelayService();
+  final _eeg = EegAnalyzer(sampleRate: _sampleRateHz);
   final _sync = SyncService();
   final _auth = CognitoAuth();
   final Set<int> _selected = {0, 1};
@@ -116,6 +119,7 @@ class _HomePageState extends State<HomePage> {
         return perCh[c];
       });
       _relay.onFrame(seq, relayCh, n);
+      _eeg.addSamples(perCh[0], n);
     };
     _relay.addListener(_onRelayChanged);
     _tickSub = _ble.tickStream.listen((_) {
@@ -301,6 +305,7 @@ class _HomePageState extends State<HomePage> {
     _stateSub?.cancel();
     _relay.removeListener(_onRelayChanged);
     _relay.dispose();
+    _eeg.dispose();
     _ble.dispose();
     super.dispose();
   }
@@ -454,6 +459,21 @@ class _HomePageState extends State<HomePage> {
               'drops=$drops  loss=${lossPct.toStringAsFixed(2)}%  '
               'N=${parser.lastNSamples ?? "-"}',
               style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => EegPage(analyzer: _eeg),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.insights),
+                label: const Text('EEG alpha/beta'),
+              ),
             ),
             const SizedBox(height: 8),
             Row(
