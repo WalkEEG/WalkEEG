@@ -107,7 +107,15 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     _ble.parser.onFrame = (seq, perCh, n) {
       _recording.onFrame(perCh, n);
-      _relay.onFrame(seq, perCh, n);
+      // relay：CH0 用当前滤波模式的显示值（与 App 画面一致），原始 CH0 放到 CH7 保留
+      final disp = _ble.parser.channels[0].samples;
+      final filtered = disp.length >= n ? disp.sublist(disp.length - n) : disp;
+      final relayCh = List<List<int>>.generate(8, (c) {
+        if (c == 0) return filtered;
+        if (c == 7) return perCh[0];
+        return perCh[c];
+      });
+      _relay.onFrame(seq, relayCh, n);
     };
     _relay.addListener(_onRelayChanged);
     _tickSub = _ble.tickStream.listen((_) {
