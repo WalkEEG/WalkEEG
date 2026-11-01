@@ -37,7 +37,7 @@
 <header>
   <div class="brand">WALKEEG <span>LIVE</span></div>
   <div class="pill"><span id="dot" class="dot"></span><span id="conn">disconnected</span></div>
-  <div class="pill">500 Hz · 8 ch</div>
+  <div class="pill"><span id="rateLabel">2000 Hz</span> · 8 ch</div>
   <div class="pill" id="clock">--:--:--</div>
 </header>
 <main>
@@ -75,7 +75,8 @@
   let seqLast = null;
   let drops = 0;
   let samples = []; // {t, ch:[8]}
-  let winSamples = 2500; // 5 s at 500 Hz
+  let sampleRate = 2000;
+  let winSamples = 10000; // 5 s at 2000 Hz
   let lastSampleAt = 0;
   let lastT = 0;
   let sampleCount = 0;
@@ -114,6 +115,17 @@
     ws.onclose = () => setConn(false, 'disconnected');
     ws.onerror = () => setConn(false, 'error');
     ws.onmessage = (ev) => {
+      if (typeof ev.data === 'string') {
+        try {
+          const msg = JSON.parse(ev.data);
+          if (msg && msg.type === 'config' && Number(msg.rate) > 0) {
+            sampleRate = Number(msg.rate);
+            winSamples = sampleRate * 5;
+            $('rateLabel').textContent = `${sampleRate} Hz`;
+          }
+        } catch (_) {}
+        return;
+      }
       if (paused) return;
       const f = parseFrame(new DataView(ev.data));
       if (!f) return;

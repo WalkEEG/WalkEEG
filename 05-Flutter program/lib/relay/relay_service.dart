@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
@@ -23,6 +24,7 @@ class RelayService extends ChangeNotifier {
   String host = '192.168.10.106';
   int port = 8787;
   int sentSamples = 0;
+  int sampleRate = 2000;
 
   bool get enabled => _want;
   bool get connected => _channel != null;
@@ -46,10 +48,24 @@ class RelayService extends ChangeNotifier {
         cancelOnError: true,
       );
       _setStatus('connected');
+      _sendConfig();
     } catch (e) {
       _setStatus('error: $e');
       _scheduleRetry();
     }
+  }
+
+  void setSampleRate(int hz) {
+    sampleRate = hz;
+    _sendConfig();
+  }
+
+  void _sendConfig() {
+    final ch = _channel;
+    if (ch == null) return;
+    try {
+      ch.sink.add(jsonEncode({'type': 'config', 'rate': sampleRate}));
+    } catch (_) {}
   }
 
   Future<void> _close() async {

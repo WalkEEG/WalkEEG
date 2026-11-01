@@ -11,7 +11,7 @@
 #include <stdbool.h>
 
 #define WALKEEG_NUM_CH        8
-#define WALKEEG_SAMPLE_HZ     500
+#define WALKEEG_DEFAULT_SAMPLE_HZ 2000
 #define WALKEEG_MAGIC         0xA5
 #define WALKEEG_VERSION       0x01
 #define WALKEEG_HDR_LEN       6
@@ -29,5 +29,9 @@ void walkeeg_stream_on_disconnected(void);
 
 /** NUS TX CCCD changed (notifications enabled/disabled). */
 void walkeeg_stream_set_notify(bool enabled);
+
+/** Runtime sample rate: 500/1000/2000/4000 Hz. Returns 0 or -EINVAL. */
+int walkeeg_stream_set_rate(uint16_t hz);
+uint16_t walkeeg_stream_get_rate(void);
 
 #endif /* WALKEEG_STREAM_H_ */

@@ -32,6 +32,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include <zephyr/logging/log.h>
 
@@ -589,6 +590,23 @@ static void bt_receive_cb(struct bt_conn *conn, const uint8_t *const data,
 	bt_addr_le_to_str(bt_conn_get_dst(conn), addr, ARRAY_SIZE(addr));
 
 	LOG_INF("Received %u bytes from %s: %.*s", len, addr, len, data);
+
+	/* WalkEMG runtime sample-rate command: "SET_RATE 2000" */
+	if (len >= 10 && memcmp(data, "SET_RATE ", 9) == 0) {
+		char rate_buf[8] = {0};
+		uint16_t n = len - 9;
+		if (n >= sizeof(rate_buf)) {
+			n = sizeof(rate_buf) - 1;
+		}
+		memcpy(rate_buf, data + 9, n);
+		unsigned long hz = strtoul(rate_buf, NULL, 10);
+		int rc = walkeeg_stream_set_rate((uint16_t)hz);
+		char reply[32];
+		int rlen = snprintk(reply, sizeof(reply), rc == 0 ? "OK %u\n" : "ERR\n",
+				    walkeeg_stream_get_rate());
+		bt_nus_send(conn, reply, (uint16_t)rlen);
+		return;
+	}
 
 	for (uint16_t pos = 0; pos != len;) {
 		struct uart_data_t *tx = k_malloc(sizeof(*tx));

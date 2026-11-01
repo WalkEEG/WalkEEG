@@ -5,11 +5,13 @@ import 'package:flutter/material.dart';
 import 'auth/cognito_auth.dart';
 import 'ble/walkeeg_ble.dart';
 import 'dsp/eeg_analyzer.dart';
+import 'dsp/emg_analyzer.dart';
 import 'protocol/packet_parser.dart';
 import 'relay/relay_service.dart';
 import 'storage/recording_service.dart';
 import 'storage/sync_service.dart';
 import 'ui/eeg_page.dart';
+import 'ui/emg_page.dart';
 import 'ui/login_page.dart';
 import 'ui/waveform_painter.dart';
 
@@ -46,7 +48,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  static const _sampleRateHz = 500;
+  int _sampleRateHz = 2000;
 
   /// Y-axis display: AC auto (monitor-style autoscale) or fixed unsigned
   /// ranges for 8/10/12/14/16-bit ADC modes.
@@ -67,7 +69,8 @@ class _HomePageState extends State<HomePage> {
   final _ble = WalkEegBleController();
   final _recording = RecordingService();
   final _relay = RelayService();
-  final _eeg = EegAnalyzer(sampleRate: _sampleRateHz);
+  EegAnalyzer _eeg = EegAnalyzer(sampleRate: 2000);
+  EmgAnalyzer _emg = EmgAnalyzer(sampleRate: 2000);
   final _sync = SyncService();
   final _auth = CognitoAuth();
   final Set<int> _selected = {0, 1};
@@ -78,7 +81,7 @@ class _HomePageState extends State<HomePage> {
   BleLinkState _state = BleLinkState.idle;
   double _yMax = -1; // -1 = AC auto
   int _windowMs = 2000;
-  FilterMode _mode = FilterMode.notchLp;
+  FilterMode _mode = FilterMode.raw;
   CognitoSession? _session;
   String _syncStatus = '';
   bool _syncing = false;
@@ -120,6 +123,7 @@ class _HomePageState extends State<HomePage> {
       });
       _relay.onFrame(seq, relayCh, n);
       _eeg.addSamples(perCh[0], n);
+      _emg.addSamples(perCh[0], n);
     };
     _relay.addListener(_onRelayChanged);
     _tickSub = _ble.tickStream.listen((_) {
@@ -221,6 +225,16 @@ class _HomePageState extends State<HomePage> {
     portCtl.dispose();
   }
 
+  Future<void> _setRate(int hz) async {
+    setState(() {
+      _sampleRateHz = hz;
+      _eeg = EegAnalyzer(sampleRate: hz);
+      _emg = EmgAnalyzer(sampleRate: hz);
+    });
+    await _ble.sendCommand('SET_RATE $hz\n');
+    _relay.setSampleRate(hz);
+  }
+
   Future<void> _toggleRecording() async {
     if (_recording.isRecording) {
       final session = await _recording.stopAndReturnSession();
@@ -306,6 +320,7 @@ class _HomePageState extends State<HomePage> {
     _relay.removeListener(_onRelayChanged);
     _relay.dispose();
     _eeg.dispose();
+    _emg.dispose();
     _ble.dispose();
     super.dispose();
   }
@@ -399,6 +414,11 @@ class _HomePageState extends State<HomePage> {
               if (v.startsWith('y:')) {
                 final max = double.tryParse(v.substring(2));
                 if (max != null) setState(() => _yMax = max);
+                return;
+              }
+              if (v.startsWith('rate:')) {
+                final hz = int.tryParse(v.substring(5));
+                if (hz != null) _setRate(hz);
               }
             },
             itemBuilder: (ctx) => [
@@ -418,6 +438,21 @@ class _HomePageState extends State<HomePage> {
                         const SizedBox(width: 16),
                       const SizedBox(width: 8),
                       Text(label),
+                    ],
+                  ),
+                ),
+              const PopupMenuDivider(),
+              for (final hz in const [500, 1000, 2000, 4000])
+                PopupMenuItem(
+                  value: 'rate:$hz',
+                  child: Row(
+                    children: [
+                      if (_sampleRateHz == hz)
+                        const Icon(Icons.check, size: 16)
+                      else
+                        const SizedBox(width: 16),
+                      const SizedBox(width: 8),
+                      Text('$hz Hz'),
                     ],
                   ),
                 ),
@@ -451,7 +486,7 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('$_status  ·  relay=${_relay.status}',
+            Text('$_status  ·  ${_sampleRateHz}Hz  ·  relay=${_relay.status}',
                 style: Theme.of(context).textTheme.bodyMedium),
             const SizedBox(height: 4),
             Text(
@@ -461,19 +496,40 @@ class _HomePageState extends State<HomePage> {
               style: Theme.of(context).textTheme.bodySmall,
             ),
             const SizedBox(height: 8),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => EegPage(analyzer: _eeg),
-                    ),
-                  );
-                },
-                icon: const Icon(Icons.insights),
-                label: const Text('EEG alpha/beta'),
-              ),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => EegPage(analyzer: _eeg),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.insights),
+                    label: const Text('EEG alpha/beta'),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => EmgPage(
+                            analyzer: _emg,
+                            sampleRate: _sampleRateHz,
+                            onRateChanged: _setRate,
+                          ),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.show_chart),
+                    label: const Text('EMG envelope'),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 8),
             Row(
