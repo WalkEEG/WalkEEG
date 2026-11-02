@@ -202,6 +202,20 @@ class _HomePageState extends State<HomePage> {
           actions: [
             TextButton(
               onPressed: () async {
+                setD(() => _relay.status = 'discovering…');
+                final found = await RelayService.discover();
+                if (found != null) {
+                  hostCtl.text = found.host;
+                  portCtl.text = '${found.port}';
+                  setD(() => _relay.status = 'found ${found.host}:${found.port}');
+                } else {
+                  setD(() => _relay.status = 'not found（检查同一 Wi-Fi / 服务器已启动）');
+                }
+              },
+              child: const Text('Discover'),
+            ),
+            TextButton(
+              onPressed: () async {
                 await _relay.disconnect();
                 setD(() {});
               },

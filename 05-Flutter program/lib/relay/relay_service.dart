@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
+import 'package:multicast_dns/multicast_dns.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 /// Buffers parsed 8-channel frames and relays them to the local Node server.
@@ -28,6 +29,30 @@ class RelayService extends ChangeNotifier {
 
   bool get enabled => _want;
   bool get connected => _channel != null;
+
+  /// 通过 mDNS 自动发现本机 relay（服务类型 _walkeeg._tcp）
+  static Future<({String host, int port})?> discover({
+    Duration timeout = const Duration(seconds: 3),
+  }) async {
+    final client = MDnsClient();
+    await client.start();
+    try {
+      await for (final ptr in client.lookup<PtrResourceRecord>(
+        ResourceRecordQuery.serverPointer('_walkeeg._tcp.local'),
+        timeout: timeout,
+      )) {
+        await for (final srv in client.lookup<SrvResourceRecord>(
+          ResourceRecordQuery.service(ptr.domainName),
+          timeout: timeout,
+        )) {
+          return (host: srv.target, port: srv.port);
+        }
+      }
+    } finally {
+      client.stop();
+    }
+    return null;
+  }
 
   Future<void> connect({String? host, int? port}) async {
     if (host != null && host.isNotEmpty) this.host = host;
