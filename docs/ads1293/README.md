@@ -104,6 +104,8 @@ ADS1293 全部走 **SPI1**，引脚选在 P1 组，与 AD8232/UART 零冲突：
 
 > 想测 alpha（8–13 Hz）应把 E2/E3 放到 O1/O2（后枕）；额头 Fp1/Fp2 主要是额叶 EEG 和眼动伪迹。
 > 双极 2 通道（Fp1−F3 / Fp2−F4）需要改 `FLEX_CH1/2` 的 POS/NEG 选择，并确认 RLD 输出能否从 IN4 改到 IN5，当前固件未做。
+>
+> 完整的 EEG / EMG 测试步骤、贴法、App 设置和排错见 **[eeg-emg-test.md](eeg-emg-test.md)**。
 
 ## 3. 固件改动清单（相对 master）
 
