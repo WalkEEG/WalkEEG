@@ -51,7 +51,7 @@
           for Everyone
         </h1>
         <p>
-          WalkEEG is an open-source <a href="/wiki/basic-principle#eeg--electroencephalography">EEG</a>, <a href="/wiki/basic-principle#ecg--electrocardiography">ECG</a> and <a href="/wiki/basic-principle#emg--electromyography">EMG</a> platform — including hardware schematics, firmware, a Flutter app for both iOS and Android, and a cloud backend for data storage. Built for researchers, educators, and BCI enthusiasts.
+          WalkEEG is an open-source <a href="/wiki/#/basic-principle?id=eeg--electroencephalography">EEG</a>, <a href="/wiki/#/basic-principle?id=ecg--electrocardiography">ECG</a> and <a href="/wiki/#/basic-principle?id=emg--electromyography">EMG</a> platform — including hardware schematics, firmware, a Flutter app for both iOS and Android, and a cloud backend for data storage. Built for researchers, educators, and BCI enthusiasts.
         </p>
         <div class="hero-actions">
           <a href="https://github.com/WalkEEG/WalkEEG" target="_blank" class="btn btn-primary btn-lg">
@@ -93,7 +93,7 @@
           <div class="bio-grid">
             <div class="bio-card">
               <div class="bio-head">
-                <a class="bio-tag" href="/wiki/basic-principle">EEG</a>
+                <a class="bio-tag" href="/wiki/#/basic-principle">EEG</a>
                 <span class="bio-full">Electroencephalography</span>
               </div>
               <div class="bio-signal"><span class="bio-wave bio-wave-eeg"></span></div>
@@ -107,7 +107,7 @@
 
             <div class="bio-card">
               <div class="bio-head">
-                <a class="bio-tag" href="/wiki/basic-principle">ECG</a>
+                <a class="bio-tag" href="/wiki/#/basic-principle">ECG</a>
                 <span class="bio-full">Electrocardiography</span>
               </div>
               <div class="bio-signal"><span class="bio-wave bio-wave-ecg"></span></div>
@@ -121,7 +121,7 @@
 
             <div class="bio-card">
               <div class="bio-head">
-                <a class="bio-tag" href="/wiki/basic-principle">EMG</a>
+                <a class="bio-tag" href="/wiki/#/basic-principle">EMG</a>
                 <span class="bio-full">Electromyography</span>
               </div>
               <div class="bio-signal"><span class="bio-wave bio-wave-emg"></span></div>
@@ -141,7 +141,7 @@
           <div class="preview-text">
             <span class="section-label">About WalkEEG</span>
             <h2>What is WalkEEG?</h2>
-            <p>WalkEEG is a complete, open-source biosignal platform for <a href="/wiki/basic-principle#eeg--electroencephalography">EEG</a>, <a href="/wiki/basic-principle#ecg--electrocardiography">ECG</a> and <a href="/wiki/basic-principle#emg--electromyography">EMG</a>, built to make brain-computer interface technology accessible.</p>
+            <p>WalkEEG is a complete, open-source biosignal platform for <a href="/wiki/#/basic-principle?id=eeg--electroencephalography">EEG</a>, <a href="/wiki/#/basic-principle?id=ecg--electrocardiography">ECG</a> and <a href="/wiki/#/basic-principle?id=emg--electromyography">EMG</a>, built to make brain-computer interface technology accessible.</p>
             <div class="tech-stack" style="justify-content:flex-start;margin-top:16px;">
               <span class="tech-item">nRF52840</span>
               <span class="tech-item">BLE 5.0</span>
@@ -176,12 +176,12 @@
       <div class="features-grid">
         <div class="feature-card fade-in stagger-1">
           <div class="feature-icon">🔧</div>
-          <h3><a href="/wiki/hardware">Hardware Design</a></h3>
+          <h3><a href="/wiki/#/hardware">Hardware Design</a></h3>
           <p>Full hardware schematics for the acquisition board. Analog front-end with instrumentation amplifiers, anti-aliasing filters, and high-precision ADC.</p>
         </div>
         <div class="feature-card fade-in stagger-2">
           <div class="feature-icon">📡</div>
-          <h3><a href="/wiki/firmware/">Wireless Firmware</a></h3>
+          <h3><a href="/wiki/#/firmware/README">Wireless Firmware</a></h3>
           <p>nRF52840 firmware on Zephyr with Nordic Connect SDK. BLE&nbsp;5.0 with 2M PHY (2&nbsp;Mbps raw), Data Length Extension (27&minus;&gt;251&nbsp;byte payload) and a long ATT MTU, so multi-channel biosignals stream at 500&nbsp;Hz without dropped frames.</p>
         </div>
         <div class="feature-card fade-in stagger-3">
@@ -191,17 +191,17 @@
         </div>
         <div class="feature-card fade-in stagger-4">
           <div class="feature-icon">🧪</div>
-          <h3><a href="/wiki/backend">Cloud Backend</a></h3>
+          <h3><a href="/wiki/#/backend">Cloud Backend</a></h3>
           <p>Serverless AWS stack (SAM) with Cognito auth, direct S3 upload, and DynamoDB metadata. Record a session on the app, upload it, and retrieve it from any device.</p>
         </div>
         <div class="feature-card fade-in stagger-5">
           <div class="feature-icon">📱</div>
-          <h3><a href="/wiki/app">Mobile App</a></h3>
+          <h3><a href="/wiki/#/app">Mobile App</a></h3>
           <p>Flutter app for iOS and Android. Connects directly over BLE, displays live waveforms with QRS detection and HRV metrics, and can relay raw frames to a local server.</p>
         </div>
         <div class="feature-card fade-in stagger-6">
           <div class="feature-icon">⚡</div>
-          <h3><a href="/wiki/realtime">500 Hz Live Dashboard</a></h3>
+          <h3><a href="/wiki/#/realtime">500 Hz Live Dashboard</a></h3>
           <p>Browser-based real-time viewer. The phone forwards 8-channel data over WebSocket at 500&nbsp;samples/s; open a URL and watch the same signal live — no install, no disk writes.</p>
         </div>
       </div>
@@ -219,27 +219,27 @@
       <div class="steps">
         <div class="step fade-in stagger-1">
           <div class="step-number">1</div>
-          <h3><a href="/wiki/basic-principle">Acquire</a></h3>
+          <h3><a href="/wiki/#/basic-principle">Acquire</a></h3>
           <p>EEG electrodes capture brain electrical activity. The analog front-end amplifies and filters the raw signal with precision instrumentation.</p>
         </div>
         <div class="step fade-in stagger-2">
           <div class="step-number">2</div>
-          <h3><a href="/wiki/protocol">Transmit</a></h3>
+          <h3><a href="/wiki/#/protocol">Transmit</a></h3>
           <p>The nRF52840 digitizes the signal and streams it wirelessly over BLE 5.4 to a phone or computer with low latency.</p>
         </div>
         <div class="step fade-in stagger-3">
           <div class="step-number">3</div>
-          <h3><a href="/wiki/app">Visualize</a></h3>
+          <h3><a href="/wiki/#/app">Visualize</a></h3>
           <p>See the signal live — in the Flutter app on your phone, the 500&nbsp;Hz browser dashboard, or the desktop oscilloscope. Adjust gain and timebase, and record sessions.</p>
         </div>
         <div class="step fade-in stagger-4">
           <div class="step-number">4</div>
-          <h3><a href="/wiki/backend">Store</a></h3>
+          <h3><a href="/wiki/#/backend">Store</a></h3>
           <p>Upload recorded sessions to the cloud backend, where they are stored securely and can be pulled back down on any device for later review.</p>
         </div>
         <div class="step fade-in stagger-5">
           <div class="step-number">5</div>
-          <h3><a href="/wiki/realtime">Share</a></h3>
+          <h3><a href="/wiki/#/realtime">Share</a></h3>
           <p>The mobile app streams live frames to a WebSocket relay, so anyone on the network can watch the same 500&nbsp;Hz signal in a browser — or upload sessions to the Data Portal.</p>
         </div>
       </div>
