@@ -82,6 +82,8 @@ class _HomePageState extends State<HomePage> {
   double _yMax = -1; // -1 = AC auto
   int _windowMs = 2000;
   FilterMode _mode = FilterMode.raw;
+  /// Per-channel processing modes, mirrored into the parser.
+  final Map<int, FilterMode> _chModes = {for (var i = 0; i < 8; i++) i: FilterMode.raw};
   CognitoSession? _session;
   String _syncStatus = '';
   bool _syncing = false;
@@ -352,10 +354,31 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  void _setMode(FilterMode m) {
+  /// Sets the processing mode for one channel, or for every channel when
+  /// [channel] is null.
+  /// Compact summary of active per-channel filters, e.g. "CH0:QRS CH1:50Hz+LP".
+  String _modeSummary() {
+    final parts = <String>[];
+    for (final ch in _selected.toList()..sort()) {
+      final m = _chModes[ch] ?? FilterMode.raw;
+      parts.add('CH$ch:${_modeLabels[m]}');
+    }
+    return parts.join('  ');
+  }
+
+  void _setMode(FilterMode m, {int? channel}) {
     setState(() {
-      _mode = m;
-      _ble.parser.mode = m; // parser resets filter/QRS state on change
+      if (channel == null) {
+        _mode = m;
+        for (var ch = 0; ch < 8; ch++) {
+          _chModes[ch] = m;
+        }
+        _ble.parser.setModeForAll(m);
+      } else {
+        _chModes[channel] = m;
+        if (channel == 0) _mode = m;
+        _ble.parser.setModeFor(channel, m);
+      }
     });
   }
 
@@ -585,17 +608,54 @@ class _HomePageState extends State<HomePage> {
               Text(_syncStatus, style: Theme.of(context).textTheme.bodySmall),
             ],
             const SizedBox(height: 8),
-            Wrap(
-              spacing: 6,
-              children: List.generate(8, (ch) {
-                final on = _selected.contains(ch);
-                return FilterChip(
-                  label: Text('CH$ch'),
-                  selected: on,
-                  selectedColor: _colors[ch].withOpacity(0.35),
-                  onSelected: (_) => _toggleChannel(ch),
-                );
-              }),
+            // One row per visible channel: pick the channel, then choose its
+            // own filter. Each channel's filter state is independent.
+            Column(
+              children: [
+                for (final ch in _selected.toList()..sort())
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: Row(
+                      children: [
+                        FilterChip(
+                          label: Text('CH$ch'),
+                          selected: true,
+                          selectedColor: _colors[ch].withOpacity(0.35),
+                          onSelected: (_) => _toggleChannel(ch),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: DropdownButton<FilterMode>(
+                            isExpanded: true,
+                            value: _chModes[ch] ?? FilterMode.raw,
+                            items: [
+                              for (final m in FilterMode.values)
+                                DropdownMenuItem(
+                                  value: m,
+                                  child: Text(_modeLabels[m]!,
+                                      style: const TextStyle(fontSize: 13)),
+                                ),
+                            ],
+                            onChanged: (m) {
+                              if (m != null) _setMode(m, channel: ch);
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                Wrap(
+                  spacing: 6,
+                  children: List.generate(8, (ch) {
+                    final on = _selected.contains(ch);
+                    if (on) return const SizedBox.shrink();
+                    return ActionChip(
+                      label: Text('CH$ch', style: const TextStyle(fontSize: 12)),
+                      onPressed: () => _toggleChannel(ch),
+                    );
+                  }),
+                ),
+              ],
             ),
             const SizedBox(height: 8),
             if (metrics.isNotEmpty)
@@ -623,17 +683,30 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             const SizedBox(height: 8),
-            SegmentedButton<FilterMode>(
-              segments: [
-                for (final m in FilterMode.values)
-                  ButtonSegment(value: m, label: Text(_modeLabels[m]!)),
+            // Global shortcut: apply one mode to every channel at once.
+            Row(
+              children: [
+                Text('All channels:',
+                    style: Theme.of(context).textTheme.bodySmall),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: DropdownButton<FilterMode>(
+                    isExpanded: true,
+                    value: _mode,
+                    items: [
+                      for (final m in FilterMode.values)
+                        DropdownMenuItem(
+                          value: m,
+                          child: Text(_modeLabels[m]!,
+                              style: const TextStyle(fontSize: 13)),
+                        ),
+                    ],
+                    onChanged: (m) {
+                      if (m != null) _setMode(m);
+                    },
+                  ),
+                ),
               ],
-              selected: {_mode},
-              onSelectionChanged: (sel) => _setMode(sel.first),
-              showSelectedIcon: false,
-              style: const ButtonStyle(
-                visualDensity: VisualDensity.compact,
-              ),
             ),
             const SizedBox(height: 8),
             SegmentedButton<int>(
@@ -676,7 +749,7 @@ class _HomePageState extends State<HomePage> {
               'Y: ${_yMax < 0 ? "AC auto" : "0 … ${_yMax.round()}"}  ·  window '
               '${_windowMs >= 1000 ? "${_windowMs ~/ 1000}s" : "${_windowMs}ms"}  ·  '
               '8ch × 16-bit @ ${_sampleRateHz}Hz  ·  '
-              'mode:${_modeLabels[_mode]}',
+              '${_modeSummary()}',
               style: Theme.of(context).textTheme.bodySmall,
               textAlign: TextAlign.center,
             ),
