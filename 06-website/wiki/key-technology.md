@@ -527,3 +527,82 @@ Rather than a full FFT, it uses the **Goertzel algorithm** — a single-bin DFT.
 ### The summary in one line
 
 Frequency analysis turns an unreadable waveform into a set of numbers you can threshold, filter and classify. It is the bridge between "the signal arrives" and "the signal means something".
+
+---
+
+## The 10–20 System
+
+> **Where you put the electrodes decides what you can measure.** The 10–20 system is how everyone agrees on those positions.
+
+### Why a standard exists
+
+Two labs recording "alpha over the occipital lobe" must be measuring the same location, or their results cannot be compared. Before 10–20, electrode placement was ad hoc — each clinic used its own scheme, and cross-study comparison was impossible.
+
+The **International 10–20 system** (Jasper, 1958) fixed that. It defines electrode positions as fractions of measurable distances on the skull, so any technician anywhere can reproduce the same montage.
+
+### The geometry
+
+Four anatomical landmarks anchor the grid:
+
+| Landmark | Location |
+|---|---|
+| **Nasion** | Bridge of the nose, between the eyes |
+| **Inion** | Bump at the back of the skull |
+| **Pre-auricular points** | Just in front of each ear |
+
+Two measurements follow:
+
+- **Nasion → inion** (the midline, front to back) = 100 %
+- **Left pre-auricular → right pre-auricular** (coronal) = 100 %
+
+Electrodes sit at **10 %** and **20 %** intervals along these lines — hence the name. The first electrode behind the nasion is at 10 %, the next at a further 20 %, and so on.
+
+### Naming
+
+Every electrode name encodes two things:
+
+```
+  F   p  1        ← frontal pole, left
+  ─   ─  ─
+  │   │  └── number: odd = left, even = right, z = midline
+  │   └───── sub-region modifier (p = pole)
+  └───────── region: F frontal, C central, P parietal, O occipital, T temporal
+```
+
+| Region | Name | Rough position |
+|---|---|---|
+| Frontal pole | `Fp1` / `Fp2` | Above the eyebrows, left / right |
+| Frontal | `F3` / `F4` / `Fz` | Front third of the skull |
+| Central | `C3` / `C4` / `Cz` | Across the top, motor cortex |
+| Parietal | `P3` / `P4` / `Pz` | Behind central |
+| Occipital | `O1` / `O2` | Back of the head, visual cortex |
+| Temporal | `T7` / `T8` (older: `T3`/`T4`) | Side of the head |
+
+**Odd numbers are always the left hemisphere. Even numbers are the right. `z` is the midline.** Once you know that, `F3` reads as "frontal, left" without a lookup table.
+
+### What each region sees
+
+| Region | Predominant activity |
+|---|---|
+| **Occipital** (`O1`, `O2`) | Alpha rhythm — vanishes on eye opening |
+| **Central** (`C3`, `C4`) | Mu rhythm; motor imagery produces measurable desynchronisation here |
+| **Frontal** (`Fp1`, `Fp2`) | Eye blink artifacts dominate — huge, slow deflections |
+| **Temporal** (`T7`, `T8`) | Often contaminated by jaw and neck muscle |
+
+This table is why BCI work usually starts with `C3`/`C4`: motor imagery is strongest there and the artifact load is moderate.
+
+### Beyond 10–20
+
+The 10–20 grid has 21 electrodes. Higher-density research uses the **10–10** (≈ 70 positions) or **10–5** systems, which subdivide the same intervals further and add names like `FC3` (fronto-central) or `CP4`.
+
+More electrodes give better spatial resolution, but each one adds a channel, a wire, and another source of contact noise. WalkEEG's 8-channel front end sits at the sparse end of this spectrum by design — enough for a research montage over the regions that matter, not a full-head cap.
+
+### Practical notes for this board
+
+**Montage matters more than electrode count.** Two differential channels placed well (`C3`−`Cz`, `C4`−`Cz`) give cleaner motor-imagery data than eight placed carelessly.
+
+**Lead-off detection is not optional.** A dry or lifted electrode produces a plausible-looking trace that is entirely artifact. The AD8232's LO+/LO− comparators and the ADS1293's built-in lead-off detection exist to catch this automatically.
+
+**The reference electrode is a design decision.** Every differential measurement needs one. In a classic 10–20 montage it is `Cz` or the linked mastoids; here it is the RLD electrode (see [RLD](#rld--right-leg-drive)). Where you place it changes what the common-mode rejection actually rejects.
+
+**Further reading** — [10–20 system](https://en.wikipedia.org/wiki/10%E2%80%9320_system_%28EEG%29) · [EEG electrode nomenclature](https://en.wikipedia.org/wiki/Electroencephalography#Electrode_placement) · [Nasion](https://en.wikipedia.org/wiki/Nasion)

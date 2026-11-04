@@ -63,8 +63,8 @@ class _HomePageState extends State<HomePage> {
 
   /// Oscilloscope-style time base: visible window.
   /// First row: seconds; second row: milliseconds (at 2 kHz).
-  static const _windowsSec = <int>[1, 2, 5, 10];
-  static const _windowsMs = <int>[500, 250, 100, 50];
+  /// Display window options, 250 ms .. 2 s.
+  static const _windowOptionsMs = <int>[250, 500, 1000, 2000];
 
   final _ble = WalkEegBleController();
   final _recording = RecordingService();
@@ -711,28 +711,10 @@ class _HomePageState extends State<HomePage> {
             const SizedBox(height: 8),
             SegmentedButton<int>(
               segments: [
-                for (final s in _windowsSec)
-                  ButtonSegment(
-                    value: s * 1000,
-                    label: Text('${s}s'),
-                  ),
-              ],
-              selected: {_windowMs},
-              onSelectionChanged: (sel) {
-                setState(() => _windowMs = sel.first);
-              },
-              showSelectedIcon: false,
-              style: const ButtonStyle(
-                visualDensity: VisualDensity.compact,
-              ),
-            ),
-            const SizedBox(height: 4),
-            SegmentedButton<int>(
-              segments: [
-                for (final ms in _windowsMs)
+                for (final ms in _windowOptionsMs)
                   ButtonSegment(
                     value: ms,
-                    label: Text('${ms}ms'),
+                    label: Text(ms >= 1000 ? '${ms ~/ 1000}s' : '${ms}ms'),
                   ),
               ],
               selected: {_windowMs},
