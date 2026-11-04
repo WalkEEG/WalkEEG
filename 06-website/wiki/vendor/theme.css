@@ -251,3 +251,9 @@ body {
     right: 16px;
   }
 }
+
+/* Per-section further-reading line */
+.markdown-section p > strong:first-child + em,
+.markdown-section p strong:first-child {
+  color: #94a3b8;
+}
