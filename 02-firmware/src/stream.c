@@ -109,7 +109,9 @@ static void ring_reset(void)
 	}
 }
 
-/* 500 Hz tick: only wakes the sampler thread (no blocking work in timer ctx). */
+/* Sample tick (1/sample_hz): only wakes the sampler thread (no blocking
+ * work in timer ctx). Dual front-end reads ADS1293 only on DRDY, so the
+ * ADS1293 ODR must be <= sample_hz or samples are dropped. */
 static void sample_timer_handler(struct k_timer *timer)
 {
 	ARG_UNUSED(timer);
@@ -138,7 +140,49 @@ static void sampler_thread(void *p1, void *p2, void *p3)
 			continue;
 		}
 
-#if WALKEEG_ADS1293_AVAILABLE
+#if defined(CONFIG_WALKEEG_DUAL_FRONTEND) && WALKEEG_ADS1293_AVAILABLE
+		{
+			/* CH0 = AD8232 (SAADC, runtime rate)
+			 * CH1/CH2 = ADS1293 ECG1/ECG2 (own ODR, held between DRDY)
+			 */
+			static uint32_t last3[ADS1293_NUM_CH];
+			static uint8_t lod_bits;
+			static bool have3;
+			struct walkeeg_adc_sample s;
+			struct ads1293_sample s3;
+
+			err = walkeeg_adc_read(&s);
+			if (err) {
+				LOG_WRN("adc_read err %d", err);
+				continue;
+			}
+
+			/* Never block the sampler thread: only read when DRDY fired. */
+			if (walkeeg_ads1293_wait(0) == 0) {
+				if (walkeeg_ads1293_read(&s3) == 0) {
+					last3[0] = s3.ch[0];
+					last3[1] = s3.ch[1];
+					last3[2] = s3.ch[2];
+					lod_bits = s3.lod;
+					have3 = true;
+				}
+			}
+
+			memset(tp.ch, 0, sizeof(tp.ch));
+			tp.ch[0] = s.value;
+
+			if (have3) {
+				tp.ch[1] = (int16_t)((last3[0] - 0x400000U) >> 8);
+				tp.ch[2] = (int16_t)((last3[1] - 0x400000U) >> 8);
+			}
+
+			/* bits0-1 = AD8232 LO+/LO-, bits2-3 = ADS1293 IN1/IN2 */
+			tp.flags = (s.lo_plus ? 0x01 : 0) |
+				   (s.lo_minus ? 0x02 : 0) |
+				   ((lod_bits & 0x01) ? 0 : 0x04) |
+				   ((lod_bits & 0x02) ? 0 : 0x08);
+		}
+#elif WALKEEG_ADS1293_AVAILABLE
 		{
 			struct ads1293_sample s3;
 

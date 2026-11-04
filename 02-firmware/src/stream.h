@@ -1,6 +1,9 @@
 /*
  * WalkEEG AD8232 ECG stream over NUS.
- *  - 8-channel frame layout (App-compatible): CH0 = AD8232 ADC, CH1..7 = 0
+ *  - 8-channel frame layout (App-compatible)
+ *      default:          CH0 = AD8232, CH1 = sawtooth test, CH2..7 = 0
+ *      ADS1293 only:     CH0..2 = Lead I/II/III
+ *      CONFIG_WALKEEG_DUAL_FRONTEND: CH0 = AD8232, CH1/CH2 = ADS1293 ECG1/2
  *  - 500 Hz sample rate
  *  - lead-off flags in frame header
  */

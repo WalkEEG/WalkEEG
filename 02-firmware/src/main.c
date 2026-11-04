@@ -44,6 +44,11 @@
 #define LOG_MODULE_NAME peripheral_uart   // 定义日志模块名称		
 LOG_MODULE_REGISTER(LOG_MODULE_NAME);   // 注册日志模块
 
+/* Zephyr 4.x(NCS 3.x)移除了 BT_LE_ADV_CONN,用等价的快速连接广播参数兼容 */
+#ifndef BT_LE_ADV_CONN
+#define BT_LE_ADV_CONN BT_LE_ADV_CONN_FAST_1
+#endif
+
 #define STACKSIZE CONFIG_BT_NUS_THREAD_STACK_SIZE  //  定义堆栈大小
 #define PRIORITY 7  // 定义优先级
 
@@ -777,7 +782,20 @@ int main(void)
 	walkeeg_stream_init();
 	LOG_INF("[diag] walkeeg_stream_init done");
 
-#if WALKEEG_ADS1293_AVAILABLE
+#if defined(CONFIG_WALKEEG_DUAL_FRONTEND) && WALKEEG_ADS1293_AVAILABLE
+	/* CH0 = AD8232 on SAADC, CH1/CH2 = ADS1293 on SPI1 */
+	err = walkeeg_adc_init();
+	if (err) {
+		LOG_ERR("ADC init failed (err: %d)", err);
+	} else {
+		LOG_INF("[diag] walkeeg_adc_init OK");
+		diag_blink(3);
+	}
+	err = walkeeg_ads1293_init();
+	if (err) {
+		LOG_ERR("ADS1293 init failed (err: %d)", err);
+	}
+#elif WALKEEG_ADS1293_AVAILABLE
 	err = walkeeg_ads1293_init();
 	if (err) {
 		LOG_ERR("ADS1293 init failed (err: %d)", err);

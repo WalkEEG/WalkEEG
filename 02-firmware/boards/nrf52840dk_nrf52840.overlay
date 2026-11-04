@@ -109,12 +109,13 @@
 	pinctrl-0 = <&ads1293_spi_default>;
 	pinctrl-1 = <&ads1293_spi_sleep>;
 	pinctrl-names = "default", "sleep";
+	/* CSB 必须挂在 SPI 控制器节点上,Zephyr 的 cs-gpios 规范如此 */
+	cs-gpios = <&gpio1 3 GPIO_ACTIVE_LOW>;
 
 	ads1293: ads1293@0 {
 		compatible = "ti,ads1293";
 		reg = <0>;
 		spi-max-frequency = <4000000>;
-		cs-gpios = <&gpio1 3 GPIO_ACTIVE_LOW>;
 		drdy-gpios = <&gpio1 4 GPIO_ACTIVE_LOW>;
 		reset-gpios = <&gpio1 5 GPIO_ACTIVE_LOW>;
 	};

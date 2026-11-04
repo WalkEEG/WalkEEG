@@ -45,4 +45,16 @@ config WALKEEG_USE_ADS1293
 	  not sampled. Requires the ads1293 SPI node in the board overlay
 	  (already present for nrf52840dk). Set to n to go back to AD8232.
 
+config WALKEEG_DUAL_FRONTEND
+	bool "Run AD8232 (SAADC) and ADS1293 (SPI) at the same time"
+	depends on WALKEEG_USE_ADS1293
+	default n
+	help
+	  Both front-ends are plugged into the same board:
+	    frame CH0     = AD8232 OUT via SAADC (AIN0 / P0.02)
+	    frame CH1..CH2 = ADS1293 ECG channel 1 and 2
+	  The AD8232 runs at the runtime stream rate (SET_RATE), the ADS1293
+	  keeps its own ODR; its samples are held between DRDY events, so the
+	  CH1/CH2 traces step at the ADS1293 ODR instead of the frame rate.
+
 endmenu
