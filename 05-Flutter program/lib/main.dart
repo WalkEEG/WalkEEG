@@ -608,12 +608,15 @@ class _HomePageState extends State<HomePage> {
               Text(_syncStatus, style: Theme.of(context).textTheme.bodySmall),
             ],
             const SizedBox(height: 8),
-            // One row per visible channel: pick the channel, then choose its
-            // own filter. Each channel's filter state is independent.
+            // Per-channel filter rows. PopupMenuButton is used instead of
+            // DropdownButton: a DropdownButton whose entry is removed mid-route
+            // triggers an inherited-widget assertion (_dependents.isEmpty).
             Column(
+              key: const ValueKey('ch-filter-rows'),
               children: [
                 for (final ch in _selected.toList()..sort())
                   Padding(
+                    key: ValueKey('ch-row-$ch'),
                     padding: const EdgeInsets.only(bottom: 4),
                     child: Row(
                       children: [
@@ -625,20 +628,40 @@ class _HomePageState extends State<HomePage> {
                         ),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: DropdownButton<FilterMode>(
-                            isExpanded: true,
-                            value: _chModes[ch] ?? FilterMode.raw,
-                            items: [
-                              for (final m in FilterMode.values)
-                                DropdownMenuItem(
-                                  value: m,
-                                  child: Text(_modeLabels[m]!,
-                                      style: const TextStyle(fontSize: 13)),
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: PopupMenuButton<FilterMode>(
+                              initialValue: _chModes[ch] ?? FilterMode.raw,
+                              onSelected: (m) => _setMode(m, channel: ch),
+                              itemBuilder: (ctx) => [
+                                for (final m in FilterMode.values)
+                                  PopupMenuItem<FilterMode>(
+                                    value: m,
+                                    child: Text(_modeLabels[m]!),
+                                  ),
+                              ],
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 6),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: _colors[ch]
+                                      .withOpacity(0.5)),
+                                  borderRadius: BorderRadius.circular(6),
                                 ),
-                            ],
-                            onChanged: (m) {
-                              if (m != null) _setMode(m, channel: ch);
-                            },
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      _modeLabels[_chModes[ch] ??
+                                          FilterMode.raw]!,
+                                      style: const TextStyle(fontSize: 13),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    const Icon(Icons.arrow_drop_down, size: 18),
+                                  ],
+                                ),
+                              ),
+                            ),
                           ),
                         ),
                       ],
@@ -689,21 +712,32 @@ class _HomePageState extends State<HomePage> {
                 Text('All channels:',
                     style: Theme.of(context).textTheme.bodySmall),
                 const SizedBox(width: 8),
-                Expanded(
-                  child: DropdownButton<FilterMode>(
-                    isExpanded: true,
-                    value: _mode,
-                    items: [
-                      for (final m in FilterMode.values)
-                        DropdownMenuItem(
-                          value: m,
-                          child: Text(_modeLabels[m]!,
-                              style: const TextStyle(fontSize: 13)),
-                        ),
-                    ],
-                    onChanged: (m) {
-                      if (m != null) _setMode(m);
-                    },
+                PopupMenuButton<FilterMode>(
+                  initialValue: _mode,
+                  onSelected: _setMode,
+                  itemBuilder: (ctx) => [
+                    for (final m in FilterMode.values)
+                      PopupMenuItem<FilterMode>(
+                        value: m,
+                        child: Text(_modeLabels[m]!),
+                      ),
+                  ],
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.white24),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(_modeLabels[_mode]!,
+                            style: const TextStyle(fontSize: 13)),
+                        const SizedBox(width: 4),
+                        const Icon(Icons.arrow_drop_down, size: 18),
+                      ],
+                    ),
                   ),
                 ),
               ],
