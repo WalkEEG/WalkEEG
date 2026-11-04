@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WalkEEG Docs</title>
+  <meta name="description" content="WalkEEG documentation — hardware, firmware, mobile app, backend and protocol reference.">
+
+  <link rel="stylesheet" href="vendor/dark.css">
+  <link rel="stylesheet" href="vendor/theme.css">
+</head>
+
+<body>
+  <div id="app">Loading docs…</div>
+
+  <div class="wiki-topbar">
+    <a href="https://www.walkeeg.com">&larr; walkeeg.com</a>
+    <a href="https://github.com/WalkEEG/WalkEEG" target="_blank" rel="noopener">GitHub</a>
+  </div>
+
+  <script>
+    window.$docsify = {
+      name: 'WalkEEG Docs',
+      loadSidebar: true,
+      subMaxLevel: 2,
+      maxLevel: 4,
+      auto2top: true,
+      homepage: 'README.md',
+      basePath: '/wiki/',
+      alias: {
+        '/.*/_sidebar.md': '/_sidebar.md'
+      },
+      notFoundPage: true,
+      search: {
+        placeholder: 'Search docs…',
+        noData: 'No results',
+        depth: 3,
+        hideOtherSidebarContent: false
+      },
+      copyCode: {
+        buttonText: 'Copy',
+        errorText: 'Error',
+        successText: 'Copied'
+      }
+    };
+  </script>
+
+  <script src="vendor/docsify.min.js"></script>
+  <script src="vendor/search.min.js"></script>
+</body>
+</html>

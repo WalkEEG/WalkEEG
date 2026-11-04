@@ -1051,7 +1051,40 @@ function handleHashChange() {
 }
 
 // ===== Init =====
+/**
+ * Auth screen exit: clicking any empty space outside the card returns to
+ * the main website. The login form has no route back to "/" otherwise.
+ * Fires only when the press starts AND ends on the backdrop, so dragging
+ * out of an input (text selection) never triggers navigation.
+ */
+function initAuthBackdropExit() {
+  const page = $('#authPage');
+  if (!page) return;
+  const exitTo = page.dataset.exitTo || '/';
+  let startedOnBackdrop = false;
+
+  page.addEventListener('pointerdown', (e) => {
+    startedOnBackdrop = e.target === page;
+  });
+
+  page.addEventListener('pointerup', (e) => {
+    if (startedOnBackdrop && e.target === page) {
+      window.location.href = exitTo;
+    }
+    startedOnBackdrop = false;
+  });
+
+  // Escape is the keyboard equivalent of "get me out of here".
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && page.offsetParent !== null) {
+      window.location.href = exitTo;
+    }
+  });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+  initAuthBackdropExit();
+
   // Make it obvious if the site fell back to local demo auth (no Cognito).
   if (useDemo()) {
     console.warn('[WalkEEG] DEMO MODE — Cognito config missing. Registration will not send email codes.');
