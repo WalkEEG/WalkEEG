@@ -90,6 +90,15 @@ sam local start-api
 
 `src/handlers/process.js` is triggered on `.csv` uploads. Currently a skeleton for future FFT processing.
 
+> **Algorithm contracts live in [`docs/algorithms/`](../docs/algorithms), not here.**
+> This service implements offline/batch algorithms only; anything needed for live display
+> runs on the device. When implementing the FFT skeleton, follow
+> [`docs/algorithms/eeg-pipeline.md`](../docs/algorithms/eeg-pipeline.md) and
+> [`docs/algorithms/emg-pipeline.md`](../docs/algorithms/emg-pipeline.md), and validate
+> against [`docs/algorithms/conformance.md`](../docs/algorithms/conformance.md).
+> The spec is platform-neutral on purpose — a Python or MATLAB implementation of the
+> same pipeline must produce matching numbers.
+
 ## Integration
 
 See [INTEGRATION.md](INTEGRATION.md) for web/mobile config and end-to-end test checklist.

@@ -39,6 +39,7 @@ walkeeg/
 ├── 07-backend/      AWS SAM — Cognito, S3, DynamoDB, API Gateway
 ├── 08-realtime/     500 Hz WebSocket relay + live browser dashboard
 └── docs/            Design notes and interface specs
+     └── algorithms/ Algorithm contracts + conformance tests
 ```
 
 | Component | Stack | Status |
@@ -153,6 +154,7 @@ magic 'W' (0x57) | version (1) | seq (u16 LE) | t_ms (u64 LE) | n (u8) | ch[8][n
 | [`07-backend/`](07-backend) | SAM template, Lambda handlers, IAM policy |
 | [`08-realtime/`](08-realtime) | WebSocket relay and browser charting |
 | [`docs/`](docs) | Interface specs, migration notes, hardware revisions |
+| [`docs/algorithms/`](docs/algorithms) | Platform-neutral signal processing contracts (see below) |
 
 ---
 
@@ -163,6 +165,16 @@ Issues and pull requests are welcome. Before opening a PR:
 1. Keep the firmware buildable against current NCS — note the NCS version you tested with.
 2. For hardware changes, attach the updated schematic PDF alongside the KiCad files.
 3. For protocol changes, update `docs/` in the same commit.
+
+## Where does algorithm code belong?
+
+Signal processing is specified once in [`docs/algorithms/`](docs/algorithms) and implemented per platform. That directory is the single source of truth for data formats, filter definitions, and acceptance criteria.
+
+- **Real-time** algorithms live next to the data (app DSP, relay) — latency forbids a network round trip.
+- **Offline / batch** algorithms belong in `07-backend` Lambda handlers or analysis scripts.
+- Every implementation must satisfy [`docs/algorithms/conformance.md`](docs/algorithms/conformance.md) against the same fixtures.
+
+Do not duplicate a filter definition in code without pointing at its spec section.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for details (coming soon).
 
