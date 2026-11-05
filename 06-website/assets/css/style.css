@@ -776,7 +776,7 @@ img { max-width: 100%; height: auto; }
   margin-top: 0;
 }
 
-/* Primer 在前，About 卡片在后 */
+/* Primer first, About card after */
 .bio-explainer + .preview-section {
   margin-top: 44px;
 }
@@ -882,7 +882,7 @@ img { max-width: 100%; height: auto; }
 }
 
 
-/* 实测 ECG 截图 */
+/* Measured ECG screenshot */
 .preview-image--photo {
   position: relative;
   padding: 0;

@@ -10,7 +10,7 @@
             },
             "group": "build",
             "problemMatcher": [],
-            "detail": "编译 WalkEEG 固件"
+            "detail": "Build WalkEEG firmware"
         },
         {
             "label": "NCS: Flash (west flash)",
@@ -21,7 +21,7 @@
             },
             "group": "build",
             "problemMatcher": [],
-            "detail": "烧录到 nRF52840 DK"
+            "detail": "Flash to nRF52840 DK"
         },
         {
             "label": "NCS: Build + Flash",
@@ -32,7 +32,7 @@
             },
             "group": "build",
             "problemMatcher": [],
-            "detail": "编译并烧录"
+            "detail": "Build and flash"
         },
         {
             "label": "NCS: Clean Build",
@@ -43,7 +43,7 @@
             },
             "group": "build",
             "problemMatcher": [],
-            "detail": "清理并重新编译"
+            "detail": "Clean and rebuild"
         }
     ]
 }

@@ -5,7 +5,7 @@
 	(uuid "e697d0ae-258a-4ffe-a80f-5c30fd5207ba")
 	(paper "A4")
 	(lib_symbols)
-	(text "           Peripherals = 电源/USB/存储 (AMS1117, USB 磁珠防护, SPI Flash, SD, CH340)"
+	(text "           Peripherals = Power/USB/Storage (AMS1117, USB ferrite protection, SPI Flash, SD, CH340)"
 		(exclude_from_sim no)
 		(at 85.598 67.582 0)
 		(effects
@@ -16,7 +16,7 @@
 		)
 		(uuid "092f0c98-6f4a-4e70-a687-df43879afe4d")
 	)
-	(text "WalkEEG v3.0  ——  8 通道便携脑电采集板"
+	(text "WalkEEG v3.0  --  8-channel portable EEG acquisition board"
 		(exclude_from_sim no)
 		(at 87.63 56.896 0)
 		(effects
@@ -27,7 +27,7 @@
 		)
 		(uuid "103ece61-18f6-4adf-91c0-8e9be761dea8")
 	)
-	(text "主控: nRF52840 模块 (青风)  |  模拟前端: 8x AD8232 + ADS1293"
+	(text "MCU: nRF52840 module (Qingfeng)  |  AFE: 8x AD8232 + ADS1293"
 		(exclude_from_sim no)
 		(at 85.598 84.582 0)
 		(effects
@@ -38,7 +38,7 @@
 		)
 		(uuid "9c9ce231-0430-49c0-bc65-f42000ccfa27")
 	)
-	(text "页面说明:  MotherBroad = 主控接口/模拟前端 (J1 J2 排针, 8x AD8232, ADS1293, 测试点)"
+	(text "Sheet:  MotherBroad = MCU interface/AFE (J1 J2 headers, 8x AD8232, ADS1293, test points)"
 		(exclude_from_sim no)
 		(at 85.598 72.582 0)
 		(effects
@@ -49,7 +49,7 @@
 		)
 		(uuid "adbe0fd8-3bb2-44ac-8bef-01e966a17c62")
 	)
-	(text "外设: SPI Flash (W25Q80) / MicroSD / CH340C USB 串口"
+	(text "Peripherals: SPI Flash (W25Q80) / MicroSD / CH340C USB serial"
 		(exclude_from_sim no)
 		(at 85.598 79.582 0)
 		(effects

@@ -1,86 +1,98 @@
-# 一致性测试（Conformance）
+# Conformance Testing
 
-> 不同实现算同一个文件，结果必须一致。
-> 本文件定义"什么叫一致"以及如何验证。
+> Different implementations processing the same file must agree.
+> This document defines what "agree" means and how to verify it.
 
-## 1. 为什么需要
+## 1. Why it is needed
 
-同一段数据在 Dart、Node、Python 里跑同一套规范，如果结果不同，说明至少一方不符合规范。没有基准，就只能靠"看起来差不多"，而"差不多"在跨平台协作里等于没有规范。
+If the same data run through the same specification produces different numbers in
+Dart, Node and Python, at least one of them violates the specification. Without
+reference vectors there is only "looks close enough" — and in cross-platform work
+"close enough" is the same as no specification at all.
 
-## 2. 基准数据集
+## 2. Reference dataset
 
-尚未生成。规范要求建立 `docs/algorithms/fixtures/`，至少包含：
+Not yet generated. The specification calls for `docs/algorithms/fixtures/`
+containing at least:
 
-| 文件 | 内容 | 用途 |
+| File | Content | Purpose |
 |---|---|---|
-| `synthetic_alpha.csv` | 合成 10 Hz 正弦，已知幅度，500 Hz 采样 | 验证 α 能量计算的绝对正确性 |
-| `synthetic_emg.csv` | 合成宽带噪声经已知带通 | 验证 EMG 包络与 RMS |
-| `synthetic_50hz.csv` | 纯 50 Hz 正弦 | 验证陷波与工频抑制 |
-| `step.csv` | 阶跃信号 | 验证滤波器瞬态、无过冲 |
+| `synthetic_alpha.csv` | Synthetic 10 Hz sine, known amplitude, 500 Hz | Absolute correctness of alpha power |
+| `synthetic_emg.csv` | Synthetic broadband noise through a known bandpass | EMG envelope and RMS |
+| `synthetic_50hz.csv` | Pure 50 Hz sine | Notch and mains rejection |
+| `step.csv` | Step signal | Filter transient, overshoot |
 
-**合成优于实测**：真值已知，才能判断是"算错了"还是"信号本来如此"。
+**Synthetic beats real recordings here**: the true value is known, so a
+discrepancy tells you whether the code is wrong or the signal is simply like
+that.
 
-## 3. 一致性判据
+## 3. Agreement criteria
 
-数值类输出采用**相对误差**比较：
+Numeric outputs are compared by **relative error**:
 
 $$
 \text{rel\_err} = \frac{|\text{actual} - \text{expected}|}{\max(|\text{expected}|, \epsilon)}
 $$
 
-| 输出 | 容差 | 理由 |
+| Output | Tolerance | Rationale |
 |---|---|---|
-| 频段能量 | ≤ 1 % | 相同窗长/窗函数下应几乎一致 |
-| RMS | ≤ 0.5 % | 纯算术，FP32/FP64 差异在此量级 |
-| β/α 比值 | ≤ 1 % | 误差由分子分母传播 |
-| MDF | ≤ ±1 个频率分辨率 | 分箱离散化造成 |
-| 滤波器输出（逐样本） | ≤ 1e-6 相对 | 同一系数序列应逐点吻合 |
+| Band power | ≤ 1 % | Should be nearly identical for the same window and window function |
+| RMS | ≤ 0.5 % | Pure arithmetic; FP32/FP64 differences live here |
+| Beta/alpha ratio | ≤ 1 % | Error propagates through numerator and denominator |
+| MDF | ≤ ±1 frequency bin | Bin discretization |
+| Filter output (per sample) | ≤ 1e-6 relative | Identical coefficient sequence should match point by point |
 
-**超出容差即判定不一致**，必须定位到具体环节（系数推导 / 窗函数 / 单位换算 / 累计顺序），不得放宽容差蒙混。
+**Exceeding a tolerance means non-conformance.** Locate the cause — coefficient
+derivation / window function / unit conversion / accumulation order — rather than
+loosening the tolerance.
 
-## 4. 必须显式声明的实现选择
+## 4. Implementation choices that must be declared
 
-以下每一项都会导致数值差异，实现方**必须在自己的 README 里声明**，否则视为不合规：
+Each of these changes the numbers. An implementation **must state its choice in
+its own README**, or it is non-conforming:
 
-1. **累加顺序**：逐样本累加 vs 向量化求和 → 浮点结果不同
-2. **数值精度**：FP32 / FP64，定点实现需说明 Q 格式
-3. **滤波器初始状态**：零初始化 vs 稳态初始化 → 影响前若干样本
-4. **窗函数相干增益补偿**：补偿 / 不补偿
-5. **频段边界**：含端点的闭区间 or 半开区间（`4–7` 是否含 7.0 Hz）
-6. **伪迹窗处理**：丢弃 / 标记但保留
-7. **跳帧处理**：`seq` 跳号时是否插值补零
+1. **Accumulation order**: sequential loop vs vectorized sum → different floats
+2. **Numeric precision**: FP32 / FP64; fixed-point must state the Q format
+3. **Filter initial state**: zero-initialized vs steady-state → affects the first
+   samples
+4. **Window coherent-gain compensation**: applied / not applied
+5. **Band edges**: inclusive or half-open (does `4–7` include 7.0 Hz?)
+6. **Artifact windows**: discarded / flagged but retained
+7. **Frame drops**: interpolate on `seq` gaps, or leave as-is
 
-## 5. 验证清单
+## 5. Verification checklist
 
-新实现上线前，逐条打勾：
+Tick every item before shipping a new implementation:
 
-- [ ] 用 `synthetic_alpha.csv` 复现已知 α 能量，误差 ≤ 1 %
-- [ ] 用 `synthetic_emg.csv` 复现 RMS，误差 ≤ 0.5 %
-- [ ] 用 `synthetic_50hz.csv` 验证工频抑制比符合预期
-- [ ] 用 `step.csv` 验证无过冲、无发散
-- [ ] 采样率与数据不匹配时报错（而非静默运行）
-- [ ] 缺 `lsb_uv` 元数据时拒绝输出 µV 单位结果
-- [ ] 伪迹窗在输出中可见（`artifact=1`）
-- [ ] 已声明第 4 节的全部实现选择
+- [ ] `synthetic_alpha.csv` reproduces the known alpha power within 1 %
+- [ ] `synthetic_emg.csv` reproduces RMS within 0.5 %
+- [ ] `synthetic_50hz.csv` gives the expected mains rejection ratio
+- [ ] `step.csv` shows no overshoot and no divergence
+- [ ] A sample rate that mismatches the data raises an error (does not run silently)
+- [ ] Missing `lsb_uv` metadata refuses to emit µV values
+- [ ] Artifact windows are visible in the output (`artifact=1`)
+- [ ] Every choice in section 4 is declared
 
-## 6. 跨实现对接点
+## 6. Cross-implementation boundaries
 
-| 上游 | 下游 | 契约 |
+| Upstream | Downstream | Contract |
 |---|---|---|
-| 固件 `stream.c` | App `packet_parser.dart` | `data-format.md` §2 帧格式 |
-| App 导出 CSV | `07-backend` 批处理 | `data-format.md` §4 §5 |
-| 实时 relay | `08-realtime/server.js` | relay 二进制协议（见 data-format §6） |
-| 任一端 | 任一端 | 本文件的基准向量 |
+| Firmware `stream.c` | App `packet_parser.dart` | `data-format.md` §2 frame layout |
+| App CSV export | `07-backend` batch | `data-format.md` §4 §5 |
+| Realtime relay | `08-realtime/server.js` | Relay binary protocol (see data-format §6) |
+| Any end | Any end | The reference vectors in this document |
 
-## 7. 当前状态
+## 7. Current status
 
-| 项 | 状态 |
+| Item | Status |
 |---|---|
-| 基准数据集 | ❌ 未建立 |
-| Dart 实现通过 | ⚠️ 无基准可比 |
-| Node 实现通过 | ❌ 骨架未实现 |
-| Python 参考实现 | ❌ 未编写 |
+| Reference dataset | ❌ Not created |
+| Dart implementation passing | ⚠️ Nothing to compare against yet |
+| Node implementation passing | ❌ Skeleton only |
+| Python reference implementation | ⚠️ Interface defined, bodies pending |
 
-> **建议顺序**：先建 `synthetic_alpha.csv` 和 `synthetic_emg.csv`，
-> 再写 Python 参考实现作为"金标准"，最后让 Dart / Node 对齐它。
-> 反向（让 Python 对齐某个现有实现）会把现有实现的错误固化成规范。
+> **Recommended order**: create `synthetic_alpha.csv` and `synthetic_emg.csv`
+> first, then write the Python reference implementation as the golden standard,
+> and finally align Dart / Node to it.
+> Doing it backwards (making Python match an existing implementation) would
+> freeze that implementation's bugs into the specification.

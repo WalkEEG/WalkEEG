@@ -29,7 +29,7 @@ class RelayService extends ChangeNotifier {
   bool get enabled => _want;
   bool get connected => _channel != null;
 
-  /// 通过 mDNS 自动发现本机 relay（服务类型 _walkeeg._tcp）
+  /// Auto-discover the local relay via mDNS (service type _walkeeg._tcp)
   static Future<({String host, int port})?> discover({
     Duration timeout = const Duration(seconds: 3),
   }) async {

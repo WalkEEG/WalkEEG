@@ -1,148 +1,148 @@
-# EEG / EMG 测试方法（CJMCU-1293 + nRF52840）
+# EEG / EMG Test Procedure (CJMCU-1293 + nRF52840)
 
-> 适用：`WalkECG_firmware` 的 `nrf52840` 分支 + CJMCU-1293 模块 + WalkEEG App。
-> 当前固件：3 导联 ECG 配置、533 sps；`CH0 = IN2−IN1`、`CH1 = IN3−IN1`、`CH2 = IN3−IN2`、`RLD → IN4`。
-> 当前 App：8 通道 int16 帧，默认 500 Hz 时间轴，支持每通道独立滤波（raw / 50Hz+LP / bandpass / QRS / HRV）。
+> Applies to: the `nrf52840` branch of `WalkECG_firmware` + CJMCU-1293 module + WalkEEG App.
+> Current firmware: 3-lead ECG configuration, 533 sps; `CH0 = IN2−IN1`, `CH1 = IN3−IN1`, `CH2 = IN3−IN2`, `RLD → IN4`.
+> Current App: 8-channel int16 frames, default 500 Hz time axis, per-channel independent filtering (raw / 50Hz+LP / bandpass / QRS / HRV).
 
-## 0. 先看限制
+## 0. Limitations First
 
-| 项目 | 现状 | 影响 |
+| Item | Current state | Impact |
 |---|---|---|
-| 采样率 | 533 sps（奈奎斯特 266 Hz） | EEG alpha/beta 够用；EMG 只能看低频/包络，高频丢失 |
-| AFE 定位 | ADS1293 是 ECG AFE | 做 EEG/EMG 可用，但噪声、输入偏置不如 ADS1299 专用 EEG AFE |
-| App 时间轴 | 默认 500 Hz | 与固件 533 Hz 差约 6%，心率/频率读数会偏低 |
-| EMG 带宽 | 需要 20–450 Hz、1–2 kSPS | 当前固件/App 未配置，标准 EMG 需改固件 + App |
+| Sample rate | 533 sps (Nyquist 266 Hz) | Sufficient for EEG alpha/beta; EMG only shows low frequency/envelope, high frequencies are lost |
+| AFE positioning | ADS1293 is an ECG AFE | Usable for EEG/EMG, but noise and input bias are inferior to a dedicated EEG AFE such as the ADS1299 |
+| App time axis | Default 500 Hz | About 6% off from the firmware's 533 Hz, so heart rate/frequency readings will be low |
+| EMG bandwidth | Needs 20–450 Hz, 1–2 kSPS | Not configured in the current firmware/App; standard EMG requires firmware + App changes |
 
-## 1. 通用准备
+## 1. General Preparation
 
-1. **3.5 mm 插头必须是三芯 TRS**：两芯 TS 会把 P1/P2 的 pin 2 和 pin 3 短接。
-2. **先量线序**：万用表通断档确认 `L / R / COM` 分别落在 P1 的 pin 1 / 2 / 3（即 IN1 / IN2 / IN3）。不同厂家线序可能不同。
-3. **电极**：Ag/AgCl 凝胶电极；酒精擦皮肤去油；贴好等 1–2 分钟；阻抗尽量 <10 kΩ，两路接近。
-4. **供电**：用电池/充电宝，**不要插着充电器贴电极**；输入端串 10 kΩ + TVS 更稳。
-5. **上电检查**：青风板 LED3（P0.15）1 秒闪一次；手机能扫到 `WalkEEG`。
-6. 连接后 App 状态行应显示 `Streaming`，`frames` 持续上涨。
+1. **The 3.5 mm plug must be three-conductor TRS**: a two-conductor TS plug shorts pin 2 and pin 3 of P1/P2.
+2. **Measure the pinout first**: use the continuity mode of a multimeter to confirm that `L / R / COM` land on pin 1 / 2 / 3 of P1 (i.e., IN1 / IN2 / IN3). Pinouts may differ between vendors.
+3. **Electrodes**: Ag/AgCl gel electrodes; wipe the skin with alcohol to remove oil; wait 1–2 minutes after applying; keep impedance below 10 kΩ where possible, and similar on both channels.
+4. **Power**: use a battery/power bank, **do not apply electrodes while the charger is plugged in**; a 10 kΩ series resistor + TVS on the inputs is more robust.
+5. **Power-on check**: LED3 (P0.15) on the Qingfeng board blinks once per second; the phone can scan `WalkEEG`.
+6. After connecting, the App status line should show `Streaming`, with `frames` continuously increasing.
 
-## 2. EEG（2 通道共参考）
+## 2. EEG (2-channel, common reference)
 
-### 2.1 电极贴法
+### 2.1 Electrode Placement
 
-| 电极 | 位置 | 插到 | 网络 | 作用 |
+| Electrode | Position | Plug into | Net | Role |
 |---|---|---|---|---|
-| R | 左耳后乳突 A1 | P1-1 | IN1 | 公共参考 REF |
-| L | 左前额 Fp1（眉毛上 2–3 cm） | P1-2 | IN2 | CH0 正端 |
-| COM(F) | 右前额 Fp2 | P1-3 | IN3 | CH1 正端 |
-| 第二根线 R | 右耳后乳突 A2 或 Fpz | P2-1 | IN4 | RLD / 偏置 |
-| 备用 | Fpz / 接地 / 屏蔽 | P2-2 / P2-3 | IN5 / IN6 | 当前固件未用 |
+| R | Left mastoid A1 | P1-1 | IN1 | Common reference REF |
+| L | Left forehead Fp1 (2–3 cm above the eyebrow) | P1-2 | IN2 | CH0 positive input |
+| COM(F) | Right forehead Fp2 | P1-3 | IN3 | CH1 positive input |
+| Second R wire | Right mastoid A2 or Fpz | P2-1 | IN4 | RLD / bias |
+| Spare | Fpz / ground / shielding | P2-2 / P2-3 | IN5 / IN6 | Not used by the current firmware |
 
-结果：
+Result:
 
 - **CH0 = L − R = Fp1 − A1**
 - **CH1 = COM − R = Fp2 − A1**
-- CH2 = COM − L = Fp2 − Fp1（可不用）
+- CH2 = COM − L = Fp2 − Fp1 (may be ignored)
 
-> 前提：量出来 R 确实落在 IN1。如果 R 落在 IN2/IN3，把参考换成落在 IN1 的电极，或改固件 `FLEX_CH1/2`。
+> Prerequisite: the measured R really lands on IN1. If R lands on IN2/IN3, use whichever electrode lands on IN1 as the reference, or change `FLEX_CH1/2` in the firmware.
 
-### 2.2 App 设置
+### 2.2 App Settings
 
-1. 连 `WalkEEG`，确认 `frames` 上涨、`drops` 接近 0、MTU 约 495。
-2. 只显示 CH0、CH1；窗口先选 **2 s**；Y 轴 **AC auto**。
-3. 滤波先全部 **Raw**。
+1. Connect to `WalkEEG`, confirm `frames` is increasing, `drops` is near 0, and MTU is about 495.
+2. Display only CH0 and CH1; set the window to **2 s** initially; set the Y axis to **AC auto**.
+3. Set all filters to **Raw** initially.
 
-### 2.3 验证步骤
+### 2.3 Verification Steps
 
-| 步骤 | 操作 | 预期 |
+| Step | Action | Expected |
 |---|---|---|
-| 1 | 手指轻碰 Fp1 电极 | CH0 出现尖峰/波动 |
-| 2 | 手指轻碰 Fp2 电极 | CH1 出现 |
-| 3 | 眨眼 | CH0/CH1 同时出现大慢波 |
-| 4 | 咬牙/转头 | 出现高频肌电噪声 |
-| 5 | 安静闭眼 10 s | 前额 alpha 较弱；把 L/COM 移到 O1/O2 才明显 |
-| 6 | CH0 设 `50Hz+LP`，CH1 保持 Raw | CH0 变平滑，CH1 不变（验证每通道独立） |
-| 7 | 给 CH0 切 Bandpass 再切回 Raw | CH1 不应跳变/重置 |
-| 8 | 加入 CH2 并设不同滤波 | CH0/CH1 不受影响 |
-| 9 | “All channels” 一键设全部，再单独改 CH1 | 只有 CH1 变化，状态行摘要正确 |
+| 1 | Lightly touch the Fp1 electrode with a finger | CH0 shows spikes/fluctuation |
+| 2 | Lightly touch the Fp2 electrode with a finger | CH1 responds |
+| 3 | Blink | Large slow waves appear on both CH0/CH1 |
+| 4 | Clench teeth / turn head | High-frequency muscle noise appears |
+| 5 | Close eyes quietly for 10 s | Frontal alpha is weak; it only becomes obvious after moving L/COM to O1/O2 |
+| 6 | Set CH0 to `50Hz+LP`, keep CH1 Raw | CH0 becomes smoother, CH1 unchanged (verifies per-channel independence) |
+| 7 | Switch CH0 to Bandpass, then back to Raw | CH1 should not jump/reset |
+| 8 | Add CH2 with a different filter | CH0/CH1 unaffected |
+| 9 | Use "All channels" to set everything, then change CH1 alone | Only CH1 changes, and the status-line summary is correct |
 
-> `QRS` / `HRV` 是心电算法，用在 EEG 上没有意义；EEG 建议 `Raw` / `50Hz+LP` / `Bandpass`。
+> `QRS` / `HRV` are ECG algorithms and are meaningless on EEG; for EEG prefer `Raw` / `50Hz+LP` / `Bandpass`.
 
-### 2.4 EEG 排错
+### 2.4 EEG Troubleshooting
 
-| 现象 | 优先检查 |
+| Symptom | Check first |
 |---|---|
-| frames=0 | App 未开 NUS TX Notify；固件未启动转换；ADS1293 无 DRDY |
-| 两路都平直 | RLD（P2-1）没接；电极没贴好；R/L/COM 线序不对 |
-| 50 Hz 很大 | RLD 接触差、电极阻抗高、线太长；先接 RLD，再开 50Hz notch |
-| 波形贴顶/削顶 | 电极直流偏置大或增益过高；换新电极/重贴，仍不行再调固件 |
-| 只有眨眼没有脑电 | 额头的正常现象；alpha 要放 O1/O2 |
+| frames=0 | NUS TX Notify not enabled in the App; firmware has not started conversion; no DRDY from the ADS1293 |
+| Both channels flat | RLD (P2-1) not connected; electrodes not applied well; R/L/COM pinout wrong |
+| Large 50 Hz | Poor RLD contact, high electrode impedance, wires too long; connect RLD first, then enable the 50Hz notch |
+| Waveform clipping/railing | Large electrode DC offset or gain too high; use fresh electrodes/reapply, adjust firmware only if that fails |
+| Only blinks, no EEG | Normal for the forehead; alpha requires placement at O1/O2 |
 
-## 3. EMG（单通道双极）
+## 3. EMG (single-channel bipolar)
 
-> 当前 533 sps 只能验证“有没有、幅度大不大”；标准表面 EMG 需要 1–2 kSPS + 20–450 Hz 带通。
+> At 533 sps the current setup can only verify "is there a signal, and how large is it"; standard surface EMG requires 1–2 kSPS + 20–450 Hz bandpass.
 
-### 3.1 电极贴法（以肱二头肌为例）
+### 3.1 Electrode Placement (biceps brachii example)
 
-| 电极 | 位置 | 插到 | 网络 |
+| Electrode | Position | Plug into | Net |
 |---|---|---|---|
-| L | 肌腹一端（沿肌纤维方向） | P1-2 | IN2 |
-| R | 肌腹另一端，距 L 约 2–3 cm | P1-1 | IN1 |
-| COM(F) | 肘部鹰嘴/尺骨等骨性标志 | P1-3 | IN3 |
-| 第二根线 R | 另一处骨性点（腕/肘） | P2-1 | IN4（RLD） |
+| L | One end of the muscle belly (along the fiber direction) | P1-2 | IN2 |
+| R | Other end of the muscle belly, about 2–3 cm from L | P1-1 | IN1 |
+| COM(F) | Bony landmark at the elbow, e.g., olecranon/ulna | P1-3 | IN3 |
+| Second R wire | Another bony point (wrist/elbow) | P2-1 | IN4 (RLD) |
 
-结果：
+Result:
 
-- **CH0 = L − R**：跨肌腹的差分 EMG，主看这个
-- CH1 = COM − R：参考点与肌腹的电位，基本忽略
+- **CH0 = L − R**: differential EMG across the muscle belly — the main channel to watch
+- CH1 = COM − R: potential between the reference point and the muscle belly, generally ignore
 
-要点：
+Key points:
 
-- 两个主动电极**沿肌纤维方向**，不要横跨肌肉；
-- 距离 2–3 cm；太近信号小，太远混入邻近肌肉；
-- 参考电极贴骨性标志，不要贴肌腹。
+- The two active electrodes should be **along the muscle fiber direction**, not across the muscle;
+- Spacing 2–3 cm: too close gives a small signal, too far picks up adjacent muscles;
+- Place the reference electrode on a bony landmark, not on the muscle belly.
 
-### 3.2 App 设置
+### 3.2 App Settings
 
-1. 只显示 **CH0**；
-2. 窗口选 **100–250 ms**（EMG 爆发很快）；
-3. Y 轴 **AC auto**；
-4. 滤波先 **Raw**，确认有信号后再试 `50Hz+LP`（注意其低通 100 Hz 会切掉 EMG 高频）。
+1. Display **CH0** only;
+2. Set the window to **100–250 ms** (EMG bursts are fast);
+3. Y axis **AC auto**;
+4. Filter **Raw** first; once a signal is confirmed, try `50Hz+LP` (note that its 100 Hz low-pass removes EMG high frequencies).
 
-### 3.3 验证步骤
+### 3.3 Verification Steps
 
-1. 放松 5 s，记录基线；
-2. 用力屈肘/握拳 3 s，CH0 应出现明显高频爆发；
-3. 放松 3 s，爆发消失；
-4. 重复 3 次，比较幅度与稳定性；
-5. 手指轻敲肌腹，应出现短促尖峰；
-6. 对比放松 vs 收缩峰峰值，通常差 5–20 倍。
+1. Relax for 5 s and record the baseline;
+2. Flex the elbow / clench the fist forcefully for 3 s; CH0 should show a clear high-frequency burst;
+3. Relax for 3 s; the burst disappears;
+4. Repeat 3 times and compare amplitude and stability;
+5. Lightly tap the muscle belly with a finger; short spikes should appear;
+6. Compare peak-to-peak amplitude relaxed vs. contracted — typically a 5–20× difference.
 
-### 3.4 EMG 排错
+### 3.4 EMG Troubleshooting
 
-| 现象 | 优先检查 |
+| Symptom | Check first |
 |---|---|
-| 收缩时无变化 | 电极贴到肌腱/骨头；L/R 方向不对；参考/RLD 接触不良 |
-| 基线大幅漂移 | ECG 的 0.5 Hz 高通不够；需要 20 Hz 高通（当前 App 无 EMG 模式） |
-| 波形贴顶 | 增益/量程；电极偏置 |
-| 50 Hz 明显 | RLD 接触、电极阻抗、线缆屏蔽 |
+| No change during contraction | Electrodes on tendon/bone; L/R orientation wrong; poor reference/RLD contact |
+| Large baseline drift | The ECG 0.5 Hz high-pass is not enough; a 20 Hz high-pass is needed (the current App has no EMG mode) |
+| Waveform clipping | Gain/range; electrode offset |
+| Obvious 50 Hz | RLD contact, electrode impedance, cable shielding |
 
-### 3.5 标准 EMG 还缺什么
+### 3.5 What Standard EMG Still Needs
 
-1. **固件**：ODR 改到 1–2 kSPS（改 `AFE_RES` / `R1/R2/R3`），并确认高通截止；
-2. **App**：增加 `EMG` 滤波模式（20 Hz 高通 + 450 Hz 低通），默认窗口 200 ms；
-3. **电极**：双极间距、参考点固定，最好用肌电专用电极扣。
+1. **Firmware**: change the ODR to 1–2 kSPS (modify `AFE_RES` / `R1/R2/R3`) and confirm the high-pass cutoff;
+2. **App**: add an `EMG` filter mode (20 Hz high-pass + 450 Hz low-pass), default window 200 ms;
+3. **Electrodes**: fixed bipolar spacing and reference point; EMG-specific snap electrodes are preferable.
 
-## 4. 快速检查清单
+## 4. Quick Checklist
 
-- [ ] 固件在跑，LED3 1 秒闪，手机能扫到 `WalkEEG`
-- [ ] App 连上，`frames` 上涨
-- [ ] 3.5 mm 是三芯 TRS，线序已量
-- [ ] RLD（P2-1 / IN4）已接骨性点
-- [ ] Raw 模式下触碰电极有反应
-- [ ] EEG：CH0=Fp1−A1、CH1=Fp2−A1
-- [ ] EMG：CH0=肌腹双极，收缩时爆发明显
-- [ ] 每通道滤波切换时其他通道不跳变
+- [ ] Firmware running, LED3 blinking once per second, phone can scan `WalkEEG`
+- [ ] App connected, `frames` increasing
+- [ ] 3.5 mm plug is three-conductor TRS, pinout measured
+- [ ] RLD (P2-1 / IN4) connected to a bony point
+- [ ] Touching an electrode produces a response in Raw mode
+- [ ] EEG: CH0=Fp1−A1, CH1=Fp2−A1
+- [ ] EMG: CH0=bipolar across muscle belly, clear burst during contraction
+- [ ] Switching the filter on one channel does not cause other channels to jump
 
-## 5. 相关文件
+## 5. Related Files
 
-- 模块接口与引脚：`docs/ads1293/README.md`
-- 模块原理图：`docs/ads1293/CJMCU-1293.PDF`
-- 固件：`WalkECG_firmware` 的 `nrf52840` 分支
-- App：`05-Flutter program`
+- Module interface and pins: `docs/ads1293/README.md`
+- Module schematic: `docs/ads1293/CJMCU-1293.PDF`
+- Firmware: `nrf52840` branch of `WalkECG_firmware`
+- App: `05-Flutter program`

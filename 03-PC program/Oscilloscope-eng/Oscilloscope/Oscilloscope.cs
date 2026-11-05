@@ -14,10 +14,10 @@ namespace Oscilloscope
 {
     public partial class Oscilloscope : Form
     {
-        #region 变量定义
+        #region Variable definitions
 
-        public Int32 recFrameNum = 0; //接收到的数据帧数
-        public Int32 recByteNum = 0;  //接收到的数据字节数
+        public Int32 recFrameNum = 0; //frames received
+        public Int32 recByteNum = 0;  //bytes received
         private List<byte> recBuffer = new List<byte>();
         private bool handerListening = false;
         private bool comClosing = false;
@@ -33,15 +33,15 @@ namespace Oscilloscope
 
         }
 
-        #region 串口初始化
+        #region Serial port initialisation
         private void buttonSwitch_Click(object sender, EventArgs e)
         {
             try
             {
                 if (serialPort1.IsOpen)
                 {
-                    comClosing = true;//串口关闭动作正在进行
-                   while (handerListening) Application.DoEvents();//关闭串口前处理完消息队列中的所有事件
+                    comClosing = true;//serial port close in progress
+                   while (handerListening) Application.DoEvents();//drain the message queue before closing the port
 
                     serialPort1.Close();
                     if (!serialPort1.IsOpen)
@@ -73,9 +73,9 @@ namespace Oscilloscope
                     }
                     catch(Exception ex)
                     {
-                        //现实异常信息给客户。
+                        //surface the exception to the user
                         MessageBox.Show(ex.Message);
-                        //捕获到异常信息，创建一个新的comm对象，之前的不能用了。
+                        //exception caught: create a new comm object, the old one is unusable
                         //serialPort1 = new SerialPort();
                     }
 
@@ -94,7 +94,7 @@ namespace Oscilloscope
         #endregion
 
 
-        #region 串口接收  
+        #region Serial reception  
 
         private void serialPort1_DataReceived(object sender, System.IO.Ports.SerialDataReceivedEventArgs e)
         {
@@ -108,10 +108,10 @@ namespace Oscilloscope
 
     
             
-            if (comClosing == true) return; //如果正在关闭，忽略操作，直接返回，尽快的完成串口监听线程的一次循环
+            if (comClosing == true) return; //if closing, skip the work and return to finish this listener iteration quickly
             try
             {
-                handerListening = true;//设置标记，说明已经开始处理数据，一会儿要使用系统UI的。
+                handerListening = true;//flag that data handling has started; the UI thread is used shortly
 
                 int n = serialPort1.BytesToRead;
                 byte[] buf = new byte[n];
@@ -121,7 +121,7 @@ namespace Oscilloscope
                 serialPort1.Read(buf, 0, n);
                 recBuffer.AddRange(buf);
 
-                //对接收到的数据进行显示         
+                //display the received data         
                 this.BeginInvoke((EventHandler)(delegate
                 {
                     labelRecByteCount.Text = Convert.ToString(recByteNum);
@@ -138,17 +138,17 @@ namespace Oscilloscope
                 {
                     if (buf[0] == ConfigPrama.FrameHeader && buf[7] == ConfigPrama.FrameTail)
                     {
-                        //通道一
+                        //channel 1
                         xVarry[1] = buf[1];
                         xVarry[0] = buf[2];
                         xValue = Convert.ToDouble(BitConverter.ToInt16( xVarry,0));
                         xValue = xValue * 3.6 / 1024;
-                        //通道二
+                        //channel 2
                         yVarry[1] = buf[3];
                         yVarry[0] = buf[4];
                         yValue = Convert.ToDouble(BitConverter.ToInt16(yVarry, 0));
                         yValue = yValue * 3.6 / 1024;
-                        //通道三
+                        //channel 3
                         zVarry[1] = buf[5];
                         zVarry[0] = buf[6];
                         zValue = Convert.ToDouble(BitConverter.ToInt16(zVarry, 0));
@@ -173,14 +173,14 @@ namespace Oscilloscope
         }
         #endregion
 
-        #region 数据缓冲清理
+        #region Buffer cleanup
         public void Updatetextbox()
         {
 
         }
         #endregion
 
-        #region 清空接收区和接收记录
+        #region Clear receive area and counters
         private void buttonClear_Click(object sender, EventArgs e)
         {
 
@@ -196,7 +196,7 @@ namespace Oscilloscope
 
         }
 
-        #region 绘图接口
+        #region Plotting interface
         void paint_ax(double x,double y,double z)
         {
             // Define some variables
@@ -252,7 +252,7 @@ namespace Oscilloscope
         }
         #endregion
 
-        #region 清除绘图
+        #region Clear plot
         private void buttonGclear_Click(object sender, EventArgs e)
         {
             chart1.Series["Channel 1"].Points.Clear();

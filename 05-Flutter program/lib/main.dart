@@ -92,9 +92,9 @@ class _HomePageState extends State<HomePage> {
   /// Labels for the five processing schemes (kept short for the segmented
   /// control; full meaning in the status line).
   static const _modeLabels = <FilterMode, String>{
-    FilterMode.raw: '原始',
+    FilterMode.raw: 'Raw',
     FilterMode.notchLp: '50Hz+LP',
-    FilterMode.bandpass: '带通',
+    FilterMode.bandpass: 'Bandpass',
     FilterMode.qrs: 'QRS',
     FilterMode.hrv: 'HRV',
   };
@@ -115,7 +115,7 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     _ble.parser.onFrame = (seq, perCh, n) {
       _recording.onFrame(perCh, n);
-      // relay：CH0 用当前滤波模式的显示值（与 App 画面一致），原始 CH0 放到 CH7 保留
+      // relay: CH0 uses the displayed value of the current filter mode (matching the app screen); raw CH0 is kept on CH7
       final disp = _ble.parser.channels[0].samples;
       final filtered = disp.length >= n ? disp.sublist(disp.length - n) : disp;
       final relayCh = List<List<int>>.generate(8, (c) {
@@ -211,7 +211,7 @@ class _HomePageState extends State<HomePage> {
                   portCtl.text = '${found.port}';
                   setD(() => _relay.status = 'found ${found.host}:${found.port}');
                 } else {
-                  setD(() => _relay.status = 'not found（检查同一 Wi-Fi / 服务器已启动）');
+                  setD(() => _relay.status = 'not found (check same Wi-Fi / server is running)');
                 }
               },
               child: const Text('Discover'),

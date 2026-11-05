@@ -1,73 +1,73 @@
-# EMG 肌电通道需求（草案）
+# EMG Channel Requirements (Draft)
 
-> 适用：WalkEEG App + nRF52840 固件
-> 状态：**待开发**（计划 2026-11 第 1 周启动）
-> 更新：2026-10-31
+> Applies to: WalkEEG App + nRF52840 firmware
+> Status: **To be developed** (planned start: week 1 of 2026-11)
+> Updated: 2026-10-31
 
-## 1. 背景与目标
+## 1. Background and Goals
 
-现有系统是 ECG/EEG 通道（CH0 = AD8232 → SAADC，500 Hz）。
-目标是**增加一路表面肌电（surface EMG）采集**，用于：
+The current system uses ECG/EEG channels (CH0 = AD8232 → SAADC, 500 Hz).
+The goal is to **add one surface EMG acquisition channel**, used for:
 
-- 单块肌肉的**收缩强度**（RMS 包络）
-- **肌肉疲劳**（中值频率 MDF 下移）
-- 后续与 BalanxEMS 刺激同步（EMG-EMS 闭环）
+- **Contraction intensity** of a single muscle (RMS envelope)
+- **Muscle fatigue** (downward shift of the median frequency, MDF)
+- Later synchronization with BalanxEMS stimulation (EMG-EMS closed loop)
 
-## 2. 结论：通道数够，不用新增硬件通道
+## 2. Conclusion: Enough Channels, No New Hardware Channel Required
 
-- 板载 **ADS1293（3 通道，CH0–2）** 已存在（v3.0 底板）
-- **抽 1 路**（建议 CH1）作 EMG，其余保留 ECG/EEG
-- 无需新增 ADC 通道，也**无需改 8 通道 BLE 帧格式**
+- An on-board **ADS1293 (3 channels, CH0–2)** already exists (v3.0 baseboard)
+- **Repurpose one channel** (CH1 recommended) for EMG and keep the rest for ECG/EEG
+- No new ADC channel is needed, and there is **no need to change the 8-channel BLE frame format**
 
-## 3. 硬性指标
+## 3. Hard Requirements
 
-| 项 | 要求 | 现状 | 差距 |
+| Item | Requirement | Current | Gap |
 |---|---|---|---|
-| 采样率 | **≥ 1 kHz，推荐 2 kHz** | 500 Hz | ❌ 需提高 |
-| 信号带宽 | **20–500 Hz（-3 dB）** | AD8232 ≈ 0.5–40 Hz | ❌ 前端必须换 |
-| 分辨率 | ≥ 12-bit（推荐 24-bit） | 12-bit ≈ 8 µV/LSB | ⚠️ 偏低 |
-| 输入范围 | 至少 ±5 mV（表面 EMG） | — | 待确认 |
-| 电极 | 差分双电极 + 参考 | — | 需结构支持 |
-| 与 EMS 共存 | 刺激期间**硬件 blanking** + 软件插值 | 无 | ❌ 待设计 |
+| Sample rate | **≥ 1 kHz, 2 kHz recommended** | 500 Hz | ❌ must increase |
+| Signal bandwidth | **20–500 Hz (-3 dB)** | AD8232 ≈ 0.5–40 Hz | ❌ front end must be changed |
+| Resolution | ≥ 12-bit (24-bit recommended) | 12-bit ≈ 8 µV/LSB | ⚠️ too low |
+| Input range | At least ±5 mV (surface EMG) | — | to be confirmed |
+| Electrodes | Differential bipolar + reference | — | requires mechanical support |
+| Coexistence with EMS | **Hardware blanking** during stimulation + software interpolation | None | ❌ to be designed |
 
-### 3.1 关键不确定性
-- **ADS1293 是 ECG AFE**：当前 533 sps 时 BW ≈ 105 Hz；ODR 最高 **6400 sps**（BW 随 ODR 提升），但 **PGA 模拟带宽**需查 datasheet 确认能否覆盖 500 Hz
-- 若不满足 → 备选方案：**INA333 / AD8237 类仪放 + nRF SAADC @ 2 kHz**
+### 3.1 Key Uncertainties
+- **The ADS1293 is an ECG AFE**: at the current 533 sps the BW is ≈ 105 Hz; the maximum ODR is **6400 sps** (BW scales with ODR), but the **PGA analog bandwidth** must be confirmed from the datasheet to see whether it covers 500 Hz
+- If it does not → alternative: **INA333 / AD8237-class instrumentation amp + nRF SAADC @ 2 kHz**
 
-## 4. 功能需求
+## 4. Functional Requirements
 
-1. 新增 **EMG 数据源**：与 CH0 并行采集，占用 BLE 帧 CH1
-2. App 端新增 **EMG 页面**：
-   - 实时波形（带通 20–500 Hz）
-   - **RMS 包络**（100 ms 窗）
-   - **MDF 中值频率**（滑动窗频谱）
-   - 收缩 / 放松状态判定
-3. 数据导出：CSV 字段 `time,emg_raw,emg_rms,emg_mdf`
-4. Relay：EMG 走独立通道，不与 CH0 滤波数据混
+1. Add an **EMG data source**: acquired in parallel with CH0, occupying BLE frame CH1
+2. Add an **EMG page** in the App:
+   - Live waveform (bandpass 20–500 Hz)
+   - **RMS envelope** (100 ms window)
+   - **MDF (median frequency)** (sliding-window spectrum)
+   - Contraction / relaxation state detection
+3. Data export: CSV fields `time,emg_raw,emg_rms,emg_mdf`
+4. Relay: EMG uses a dedicated channel and is not mixed with CH0 filtered data
 
-## 5. 验收标准
+## 5. Acceptance Criteria
 
-1. 静息（肌肉放松）时 RMS 噪声 < 5 µV，无明显 50 Hz 干扰
-2. 最大自主收缩（MVC）时 RMS 提升 ≥ 10×，波形不削顶
-3. 持续等长收缩 30 s，MDF 下降 ≥ 10%（疲劳可测）
-4. 2 kHz 采样下 BLE 丢包率 < 1%（8ch × 2 kHz ≈ 32 kB/s）
-5. 与 EMS 叠加时：blanking 后 5 ms 内恢复，无持续饱和
+1. At rest (muscle relaxed), RMS noise < 5 µV with no obvious 50 Hz interference
+2. At maximal voluntary contraction (MVC), RMS increases ≥ 10× with no waveform clipping
+3. During a sustained 30 s isometric contraction, MDF drops ≥ 10% (fatigue is measurable)
+4. At 2 kHz sampling, BLE packet loss < 1% (8ch × 2 kHz ≈ 32 kB/s)
+5. When superimposed on EMS stimulation: recovery within 5 ms after blanking, with no sustained saturation
 
-## 6. 下周行动项（2026-11 W1）
+## 6. Action Items for Next Week (2026-11 W1)
 
-- [ ] 查 ADS1293 datasheet，确认 PGA 带宽 / 噪声是否满足 20–500 Hz
-- [ ] 固件：ADS1293 ODR 切到 2 kHz（或先用 6400 试跑），验证 BLE 吞吐
-- [ ] 接线：CH1 差分输入 + 参考电极，贴肱二头肌做首次采集
-- [ ] App：EMG 页面（波形 + RMS + MDF）
-- [ ] 评估 EMS blanking 的硬件方案（模拟开关 + 时序）
+- [ ] Check the ADS1293 datasheet to confirm whether PGA bandwidth / noise meet 20–500 Hz
+- [ ] Firmware: switch the ADS1293 ODR to 2 kHz (or trial-run at 6400 first) and verify BLE throughput
+- [ ] Wiring: CH1 differential input + reference electrode, first acquisition on the biceps
+- [ ] App: EMG page (waveform + RMS + MDF)
+- [ ] Evaluate a hardware approach for EMS blanking (analog switch + timing)
 
-## 7. 已知局限
+## 7. Known Limitations
 
-- 单通道 EMG 无法做肌群协同/多肌肉分析（需 ≥2 通道）
-- 表面 EMG 受脂肪厚度、电极位置、皮肤阻抗影响大 → 必须做个体基线
-- 非医疗用途：不得用于诊断/治疗宣称
+- Single-channel EMG cannot support muscle-synergy / multi-muscle analysis (requires ≥2 channels)
+- Surface EMG is strongly affected by fat thickness, electrode placement, and skin impedance → an individual baseline is mandatory
+- Non-medical use: must not be used for diagnostic/therapeutic claims
 
-## 8. 相关文档
+## 8. Related Documents
 
-- `docs/eeg-alpha-beta-ratio.md` —— EEG β/α 比值需求
-- `docs/ads1293/README.md` —— ADS1293 接口与寄存器
+- `docs/eeg-alpha-beta-ratio.md` —— EEG β/α ratio requirements
+- `docs/ads1293/README.md` —— ADS1293 interface and registers

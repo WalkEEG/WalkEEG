@@ -1,147 +1,168 @@
-# EMG 处理规范
+# EMG Processing Specification
 
-> 表面肌电：带通 → 整流 → 包络 → RMS / 中值频率（MDF）。
-> 目标输出：**收缩强度**（RMS 包络）与**疲劳程度**（MDF 下移）。
+> Surface EMG: bandpass → rectify → envelope → RMS / median frequency (MDF).
+> Target outputs: **contraction strength** (RMS envelope) and **fatigue**
+> (downward MDF shift).
 
-## 1. 处理链总览
+## 1. Pipeline overview
 
 ```
-原始码值 (LSB)
-   │  ① 高通 20 Hz        ← 去运动伪迹、电极漂移
+Raw counts (LSB)
+   │  ① high-pass 20 Hz      ← removes movement artifact and electrode drift
    ▼
-   │  ② 低通 450 Hz       ← 去高频噪声、留出奈奎斯特余量
+   │  ② low-pass 450 Hz      ← removes high-frequency noise, keeps Nyquist margin
    ▼
-   │  ③ 全波整流 |x|
+   │  ③ full-wave rectify |x|
    ▼
-   │  ④ 低通包络 5 Hz     ← 得到包络
+   │  ④ envelope low-pass 5 Hz
    ▼
-   ├──→ RMS（滑动窗）
-   ├──→ MDF（滑动窗频谱）
-   └──→ 激活度 activation = envelope / peak
+   ├──→ RMS (sliding window)
+   ├──→ MDF (sliding-window spectrum)
+   └──→ activation = envelope / peak
 ```
 
-## 2. 当前实现（App 侧参考）
+## 2. Current implementation (app-side reference)
 
 `05-Flutter program/lib/dsp/emg_analyzer.dart`
 
-| 项 | 值 | 实现方式 |
+| Item | Value | Implementation |
 |---|---|---|
-| 高通截止 | 20 Hz | 一阶 IIR，`a = exp(−2π·20/fs)` |
-| 低通截止 | 450 Hz | 一阶 IIR，`a = exp(−2π·450/fs)` |
-| 包络低通 | 5 Hz | 一阶 IIR，`a = exp(−2π·5/fs)` |
-| 整流 | 全波 | `abs()` |
-| RMS | 滑动窗 | 逐样本累加平方，按通知周期重置 |
-| 峰值跟踪 | 缓慢衰减 | 上升立即跟随，下降 `×0.9995`/样本 |
-| 激活度 | `envelope / peak` | 钳位 0..1 |
-| 伪迹判定 | `peak > 3000` | 阈值硬编码，单位为 LSB |
-| 更新频率 | `fs/20`（约 50 ms） | 即 20 Hz 刷新 |
+| High-pass cutoff | 20 Hz | First-order IIR, `a = exp(−2π·20/fs)` |
+| Low-pass cutoff | 450 Hz | First-order IIR, `a = exp(−2π·450/fs)` |
+| Envelope low-pass | 5 Hz | First-order IIR, `a = exp(−2π·5/fs)` |
+| Rectification | Full-wave | `abs()` |
+| RMS | Sliding window | Running sum of squares, reset each notify cycle |
+| Peak tracking | Slow decay | Instant on rising edge, `×0.9995` per sample on falling |
+| Activation | `envelope / peak` | Clamped to 0..1 |
+| Artifact test | `peak > 3000` | Hard-coded threshold, in LSB |
+| Update rate | `fs/20` (≈ 50 ms) | 20 Hz refresh |
 
-**一阶 IIR 的具体公式**（Dart 实现，注意是 $\alpha$−$a$ 互补形式）：
+**Exact one-pole IIR** (Dart, note the α/$a$ complementary form):
 
 ```dart
-// 高通：先差分再一阶低通
+// high-pass: difference first, then one-pole low-pass
 hp  = a_hp * (hp + x - prev_x);  prev_x = x;
-// 低通
+// low-pass
 lp  = (1 - a_lp) * hp + a_lp * lp;
-// 包络
+// envelope
 env = (1 - a_env) * |lp| + a_env * env;
 ```
 
-其中 `a = exp(−2π·fc/fs)`。
+where `a = exp(−2π·fc/fs)`.
 
-> ⚠️ **一阶 IIR 的陡度很有限**：20 Hz 高通在 10 Hz 处仅衰减约 6 dB。若下游要对 50 Hz 工频做定量分析，需要改为二阶或更高阶（参见 App 里的 `butterworth_second_order.dart`）。
+> ⚠️ **A first-order IIR rolls off gently**: the 20 Hz high-pass attenuates only
+> about 6 dB at 10 Hz. If downstream analysis needs quantitative results near
+> 50 Hz mains, use second-order or higher (see
+> `butterworth_second_order.dart` in the app).
 
-## 3. 采样率：一个必须解决的问题
+## 3. Sample rate: an open problem
 
-| 来源 | 采样率 |
+| Source | Sample rate |
 |---|---|
-| `emg_analyzer.dart` 默认 | **2000 Hz** |
-| `main.dart` 构造时传入 | **2000 Hz** |
-| `docs/emg-channel-requirement.md` 当前固件 | **500 Hz** |
-| 需求目标 | ≥ 1 kHz，推荐 2 kHz |
+| `emg_analyzer.dart` default | **2000 Hz** |
+| `main.dart` constructor argument | **2000 Hz** |
+| `docs/emg-channel-requirement.md` current firmware | **500 Hz** |
+| Requirement target | ≥ 1 kHz, 2 kHz recommended |
 
-**这组数字目前互相矛盾。** 代码按 2 kHz 计算滤波系数，但若实际数据是 500 Hz，那么：
+**These numbers currently contradict each other.** The code derives filter
+coefficients as if the rate were 2 kHz. If the data is actually 500 Hz then:
 
-- 450 Hz 低通**超过奈奎斯特（250 Hz）**，系数无意义，滤波器行为不可预测
-- 20 Hz 高通的归一化频率也错了 4 倍
+- the 450 Hz low-pass sits **above Nyquist (250 Hz)** — the coefficients are
+  meaningless and the filter behaviour is undefined
+- the 20 Hz high-pass has a normalized frequency off by a factor of four
 
-**规范要求**：滤波器系数**必须由实际采样率推导**，且采样率必须来自元数据（见 `data-format.md` 第 5 节），不能靠默认值。实现方必须：
-1. 从元数据读 `sample_rate`
-2. 校验 `fc_lowpass < sample_rate / 2`
-3. 不满足时**报错**，不得静默运行
+**Specification requirement:** coefficients **must** be derived from the actual
+sample rate, and that rate **must** come from metadata (see `data-format.md`
+section 5), never from a default. Each implementation must:
 
-## 4. 三个指标的精确定义
+1. read `sample_rate` from metadata
+2. verify `fc_lowpass < sample_rate / 2`
+3. **fail** when the check fails — never run silently
 
-### 4.1 RMS（收缩强度）
+## 4. Precise definitions
 
-滑动窗内整流信号的均方根：
+### 4.1 RMS (contraction strength)
+
+Root mean square of the rectified signal over a window:
 
 $$
 \text{RMS} = \sqrt{\frac{1}{N}\sum_{i=1}^{N} x_{rect}[i]^2}
 $$
 
-- **单位**：µV（需先按 `lsb_uv` 换算）
-- **窗长**：规范建议 **100 ms**（与需求文档一致）；当前实现按通知周期（约 50 ms）重置累加，**不是固定窗长**，跨实现时需明确
-- **静息基线**：必须记录，否则 RMS 的绝对值无法跨人比较
+- **Unit**: µV (after conversion via `lsb_uv`)
+- **Window**: the specification calls for **100 ms** (matching the requirement
+  document); the current implementation resets its accumulator on each notify
+  cycle (≈ 50 ms), which is **not a fixed window**. State this explicitly when
+  porting.
+- **Resting baseline**: must be recorded, otherwise absolute RMS is not
+  comparable between people
 
-### 4.2 MDF（中值频率，疲劳指标）
+### 4.2 MDF (median frequency, fatigue indicator)
 
-在滑动窗功率谱上，把功率累积到一半时对应的频率：
+The frequency at which accumulated power reaches half the total:
 
 $$
 \sum_{f=f_{min}}^{\text{MDF}} P(f) = \frac{1}{2}\sum_{f=f_{min}}^{f_{max}} P(f)
 $$
 
-- **生理依据**：疲劳时快肌纤维募集减少、传导速度下降 → 频谱**整体左移** → MDF 下降
-- **验收**：持续等长收缩 30 s，MDF 下降 ≥ 10%
-- **计算前提**：需窗长 ≥ 256 点、加 Hann 窗、逐频点求功率
-- **当前状态**：**未实现**（需求文档列为待开发）
+- **Physiology**: during fatigue, fast-twitch fibre recruitment drops and
+  conduction velocity falls → the spectrum **shifts left** → MDF decreases
+- **Acceptance**: MDF drops ≥ 10% over a 30 s sustained contraction
+- **Preconditions**: window ≥ 256 samples, Hann window, per-bin power
+- **Current state**: **not implemented** (the requirement document lists it as
+  pending)
 
-### 4.3 激活度 activation
+### 4.3 Activation
 
-归一化包络，用于判断"是否在收缩"：
+Normalized envelope, used to judge "is the muscle contracting":
 
 $$
 \text{activation} = \frac{\text{envelope}}{\text{peak}}, \quad \text{clamp}(0, 1)
 $$
 
-- **局限**：`peak` 随历史自适应，不同会话的绝对值不可比；只适合同一会话内的相对判断
+- **Limitation**: `peak` adapts to history, so absolute values are not
+  comparable between sessions; only useful for relative judgement within one
+  session
 
-## 5. 伪迹处理
+## 5. Artifact handling
 
-| 伪迹 | 表现 | 处置 |
+| Artifact | Symptom | Handling |
 |---|---|---|
-| 电极脱落 | 基线突跳、大幅饱和 | 硬件 lead-off 检测；软件整窗丢弃 |
-| 运动伪迹 | 低频大摆幅 | 20 Hz 高通可缓解 |
-| 工频 50 Hz | 窄带尖峰 | 陷波；当前 EMG 链未加陷波，需评估 |
-| EMS 刺激串扰 | 刺激期间饱和 | **硬件 blanking**，之后插值恢复 |
+| Electrode off | Baseline jump, large saturation | Hardware lead-off detection; discard affected windows |
+| Movement | Large low-frequency swing | Mitigated by the 20 Hz high-pass |
+| 50 Hz mains | Narrow-band spike | Notch filter; the current EMG chain has none — evaluate |
+| EMS stimulation crosstalk | Saturation during a pulse | **Hardware blanking**, then interpolation |
 
-**规范要求**：伪迹必须出现在输出字段（如 `artifact=1`），且该区间的 RMS/MDF 标记为不可信，**不得参与基线或 EMA 更新**。
+**Requirement:** artifacts must appear in the output fields (e.g. `artifact=1`),
+and RMS/MDF over those intervals must be flagged unreliable. **They must not
+update the baseline or any EMA.**
 
-## 6. 与 EEG 链的区别
+## 6. How this differs from the EEG chain
 
-两者都是生物电，但处理目标不同，**不要复用同一套滤波器**：
+Both are biopotentials, but the processing goals differ — **do not reuse the same
+filter set**:
 
 | | EMG | EEG |
 |---|---|---|
-| 目标频段 | 20–450 Hz | 0.5–40 Hz |
-| 关注点 | 幅度包络、频谱偏移 | 频段能量比 |
-| 采样率需求 | ≥ 1 kHz | ≈ 500 Hz 足够 |
-| 伪迹处理 | 整窗丢弃 | 整窗丢弃 + 眼电回归（多通道） |
+| Target band | 20–450 Hz | 0.5–40 Hz |
+| Focus | Amplitude envelope, spectral shift | Band power ratios |
+| Sample rate | ≥ 1 kHz | ≈ 500 Hz is enough |
+| Artifact handling | Discard whole window | Discard window + EOG regression (multichannel) |
 
-## 7. 验收基准
+## 7. Acceptance criteria
 
-实现方必须能复现以下行为（闭环验证）：
+An implementation must reproduce the following end-to-end:
 
-1. **静息**：RMS 噪声 < 5 µV，500 Hz 处无显著工频残留
-2. **MVC（最大自主收缩）**：RMS 提升 ≥ 10×，波形不削顶
-3. **疲劳**：30 s 等长收缩，MDF 下降 ≥ 10%
-4. **采样率失配**：输入 500 Hz 数据而配置为 2 kHz 时，必须报错而非静默输出
+1. **Resting**: RMS noise < 5 µV, no significant mains residual at 500 Hz
+2. **MVC (maximum voluntary contraction)**: RMS ≥ 10× increase, no clipping
+3. **Fatigue**: MDF drops ≥ 10% over a 30 s sustained contraction
+4. **Rate mismatch**: feeding 500 Hz data into a 2 kHz configuration must raise
+   an error, not silently produce output
 
-## 8. 参考实现
+## 8. Reference implementations
 
-| 语言 | 位置 | 状态 |
+| Language | Location | Status |
 |---|---|---|
-| Dart | `05-Flutter program/lib/dsp/emg_analyzer.dart` | RMS 已实现，MDF 未实现 |
-| Node | `07-backend/src/handlers/process.js` | 骨架（TODO） |
-| Python | `algorithms/python/walkeeg_stats.py` | 骨架（接口已定，函数体待填） |
+| Dart | `05-Flutter program/lib/dsp/emg_analyzer.dart` | RMS implemented, MDF not implemented |
+| Node | `07-backend/src/handlers/process.js` | Skeleton (TODO) |
+| Python | `algorithms/python/walkeeg_stats.py` | Skeleton (interface final, body pending) |

@@ -1,71 +1,82 @@
-# 数据格式规范
+# Data Format Specification
 
-> 本文件定义 WalkEEG 在**设备 → App → 存储 → 离线分析**全链路上的数据格式。
-> 任何新实现（新语言、新平台、新服务器）必须按此解析和写出，否则数值不可比。
+> Defines the data format across the whole chain: **device → app → storage →
+> offline analysis**.
+> Any new implementation (new language, new platform, new server) must parse and
+> write according to this document, or the numbers are not comparable.
 
-## 1. 量纲与单位（最容易被忽略，也最容易出错）
+## 1. Units and dimensions
 
-| 量 | 单位 | 说明 |
+Easiest to overlook, most expensive to get wrong.
+
+| Quantity | Unit | Notes |
 |---|---|---|
-| 幅度 | **µV**（微伏） | 规范层统一用 µV。代码内部可用 LSB / 原始码值，但跨模块必须换算 |
-| 时间 | **秒 (s)** | CSV 时间列从记录起点算起 |
-| 频率 | **Hz** | 采样率、频段边界 |
-| 功率 | **µV²** | 频段能量；不取平方根时不要叫"功率" |
+| Amplitude | **µV** (microvolts) | Specification layer uses µV throughout. Code may use LSB or raw counts internally, but conversion is mandatory at module boundaries |
+| Time | **seconds (s)** | CSV time column counts from the start of recording |
+| Frequency | **Hz** | Sample rates and band edges |
+| Power | **µV²** | Band energy; do not call it "power" if you never squared it |
 
-**换算的前提是知道 LSB 大小。** 当前平台：
+**Conversion requires knowing the LSB size.** Current platform:
 
-| 前端 | 分辨率 | LSB | 备注 |
+| Front end | Resolution | LSB | Notes |
 |---|---|---|---|
-| AD8232 @ 12-bit SAADC | 12 bit | ≈ **8 µV/LSB** | 参考电压与增益决定，实际值需实测标定 |
-| ADS1293 | 24 bit | 见 datasheet | 增益设定相关 |
+| AD8232 @ 12-bit SAADC | 12 bit | ≈ **8 µV/LSB** | Depends on reference voltage and gain; must be calibrated by measurement |
+| ADS1293 | 24 bit | See datasheet | Depends on configured gain |
 
-> **硬性要求**：任何输出 µV 的算法，必须同时记录 `lsb_uv` 换算系数。没有这个系数，数据无法跨设备比较，等于废数据。
+> **Hard requirement:** any algorithm that emits µV must also record its
+> `lsb_uv` conversion factor. Without it the data cannot be compared across
+> devices and is effectively unusable.
 
-## 2. BLE 二进制帧（设备 → App）
+## 2. BLE binary frame (device → app)
 
-NUS 透传的原始帧格式：
-
-```
-偏移  长度  字段        说明
- 0     1   magic       0xA5
- 1     1   version     0x01
- 2     2   seq         u16 小端，帧序号，回绕于 0xFFFF
- 4     1   n           本帧每通道采样点数
- 5     1   (reserved)  对齐用
- 6   n×16  payload     8 通道 × n 点 × u16 小端，按采样点交错
-```
-
-- **每帧长度** = `6 + n × 8 × 2` 字节
-- **通道数**固定 **8**
-- **采样值**为**无符号整数**，位宽由采集模式决定（8/10/12/14/16 bit），即 0..2^N−1
-- **交错顺序**：先第 0 个采样点的 8 个通道，再第 1 个采样点，依此类推
+Raw frame over NUS:
 
 ```
-payload[0..15]   = 采样点 0 的 CH0..CH7
-payload[16..31]  = 采样点 1 的 CH0..CH7
+Offset  Len  Field        Description
+  0      1   magic        0xA5
+  1      1   version      0x01
+  2      2   seq          u16 little-endian, frame counter, wraps at 0xFFFF
+  4      1   n            samples per channel in this frame
+  5      1   (reserved)   alignment
+  6   n×16   payload      8 channels × n samples × u16 LE, interleaved by sample
+```
+
+- **Frame length** = `6 + n × 8 × 2` bytes
+- **Channel count** is fixed at **8**
+- **Sample values** are **unsigned integers**; the bit width depends on the
+  acquisition mode (8/10/12/14/16 bit), i.e. 0..2^N−1
+- **Interleave order**: all 8 channels of sample 0, then sample 1, and so on
+
+```
+payload[0..15]   = channels 0..7 of sample 0
+payload[16..31]  = channels 0..7 of sample 1
 ...
 ```
 
-**丢包判定**：`seq` 应为上一帧 +1（模 65536 回绕）。跳号数即丢失帧数。
+**Drop detection:** `seq` must be the previous value + 1 (modulo 65536 wrap).
+The size of the jump equals the number of lost frames.
 
-**参考实现**：`05-Flutter program/lib/protocol/packet_parser.dart`
+**Reference implementation:** `05-Flutter program/lib/protocol/packet_parser.dart`
 
-> 注意：该文件头部注释引用了 `docs/WALKEEG_PACKET.md`，此文件目前不存在，本文档即为其正式位置。
+> Note: that file's header comment references `docs/WALKEEG_PACKET.md`, which
+> does not exist. This document is its canonical replacement.
 
-## 3. 通道分配（当前固件）
+## 3. Channel assignment (current firmware)
 
-| 通道 | 用途 | 说明 |
+| Channel | Purpose | Notes |
 |---|---|---|
-| CH0 | AD8232 主前级 | ECG / EEG，500 Hz |
-| CH1 | ADS1293 通道 0 | EMG 或备用 EEG |
-| CH2 | ADS1293 通道 1 | 备用 |
-| CH3–CH7 | 保留 | 补零或未接 |
+| CH0 | AD8232 primary front end | ECG / EEG, 500 Hz |
+| CH1 | ADS1293 channel 0 | EMG or spare EEG |
+| CH2 | ADS1293 channel 1 | Spare |
+| CH3–CH7 | Reserved | Zero-filled or unconnected |
 
-> 通道分配是固件与 App 的**隐式契约**。改动时必须同步：固件 `stream.c`、App `packet_parser.dart`、本节、以及 CSV 列头。
+> Channel assignment is an **implicit contract** between firmware and app. Any
+> change must be applied in the same commit to: firmware `stream.c`, app
+> `packet_parser.dart`, this section, and the CSV column headers.
 
-## 4. CSV 存储格式（App → S3 / 本地）
+## 4. CSV storage format (app → S3 / local)
 
-### 4.1 原始记录
+### 4.1 Raw recording
 
 ```csv
 time,ch0,ch1,ch2,ch3,ch4,ch5,ch6,ch7
@@ -73,13 +84,13 @@ time,ch0,ch1,ch2,ch3,ch4,ch5,ch6,ch7
 0.002,2049,2048,2050,2048,2048,2048,2048,2048
 ```
 
-- `time`：自记录开始的秒数，保留 3 位小数
-- `chN`：**原始码值**（未换算），不施加任何滤波
-- 不写单位到列名，统一按第 1 节约定
+- `time`: seconds since recording start, 3 decimal places
+- `chN`: **raw counts**, unfiltered
+- Units are not encoded in column names; section 1 applies
 
-### 4.2 派生指标（伴随文件）
+### 4.2 Derived metrics (companion file)
 
-算法产出的时序指标单独成文件，不混入原始波形：
+Algorithm outputs go into a separate file, never mixed into the raw waveform:
 
 ```csv
 time,theta,alpha,beta,ratio,artifact
@@ -87,32 +98,35 @@ time,theta,alpha,beta,ratio,artifact
 1.0,11.8,50.1,29.6,0.59,0
 ```
 
-- `artifact`：0 = 正常，1 = 该窗被判伪迹（数值不可信）
-- 频段能量单位 **µV²**，`ratio` 无量纲
+- `artifact`: 0 = normal, 1 = window flagged as artifact (values not trustworthy)
+- Band energy in **µV²**; `ratio` is dimensionless
 
-## 5. 元数据（必须随数据一起传递）
+## 5. Metadata (must travel with the data)
 
-单独的文件或 S3 对象标签，字段至少包含：
+A separate file or S3 object tags, containing at least:
 
-| 字段 | 类型 | 必需 | 说明 |
+| Field | Type | Required | Notes |
 |---|---|---|---|
-| `sample_rate` | number | ✅ | Hz，逐通道可能不同，用对象表示 |
-| `lsb_uv` | number | ✅ | 每通道的 LSB 对应微伏数 |
-| `started_at` | ISO 8601 | ✅ | 带时区 |
-| `duration_s` | number | ✅ | 记录时长 |
-| `channels` | object | ✅ | 通道 → 用途映射，如 `{"0":"ecg","1":"emg"}` |
-| `firmware` | string | ✅ | 固件版本，便于追溯算法失配 |
-| `frontend` | string | 建议 | `ad8232` / `ads1293` |
+| `sample_rate` | number | ✅ | Hz; may differ per channel, use an object |
+| `lsb_uv` | number | ✅ | Microvolts per LSB, per channel |
+| `started_at` | ISO 8601 | ✅ | With timezone |
+| `duration_s` | number | ✅ | Recording length |
+| `channels` | object | ✅ | Channel → purpose, e.g. `{"0":"ecg","1":"emg"}` |
+| `firmware` | string | ✅ | Firmware version, for tracing algorithm mismatches |
+| `frontend` | string | Recommended | `ad8232` / `ads1293` |
 
-**没有 `sample_rate` 和 `lsb_uv` 的数据一律视为不完整**：下游算法拒绝处理，而不是猜测默认值。
+**Data without `sample_rate` and `lsb_uv` is incomplete by definition.**
+Downstream algorithms must refuse it rather than guessing a default.
 
-## 6. 与现有实现的关系
+## 6. Relation to current implementations
 
-| 现状 | 处置 |
+| Current state | Action |
 |---|---|
-| `07-backend/README.md` 的 `POST /signals` 请求体已有 `channels`、`sampleRate`、`duration` | 保留，补充 `lsb_uv` |
-| App 导出的 CSV 目前无表头单位信息 | 按第 5 节补元数据文件 |
-| relay `/ingest` 二进制协议（magic `0x57`） | 与 BLE 帧不同，见 `08-realtime/server.js`；如需跨平台对接应统一 |
+| `07-backend/README.md` `POST /signals` body already carries `channels`, `sampleRate`, `duration` | Keep; add `lsb_uv` |
+| App CSV export has no unit metadata | Add the metadata file per section 5 |
+| Relay `/ingest` binary protocol (magic `0x57`) | Differs from the BLE frame; see `08-realtime/server.js`. Unify if cross-platform interop is needed |
 
-> relay 二进制协议目前是 `W | ver | seq u16 | t_ms u64 | n u8 | ch[8][n] u16`，
-> 与 BLE 帧的差异在**时间戳**和**头部长度**。若要实现"一套解析多端通用"，建议以本文档第 2 节为基础统一，避免再来一套。
+> The relay protocol is currently
+> `W | ver | seq u16 | t_ms u64 | n u8 | ch[8][n] u16`, differing from the BLE
+> frame in its **timestamp** and **header length**. To get one parser for every
+> platform, build it on section 2 rather than inventing a third format.

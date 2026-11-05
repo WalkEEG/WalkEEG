@@ -1,62 +1,62 @@
-# Beta/Alpha 比值（β/α）需求与意义
+# Beta/Alpha Ratio (β/α): Requirements and Rationale
 
-> 适用：WalkEEG App（`05-Flutter program`）
-> 更新：2026-10-31
-> 实现：`lib/dsp/eeg_analyzer.dart`、`lib/ui/eeg_page.dart`
+> Applies to: WalkEEG App (`05-Flutter program`)
+> Updated: 2026-10-31
+> Implementation: `lib/dsp/eeg_analyzer.dart`, `lib/ui/eeg_page.dart`
 
-## 1. 需求
+## 1. Requirements
 
-### 1.1 功能
-在 App 内**实时**计算单通道（CH0）脑电的 **β/α 比值**并在 EEG 页面展示；同时输出 **θ / α / β** 三个频段功率，便于解释比值来源。
+### 1.1 Function
+Compute the **β/α ratio** of the single-channel (CH0) EEG **in real time** inside the App and display it on the EEG page; also output the power of the three bands **θ / α / β** so the ratio's origin can be explained.
 
-### 1.2 算法参数（当前实现）
-| 项 | 值 |
+### 1.2 Algorithm Parameters (current implementation)
+| Item | Value |
 |---|---|
-| 采样率 | 500 Hz（与 BLE 帧一致） |
-| 分析窗 | 2 s（1000 点），步进 1 s，50% 重叠 |
-| 窗函数 | Hann |
-| 频谱 | 逐频点 Goertzel（1 Hz 分辨率，免 FFT 依赖） |
-| 频段 | θ 4–7 Hz / α 8–12 Hz / β 13–30 Hz |
-| 平滑 | 各频段 EMA（0.8 / 0.2） |
-| 比值 | `β_EMA / α_EMA`（α > 0 时） |
-| 伪迹门限 | 窗内 p2p > 400 LSB（≈3.2 mV @ 8 µV/LSB）→ **该窗不更新 EMA**，标记 `artifact` |
+| Sample rate | 500 Hz (matches the BLE frame) |
+| Analysis window | 2 s (1000 samples), hop 1 s, 50% overlap |
+| Window function | Hann |
+| Spectrum | Per-bin Goertzel (1 Hz resolution, no FFT dependency) |
+| Bands | θ 4–7 Hz / α 8–12 Hz / β 13–30 Hz |
+| Smoothing | EMA per band (0.8 / 0.2) |
+| Ratio | `β_EMA / α_EMA` (when α > 0) |
+| Artifact gate | p2p > 400 LSB within the window (≈3.2 mV @ 8 µV/LSB) → **EMA is not updated for that window**, flagged as `artifact` |
 
-### 1.3 输出
-- **EEG 页面**：α/β 实时条形 + β/α 数值 + α 趋势曲线（1 s 一点）+ "α 基线"（闭眼校准）
-- **CSV 导出**：`time,theta,alpha,beta,ratio,artifact`
-- **Relay（`/ingest`）**：CH0 = 当前滤波模式后的波形；CH7 = 原始 CH0
+### 1.3 Output
+- **EEG page**: live α/β bars + β/α value + α trend curve (one point per 1 s) + "α baseline" (eyes-closed calibration)
+- **CSV export**: `time,theta,alpha,beta,ratio,artifact`
+- **Relay (`/ingest`)**: CH0 = waveform after the current filter mode; CH7 = raw CH0
 
-### 1.4 验收标准
-1. **闭眼 → 睁眼**：α 功率明显下降（alpha blocking），β/α 上升；
-2. **睁眼 → 闭眼**：α 回升，β/α 下降；
-3. 伪迹段（眨眼/咬牙/移动）不参与 EMA，CSV 中 `artifact=1`；
-4. 同一人、同一姿势，连续 3 次闭眼基线，α 功率变异 < 30%；
-5. 5 分钟内比值无持续漂移（除真实状态变化外）。
+### 1.4 Acceptance Criteria
+1. **Eyes closed → eyes open**: α power drops markedly (alpha blocking) and β/α rises;
+2. **Eyes open → eyes closed**: α recovers and β/α falls;
+3. Artifact segments (blinks / jaw clenching / movement) are excluded from the EMA and marked `artifact=1` in the CSV;
+4. For the same subject and posture, three consecutive eyes-closed baselines show < 30% variation in α power;
+5. No sustained drift of the ratio over 5 minutes (other than genuine state changes).
 
-## 2. 意义（为什么需要这个比值）
+## 2. Rationale (why this ratio is needed)
 
-### 2.1 生理含义
-- **α 波（8–12 Hz）**：以枕区为主，**闭眼放松**时最强；睁眼/警觉时被抑制（α 阻断）。
-- **β 波（13–30 Hz）**：以额/中央区为主，与**警觉、专注、认知负荷、紧张**相关。
-- 因此 **β/α 比值**是一个低维、可解释的"**中枢唤醒度**"指标：
-  - 比值 ↑ → 更警觉 / 紧张 / 认知负荷高
-  - 比值 ↓ → 更放松
-- 相比单个频段的绝对功率，**比值能抵消电极阻抗、个体差异、整体增益**等共模变化，长期趋势更稳。
+### 2.1 Physiological Meaning
+- **α waves (8–12 Hz)**: predominantly occipital, strongest during **eyes-closed relaxation**; suppressed on eyes-open / arousal (alpha blocking).
+- **β waves (13–30 Hz)**: predominantly frontal/central, associated with **arousal, focus, cognitive load, and tension**.
+- The **β/α ratio** is therefore a low-dimensional, interpretable index of "**central arousal**":
+  - Ratio ↑ → more alert / tense / higher cognitive load
+  - Ratio ↓ → more relaxed
+- Compared with the absolute power of a single band, **the ratio cancels common-mode changes** such as electrode impedance, individual differences, and overall gain, making long-term trends more stable.
 
-### 2.2 产品价值（BalanxEMS / WalkEEG）
-1. **训练前放松引导**：闭眼 30 s 取基线，比值偏高时提示先放松再训练；
-2. **训练中状态监测**：实时观察是否过度紧张（影响动作质量与主观体验）；
-3. **训练后恢复评估**：训练前后比值对比 → 输出"中枢疲劳 / 恢复度"评分；
-4. **神经反馈（neurofeedback）**：以比值为反馈量做放松训练；
-5. **数据资产**：CSV / 云端长期记录，支撑个体基线与趋势分析。
+### 2.2 Product Value (BalanxEMS / WalkEEG)
+1. **Pre-training relaxation guidance**: take a 30 s eyes-closed baseline; if the ratio is high, prompt the user to relax before training;
+2. **In-training state monitoring**: observe in real time whether the user is over-tense (which affects movement quality and subjective experience);
+3. **Post-training recovery assessment**: compare the ratio before and after training → produce a "central fatigue / recovery" score;
+4. **Neurofeedback**: use the ratio as the feedback variable for relaxation training;
+5. **Data asset**: long-term CSV / cloud records that support individual baselines and trend analysis.
 
-### 2.3 已知局限（必须写进产品话术）
-- **单通道**：无法定位、多导联或 ERP；电极需置于**枕区（O1/O2 + 乳突参考）**才能获得可靠 α。
-- **AD8232 为 12-bit（≈8 µV/LSB）**：α 幅度 10–50 µV 仅对应 1–6 LSB，分辨率偏粗；**建议切换 ADS1293（24-bit）** 后再作为正式产品指标。
-- **伪迹**：眨眼 / 咬牙 / 头动在单通道下无法用 EOG 回归消除，只能整窗丢弃，有效数据率受限。
-- **非医疗**：不得用于诊断、治疗或任何医疗宣称，仅作训练与状态参考。
+### 2.3 Known Limitations (must be reflected in product messaging)
+- **Single channel**: no localization, multi-lead, or ERP capability; electrodes must be placed on the **occipital region (O1/O2 with mastoid reference)** to obtain reliable α.
+- **The AD8232 is 12-bit (≈8 µV/LSB)**: α amplitudes of 10–50 µV correspond to only 1–6 LSB, which is coarse; **switching to the ADS1293 (24-bit)** is recommended before using this as a formal product metric.
+- **Artifacts**: blinks / jaw clenching / head movement cannot be removed by EOG regression on a single channel and can only be discarded at the whole-window level, which limits the effective data rate.
+- **Non-medical**: must not be used for diagnosis, treatment, or any medical claim; it is for training and state reference only.
 
-## 3. 参考
-- 实现：`05-Flutter program/lib/dsp/eeg_analyzer.dart`
-- 页面：`05-Flutter program/lib/ui/eeg_page.dart`
-- 采集：`05-Flutter program/lib/protocol/packet_parser.dart`（500 Hz、8 通道帧）
+## 3. References
+- Implementation: `05-Flutter program/lib/dsp/eeg_analyzer.dart`
+- Page: `05-Flutter program/lib/ui/eeg_page.dart`
+- Acquisition: `05-Flutter program/lib/protocol/packet_parser.dart` (500 Hz, 8-channel frames)

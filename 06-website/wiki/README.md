@@ -50,7 +50,7 @@
 |---|---|
 | `01-hardware/` | KiCad 10 schematics — AFE, power, connectors |
 | `02-firmware/` | Zephyr application for nRF52840 |
-| `03-PC program/` | LabVIEW desktop oscilloscope (EN / 中文) |
+| `03-PC program/` | LabVIEW desktop oscilloscope (EN / Chinese) |
 | `04-MATLAB program/` | Offline analysis scripts (legacy) |
 | `05-Flutter program/` | iOS + Android app |
 | `06-website/` | Static site, S3 + CloudFront |

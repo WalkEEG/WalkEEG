@@ -175,8 +175,8 @@ server.listen(PORT, '0.0.0.0', () => {
   console.log(`WalkEEG relay on http://0.0.0.0:${PORT}  (ws /ingest, /live)`);
 });
 
-// ---- mDNS 广播:App 可自动发现本机，不再依赖固定 IP ----
-// 服务类型 _walkeeg._tcp，服务名 WalkEEG Relay
+// ---- mDNS broadcast: the app can auto-discover this host, no fixed IP needed ----
+// Service type _walkeeg._tcp, service name WalkEEG Relay
 try {
   const bonjour = require('bonjour')();
   const svc = bonjour.publish({
@@ -185,7 +185,7 @@ try {
     port: PORT,
     txt: { path: '/ingest' },
   });
-  console.log(`mDNS: _walkeeg._tcp.local -> port ${PORT}  (可用 App「Discover」自动发现)`);
+  console.log(`mDNS: _walkeeg._tcp.local -> port ${PORT}  (auto-discoverable via the app's "Discover")`);
   const bye = () => { try { svc.stop(() => process.exit(0)); } catch (_) { process.exit(0); } };
   process.on('SIGINT', bye);
   process.on('SIGTERM', bye);

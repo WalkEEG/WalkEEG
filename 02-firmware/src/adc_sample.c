@@ -14,7 +14,7 @@
 
 LOG_MODULE_REGISTER(walkeeg_adc, LOG_LEVEL_INF);
 
-/* ---- Pin map (青风 nRF52840 board, P13 header) ----
+/* ---- Pin map (Qingfeng nRF52840 board, P13 header) ----
  *  OUTPUT  P13 pin 8  -> P0.02  (AIN0)
  *  LO+     P13 pin 4  -> P1.13
  *  LO-     P13 pin 6  -> P1.15

@@ -2441,7 +2441,7 @@
 			(embedded_fonts no)
 		)
 	)
-	(text "I2C 预留接口 —— LIS3DH 加速度计 (SCL=P0.26 SDA=P0.27, 经 J2-15/16)"
+	(text "I2C reserved header -- LIS3DH accelerometer (SCL=P0.26 SDA=P0.27, via J2-15/16)"
 		(exclude_from_sim no)
 		(at 235 165 0)
 		(effects

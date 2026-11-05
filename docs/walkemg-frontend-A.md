@@ -1,61 +1,61 @@
-# WalkEMG 前端 A（AD8232 改滤波）
+# WalkEMG Front End A (AD8232 Filter Modification)
 
-日期：2026-11-01 · 分支：`WalkEMG`
+Date: 2026-11-01 · Branch: `WalkEMG`
 
-## 目标
-把 AD8232 从 ECG 带宽（0.5–16 Hz）改成 **EEG + EMG 共用带宽（约 0.05–500 Hz）**，采样率 2 kSPS（可调 500/1000/2000/4000）。
+## Goal
+Change the AD8232 from the ECG bandwidth (0.5–16 Hz) to a **shared EEG + EMG bandwidth (about 0.05–500 Hz)** with a sample rate of 2 kSPS (adjustable 500/1000/2000/4000).
 
-## 原理图元件（`01-hardware/history/AD-ND-S1.1.pdf`）
+## Schematic Components (`01-hardware/history/AD-ND-S1.1.pdf`)
 
-按 PDF 走线核对后，信号链是：
+After tracing the PDF netlist, the signal chain is:
 
-| 级 | 元件 | 原截止 |
+| Stage | Component | Original cutoff |
 |---|---|---|
-| 高通 | **C4 / C6 = 0.33 µF**，配 R10~R14 = 10 MΩ | ≈ 0.05 Hz（诊断 ECG 档） |
-| 低通（二阶 Sallen-Key） | **C1 = 1.5 nF**（R6/R7 节点 → OUT 反馈）、**C3 = 10 nF**（OPAMP+ → REFOUT 交流地），R6 = R7 = 1 MΩ | f₀ ≈ 41 Hz，主极点 15.9 Hz |
-| （RLD 网络，不是信号滤波） | C2 1 nF + R5 360 kΩ | — |
+| High-pass | **C4 / C6 = 0.33 µF** with R10~R14 = 10 MΩ | ≈ 0.05 Hz (diagnostic ECG setting) |
+| Low-pass (2nd-order Sallen-Key) | **C1 = 1.5 nF** (R6/R7 node → OUT feedback), **C3 = 10 nF** (OPAMP+ → REFOUT AC ground), R6 = R7 = 1 MΩ | f₀ ≈ 41 Hz, dominant pole 15.9 Hz |
+| (RLD network, not signal filtering) | C2 1 nF + R5 360 kΩ | — |
 
-原低通 15.9 Hz 会把 beta 和大部分 EMG 切掉，这是必须改的原因。
+The original 15.9 Hz low-pass cuts off beta and most of the EMG signal — this is why the change is required.
 
-> 2026-11-02 修正：旧版本这里写的是“C4→15 nF、C3→330 pF”。那只适合纯 EMG，
-> 且 C1 没有一起改，实际上限仍被 C1/R6/R7 的第二个极点压在 ~100 Hz。
-> 现在要 **EEG + EMG 共用**，高通必须保持低频，所以改的是 **C1 + C3**。
+> 2026-11-02 correction: an earlier version of this section said "C4→15 nF, C3→330 pF". That only suits pure EMG,
+> and since C1 was not changed at the same time, the upper limit was still held at ~100 Hz by the second pole of C1/R6/R7.
+> We now need **shared EEG + EMG**, so the high-pass must stay low-frequency; what changes is **C1 + C3**.
 
-## 改法（EEG + EMG 共用，0.05–500 Hz）
+## Modification (Shared EEG + EMG, 0.05–500 Hz)
 
-| 元件 | 原值 | 新值 | 说明 |
+| Component | Original | New | Notes |
 |---|---|---|---|
-| **C1** | 1.5 nF | **100 pF**（C0G/NP0） | 二阶低通电容 1 |
-| **C3** | 10 nF | **1 nF**（C0G/NP0） | 二阶低通电容 2 |
+| **C1** | 1.5 nF | **100 pF** (C0G/NP0) | 2nd-order low-pass capacitor 1 |
+| **C3** | 10 nF | **1 nF** (C0G/NP0) | 2nd-order low-pass capacitor 2 |
 
-- 截止频率：`f₀ = 1 / (2π·√(R6·R7·C1·C3))` = 1/(2π×1 MΩ×√(100 pF×1 nF)) ≈ **503 Hz**。
-- **C1、C3 必须一起改**：只改 C3，第二极点仍由 C1 决定，上限上不去；只改 C1，主极点仍在 15.9 Hz。
-- **高通 C4 / C6 不动**（保持 0.33 µF，≈0.05 Hz）：EEG 的 0.5 Hz 和 EMG 的 20 Hz 都靠它。
-- 如果以后只做 EMG、想压运动伪迹，再把 C4 改 15 nF（高通≈10.6 Hz），但会切掉 EEG 低频。
-- 备选值：C1 120 pF + C3 820 pF ≈ 507 Hz（更接近原电容比值 6.7，Q 更接近原设计）；100 pF + 1 nF 的比值 10，阻尼略大，对包络检测无影响。
-- 电容选 **C0G/NP0、5%**，不要 X7R。
-- 上板前用万用表确认：C1 在 R6/R7 节点与 OUT 之间；C3 在 OPAMP+（pin 7）与 REFOUT（pin 8）之间。
+- Cutoff frequency: `f₀ = 1 / (2π·√(R6·R7·C1·C3))` = 1/(2π×1 MΩ×√(100 pF×1 nF)) ≈ **503 Hz**.
+- **C1 and C3 must be changed together**: change only C3 and the second pole is still set by C1, so the upper limit does not rise; change only C1 and the dominant pole remains at 15.9 Hz.
+- **Do not touch the high-pass C4 / C6** (keep 0.33 µF, ≈0.05 Hz): both the EEG 0.5 Hz and the EMG 20 Hz rely on it.
+- If only EMG is needed later and motion artifacts must be suppressed, then change C4 to 15 nF (high-pass ≈10.6 Hz) — but this cuts the EEG low frequencies.
+- Alternative values: C1 120 pF + C3 820 pF ≈ 507 Hz (closer to the original capacitor ratio of 6.7, so Q is closer to the original design); 100 pF + 1 nF gives a ratio of 10 and slightly more damping, which does not affect envelope detection.
+- Use **C0G/NP0, 5%** capacitors; do not use X7R.
+- Before assembling the board, confirm with a multimeter: C1 sits between the R6/R7 node and OUT; C3 sits between OPAMP+ (pin 7) and REFOUT (pin 8).
 
-## 固件
-- `stream.h`：默认 `WALKEEG_DEFAULT_SAMPLE_HZ 2000`；运行时 `walkeeg_stream_set_rate()` / `get_rate()`。
-- `stream.c`：运行时 `sample_hz`，定时器周期 `1e6/sample_hz` µs；支持 500/1000/2000/4000。
-- `prj.conf`：`CONFIG_SYS_CLOCK_TICKS_PER_SEC=8000`；4 kHz = 250 µs = 2 tick。
-- `main.c`：NUS RX 命令 `SET_RATE 2000\n`，返回 `OK 2000\n` 或 `ERR\n`。
-- 当前不写 NVS：上电默认 2000 Hz，App 连接后发送一次。
+## Firmware
+- `stream.h`: default `WALKEEG_DEFAULT_SAMPLE_HZ 2000`; runtime `walkeeg_stream_set_rate()` / `get_rate()`.
+- `stream.c`: runtime `sample_hz`, timer period `1e6/sample_hz` µs; supports 500/1000/2000/4000.
+- `prj.conf`: `CONFIG_SYS_CLOCK_TICKS_PER_SEC=8000`; 4 kHz = 250 µs = 2 ticks.
+- `main.c`: NUS RX command `SET_RATE 2000\n`, returns `OK 2000\n` or `ERR\n`.
+- No NVS write currently: defaults to 2000 Hz at power-up, and the App sends the command once after connecting.
 
 ## App
-- BLE 增加 NUS RX 写入 `sendCommand("SET_RATE 2000\n")`。
-- 采样率菜单：500 / 1000 / 2000 / 4000；切换时发送命令并重建分析器。
-- `EmgAnalyzer`：20 Hz 高通、450 Hz 低通、整流、5 Hz 包络；输出 envelope / RMS / activation。
-- `EmgPage`：包络条、激活百分比、采样率下拉、CSV 复制。
-- EEG 分析仍用原始 CH0；relay 发送当前采样率配置。
+- BLE: add an NUS RX write of `sendCommand("SET_RATE 2000\n")`.
+- Sample-rate menu: 500 / 1000 / 2000 / 4000; on switching, send the command and rebuild the analyzer.
+- `EmgAnalyzer`: 20 Hz high-pass, 450 Hz low-pass, rectification, 5 Hz envelope; outputs envelope / RMS / activation.
+- `EmgPage`: envelope bar, activation percentage, sample-rate dropdown, CSV copy.
+- EEG analysis still uses raw CH0; the relay sends the current sample-rate configuration.
 
-## Relay / 网页
-- App 连上 `/ingest` 后发送文本：`{"type":"config","rate":2000}`。
-- 服务器保存 `sourceRateHz`，广播给 `/live`；网页时间轴按 rate × 5 s 计算。
-- 二进制帧格式不变：`magic 0xA5 | ver | seq u16 | n u8 | ch[8][n] u16`；`t_ms` 只在 relay 信封里。
+## Relay / Web Page
+- After connecting to `/ingest`, the App sends the text: `{"type":"config","rate":2000}`.
+- The server stores `sourceRateHz` and broadcasts it to `/live`; the web timeline is computed as rate × 5 s.
+- The binary frame format is unchanged: `magic 0xA5 | ver | seq u16 | n u8 | ch[8][n] u16`; `t_ms` exists only in the relay envelope.
 
-## 限制
-- AD8232 12-bit、约 8 µV/LSB：EMG 包络可用，精细 EMG 波形不够；要产品级 EMG 换 ADS1293/ADS1299。
-- 4 kSPS 时 SAADC oversampling 已降到 2；仍建议先用 2 kSPS 验证包络。
-- 运动伪迹大；先静坐测握拳/放松，再走路。
+## Limitations
+- AD8232 is 12-bit at about 8 µV/LSB: adequate for the EMG envelope, but not for detailed EMG waveforms; for product-grade EMG, switch to the ADS1293/ADS1299.
+- At 4 kSPS the SAADC oversampling has already dropped to 2; still, validate the envelope at 2 kSPS first.
+- Motion artifacts are large; first test fist clench/relax while sitting still, then move on to walking.

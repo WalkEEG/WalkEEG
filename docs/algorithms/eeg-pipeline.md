@@ -1,120 +1,144 @@
-# EEG 处理规范
+# EEG Processing Specification
 
-> 频段能量与 β/α 比值：把连续脑电转成可比较、可追踪的**唤醒度指标**。
+> Band power and the beta/alpha ratio: turning continuous EEG into a comparable,
+> trackable **arousal index**.
 
-## 1. 处理链总览
+## 1. Pipeline overview
 
 ```
-原始码值 (LSB)
-   │  ① 换算 µV
+Raw counts (LSB)
+   │  ① convert to µV
    ▼
-   │  ② 带通 0.5–40 Hz     ← 去漂移，限带
+   │  ② bandpass 0.5–40 Hz     ← remove drift, limit band
    ▼
-   │  ③ 分窗（2 s，50% 重叠）
+   │  ③ window (2 s, 50% overlap)
    ▼
-   │  ④ 加 Hann 窗 + 频谱
+   │  ④ Hann window + spectrum
    ▼
-   ├──→ θ (4–7 Hz) 能量
-   ├──→ α (8–12 Hz) 能量
-   ├──→ β (13–30 Hz) 能量
-   └──→ β/α 比值
+   ├──→ theta (4–7 Hz) power
+   ├──→ alpha (8–12 Hz) power
+   ├──→ beta (13–30 Hz) power
+   └──→ beta/alpha ratio
 ```
 
-## 2. 当前实现（App 侧参考）
+## 2. Current implementation (app-side reference)
 
-权威需求文档：`docs/eeg-alpha-beta-ratio.md`（**需求与产品意义**以此为准）
-本文件负责**算法语义**（怎么算才算对）。
+Authoritative requirement document: `docs/eeg-alpha-beta-ratio.md`
+(**requirements and product rationale** live there).
+This file defines **algorithm semantics** — what counts as computing it
+correctly.
 
-| 项 | 值 |
+| Item | Value |
 |---|---|
-| 采样率 | 500 Hz |
-| 分析窗 | 2 s（1000 点） |
-| 步进 | 1 s（50% 重叠） |
-| 窗函数 | Hann |
-| 频谱 | 逐频点 Goertzel，1 Hz 分辨率 |
-| 频段 | θ 4–7 / α 8–12 / β 13–30 Hz |
-| 平滑 | 频段 EMA，系数 0.8 / 0.2 |
-| 比值 | `β_EMA / α_EMA`（α > 0 时） |
-| 伪迹门限 | 窗内 p2p > 400 LSB（≈ 3.2 mV @ 8 µV/LSB） |
+| Sample rate | 500 Hz |
+| Window | 2 s (1000 samples) |
+| Hop | 1 s (50% overlap) |
+| Window function | Hann |
+| Spectrum | Per-bin Goertzel, 1 Hz resolution |
+| Bands | theta 4–7 / alpha 8–12 / beta 13–30 Hz |
+| Smoothing | Per-band EMA, coefficients 0.8 / 0.2 |
+| Ratio | `beta_EMA / alpha_EMA` (when alpha > 0) |
+| Artifact threshold | In-window p2p > 400 LSB (≈ 3.2 mV @ 8 µV/LSB) |
 
-## 3. 为什么用 Goertzel 而不是 FFT
+## 3. Why Goertzel instead of FFT
 
-2 s @ 500 Hz = 1000 点，只需 4–30 Hz 共 27 个频点。Goertzel 对每个频点是 O(N)，27 点总计 O(27N)，比整段 FFT 的 O(N log N) 更省，且**无需 FFT 依赖**。
+2 s @ 500 Hz = 1000 samples, and only 27 bins are needed (4–30 Hz). Goertzel costs
+O(N) per bin, so 27 bins total O(27N) — cheaper than a full O(N log N) FFT, and
+it needs **no FFT dependency**.
 
-代价：**分辨率绑定窗长**。1000 点 @ 500 Hz → Δf = 0.5 Hz，与文档标注的"1 Hz 分辨率"有出入，需以实际 `fs/N` 为准。
+Trade-off: **resolution is bound to window length**. 1000 samples @ 500 Hz gives
+Δf = 0.5 Hz, which differs from the "1 Hz resolution" stated in the requirement
+document. Use the actual `fs/N`.
 
-**跨平台实现要求**：若改用 FFT，必须保证**同样的窗长、窗函数、频点划分**，否则 β/α 数值不可比。
+**Cross-platform requirement:** an FFT-based implementation must use the **same
+window length, window function and bin edges**, or beta/alpha values are not
+comparable.
 
-## 4. 关键定义
+## 4. Key definitions
 
-### 4.1 频段能量
+### 4.1 Band power
 
 $$
 E_{band} = \sum_{f \in band} |X(f)|^2
 $$
 
-- **单位**：µV²（电压平方，**不是** µV）
-- **是否含窗函数增益补偿**：规范要求**补偿**，即除以 Hann 窗的相干增益。否则不同窗长下绝对值不可比
-- 输出时建议同时给出 µV² 与 log10 值，避免跨被试比较时量级差异过大
+- **Unit**: µV² (voltage squared, **not** µV)
+- **Window gain compensation**: the specification requires **compensating** for
+  the Hann coherent gain. Otherwise absolute values differ with window length
+- Recommend emitting both µV² and its log10 value, so cross-subject comparisons
+  do not span orders of magnitude
 
-### 4.2 β/α 比值
+### 4.2 Beta/alpha ratio
 
 $$
 \text{ratio} = \frac{\beta_{EMA}}{\alpha_{EMA}}
 $$
 
-- **无量纲**
-- **意义**：中枢唤醒度。升高 → 警觉/紧张；降低 → 放松
-- **为什么用比值**：抵消电极阻抗、个体差异、整体增益等共模变化
+- **Dimensionless**
+- **Meaning**: central arousal. Rising → alert/tense; falling → relaxed
+- **Why a ratio**: cancels common-mode effects such as electrode impedance,
+  individual differences and overall gain
 
-### 4.3 EMA 平滑
+### 4.3 EMA smoothing
 
 ```dart
 ema = 0.8 * ema_prev + 0.2 * value
 ```
 
-- 时间常数约 5 个窗（≈ 5 s），具体取决于步进
-- **伪迹窗不更新 EMA**（`artifact=1` 时跳过）
+- Time constant ≈ 5 windows (≈ 5 s), depending on hop size
+- **Artifact windows do not update the EMA** (skipped when `artifact=1`)
 
-## 5. 伪迹判定
+## 5. Artifact detection
 
-| 判据 | 阈值 | 说明 |
+| Criterion | Threshold | Notes |
 |---|---|---|
-| 窗内峰峰值 p2p | > 400 LSB | ≈ 3.2 mV @ 8 µV/LSB |
+| In-window peak-to-peak | > 400 LSB | ≈ 3.2 mV @ 8 µV/LSB |
 
-**规范要求**：
-- 伪迹窗**不参与 EMA 更新**，但**要输出**（`artifact=1`），保留可审计性
-- 阈值应**参数化**且随 LSB 换算，不应硬编码 LSB 数值。换 24-bit 前端（ADS1293）后，400 LSB 完全不可用
+**Requirements:**
+- Artifact windows **do not update the EMA**, but they **are still emitted**
+  (`artifact=1`) so the data stays auditable
+- The threshold must be **parameterized** and expressed in µV via `lsb_uv`, not
+  hard-coded in LSB. After moving to a 24-bit front end (ADS1293), 400 LSB means
+  nothing
 
-## 6. 已知局限
+## 6. Known limitations
 
-这些是**规范层面的承认**，实现方不得回避：
+Stated at the specification level; implementations may not paper over them:
 
-1. **单通道无法定位**：不能做多导联、ERP、源定位
-2. **分辨率不足**：AD8232 12-bit，α 幅度 10–50 µV 仅对应 1–6 LSB。**官方立场：切 ADS1293（24-bit）后才作为正式产品指标**
-3. **伪迹不可回归**：单通道无法用 EOG 回归消除眨眼，只能整窗丢弃
-4. **非医疗**：不得用于诊断、治疗或任何医疗宣称
+1. **Single channel cannot localize**: no multi-lead analysis, no ERP, no source
+   localization
+2. **Insufficient resolution**: AD8232 is 12-bit, so alpha at 10–50 µV spans only
+   1–6 LSB. **Official position: switch to ADS1293 (24-bit) before treating this
+   as a production metric**
+3. **Artifacts cannot be regressed out**: with one channel there is no EOG
+   reference, so blinks can only be discarded window-by-window
+4. **Not medical**: must not be used for diagnosis, treatment, or any medical
+   claim
 
-## 7. 验收基准
+## 7. Acceptance criteria
 
-1. **闭眼 → 睁眼**：α 功率明显下降（alpha blocking），β/α 上升
-2. **睁眼 → 闭眼**：α 回升，β/α 下降
-3. **伪迹**：眨眼/咬牙/移动段不参与 EMA，CSV 中 `artifact=1`
-4. **稳定性**：同一人同一姿势，连续 3 次闭眼基线，α 功率变异 < 30%
-5. **漂移**：5 分钟内比值无持续漂移（除真实状态变化外）
+1. **Eyes closed → eyes open**: alpha power drops noticeably (alpha blocking),
+   beta/alpha rises
+2. **Eyes open → eyes closed**: alpha recovers, beta/alpha falls
+3. **Artifacts**: blink/clench/movement windows do not update the EMA and appear
+   as `artifact=1` in the CSV
+4. **Stability**: same subject, same posture, three consecutive eyes-closed
+   baselines, alpha power variation < 30%
+5. **Drift**: no sustained ratio drift over 5 minutes (absent genuine state
+   change)
 
-## 8. 电极位置要求
+## 8. Electrode placement requirement
 
-β/α 比值**只在枕区**有意义：
+The beta/alpha ratio is only meaningful **over the occipital region**:
 
-- α 节律以枕叶最强（O1/O2）
-- 参考电极：乳突（linked mastoids）或 Cz
-- **电极放错位置，α 出不来，比值就是噪声**
+- The alpha rhythm is strongest at O1/O2
+- Reference: linked mastoids or Cz
+- **Wrong electrode placement means no alpha, and the ratio is noise**
 
-## 9. 参考实现
+## 9. Reference implementations
 
-| 语言 | 位置 | 状态 |
+| Language | Location | Status |
 |---|---|---|
-| Dart | `05-Flutter program/lib/dsp/eeg_analyzer.dart` | 已实现 |
-| Node | `07-backend/src/handlers/process.js` | 骨架（TODO） |
-| Python | `algorithms/python/walkeeg_stats.py` | 骨架（接口已定，函数体待填） |
+| Dart | `05-Flutter program/lib/dsp/eeg_analyzer.dart` | Implemented |
+| Node | `07-backend/src/handlers/process.js` | Skeleton (TODO) |
+| Python | `algorithms/python/walkeeg_stats.py` | Skeleton (interface final, body pending) |

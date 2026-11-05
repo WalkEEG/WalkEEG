@@ -47,7 +47,7 @@ chore: remove dangling 05-APP submodule reference
 Avoid these:
 
 ```
-修复了登录页崩溃          ← not English
+<non-English subject>      ← not English
 fix: Fixed the bug.      ← past tense, trailing period
 update                    ← no type, no scope, says nothing
 WIP                       ← never commit work in progress to a shared branch

@@ -35,7 +35,7 @@
 		<string>_walkeeg._tcp</string>
 	</array>
 	<key>NSLocalNetworkUsageDescription</key>
-	<string>用于自动发现局域网内的 WalkEEG relay 服务器</string>
+	<string>Used to automatically discover the WalkEEG relay server on the local network</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

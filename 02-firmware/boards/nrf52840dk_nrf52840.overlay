@@ -1,21 +1,21 @@
 /*
- * NUS 物理串口改到 P12 排针空闲脚（避开主板/模块常用的 P0.06/P0.08）
+ * NUS physical UART moved to free pins on the P12 header (avoiding P0.06/P0.08 commonly used by the main board/module)
  *
- *   P12 Pin25 = P0.13 = UART TX（52840 发出）
- *   P12 Pin26 = P0.12 = UART RX（52840 接收）
+ *   P12 Pin25 = P0.13 = UART TX (transmitted by the 52840)
+ *   P12 Pin26 = P0.12 = UART RX (received by the 52840)
  *
- * USB-TTL 交叉接线：
+ * USB-TTL crossover wiring:
  *   USB-TTL RX  -> P0.13 (TX)
  *   USB-TTL TX  -> P0.12 (RX)
- *   USB-TTL GND -> GND（共地必接）
- *   波特率 115200 8N1
+ *   USB-TTL GND -> GND (common ground is mandatory)
+ *   Baud rate 115200 8N1
  *
- * 说明：
- * - 手机 <-> 52840 走蓝牙 NUS（无线电），不经过这些 UART 脚
- * - 电脑串口助手 <-> 52840 走 USB-TTL + P0.12/P0.13
- * - 主板自带 COM（J-Link CDC / CH340）仍接默认脚，看不到这条 UART
+ * Notes:
+ * - Phone <-> 52840 goes over Bluetooth NUS (wireless) and does not use these UART pins
+ * - PC serial terminal <-> 52840 goes over USB-TTL + P0.12/P0.13
+ * - The main board's built-in COM port (J-Link CDC / CH340) still uses the default pins and cannot see this UART
  *
- * 官方 DK 上 P0.13=LED1、P0.12=Button2，需禁用以免和 UART 抢脚。
+ * On the official DK, P0.13=LED1 and P0.12=Button2; they must be disabled so they do not contend with the UART pins.
  */
 
 / {
@@ -109,7 +109,7 @@
 	pinctrl-0 = <&ads1293_spi_default>;
 	pinctrl-1 = <&ads1293_spi_sleep>;
 	pinctrl-names = "default", "sleep";
-	/* CSB 必须挂在 SPI 控制器节点上,Zephyr 的 cs-gpios 规范如此 */
+	/* CSB must be attached to the SPI controller node; this is required by Zephyr's cs-gpios convention */
 	cs-gpios = <&gpio1 3 GPIO_ACTIVE_LOW>;
 
 	ads1293: ads1293@0 {

@@ -32,7 +32,7 @@ These span **four orders of magnitude** in amplitude. A front end that handles a
 walkeeg/
 ├── 01-hardware/     KiCad schematics — analog front end, power, connectors
 ├── 02-firmware/     nRF52840 firmware (Zephyr / Nordic Connect SDK)
-├── 03-PC program/   Desktop oscilloscope (LabVIEW, EN + 中文)
+├── 03-PC program/   Desktop oscilloscope (LabVIEW, EN + Chinese)
 ├── 04-MATLAB program/ Analysis scripts (legacy, optional)
 ├── 05-Flutter program/ iOS + Android app
 ├── 06-website/      www.walkeeg.com (static, S3 + CloudFront)

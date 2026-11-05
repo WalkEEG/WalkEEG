@@ -40,33 +40,33 @@
 #include "adc_sample.h"
 #include "ads1293.h"
 
-/* 定义日志模块名称 */	
-#define LOG_MODULE_NAME peripheral_uart   // 定义日志模块名称		
-LOG_MODULE_REGISTER(LOG_MODULE_NAME);   // 注册日志模块
+/* Define log module name */	
+#define LOG_MODULE_NAME peripheral_uart   // Define log module name		
+LOG_MODULE_REGISTER(LOG_MODULE_NAME);   // Register log module
 
-/* Zephyr 4.x(NCS 3.x)移除了 BT_LE_ADV_CONN,用等价的快速连接广播参数兼容 */
+/* Zephyr 4.x (NCS 3.x) removed BT_LE_ADV_CONN; use equivalent fast-connection advertising parameters for compatibility */
 #ifndef BT_LE_ADV_CONN
 #define BT_LE_ADV_CONN BT_LE_ADV_CONN_FAST_1
 #endif
 
-#define STACKSIZE CONFIG_BT_NUS_THREAD_STACK_SIZE  //  定义堆栈大小
-#define PRIORITY 7  // 定义优先级
+#define STACKSIZE CONFIG_BT_NUS_THREAD_STACK_SIZE  //  Define stack size
+#define PRIORITY 7  // Define priority
 
-#define DEVICE_NAME CONFIG_BT_DEVICE_NAME  // 定义设备名称
-#define DEVICE_NAME_LEN	(sizeof(DEVICE_NAME) - 1)  // 定义设备名称长度
+#define DEVICE_NAME CONFIG_BT_DEVICE_NAME  // Define device name
+#define DEVICE_NAME_LEN	(sizeof(DEVICE_NAME) - 1)  // Define device name length
 
 /* LED1/P0.13 used as UART TX; use LED2/LED3 instead */
-#define RUN_STATUS_LED DK_LED2   // 定义运行状态LED（每秒闪一次=程序在跑）
-#define RUN_LED_BLINK_INTERVAL 1000   // 定义运行LED闪烁间隔
+#define RUN_STATUS_LED DK_LED2   // Define run-status LED (blinks once per second = program is running)
+#define RUN_LED_BLINK_INTERVAL 1000   // Define run LED blink interval
 
-#define CON_STATUS_LED DK_LED3  // 定义连接状态LED （蓝牙连接上亮）
+#define CON_STATUS_LED DK_LED3  // Define connection-status LED (lit while Bluetooth is connected)
 
-#define KEY_PASSKEY_ACCEPT DK_BTN1_MSK  // 定义密钥接受按钮
-#define KEY_PASSKEY_REJECT DK_BTN2_MSK  // 定义密钥拒绝按钮
+#define KEY_PASSKEY_ACCEPT DK_BTN1_MSK  // Define passkey accept button
+#define KEY_PASSKEY_REJECT DK_BTN2_MSK  // Define passkey reject button
 
-#define UART_BUF_SIZE CONFIG_BT_NUS_UART_BUFFER_SIZE  // 定义UART缓冲区大小
-#define UART_WAIT_FOR_BUF_DELAY K_MSEC(50)  // 定义UART等待缓冲区延迟时间
-#define UART_WAIT_FOR_RX CONFIG_BT_NUS_UART_RX_WAIT_TIME  // 定义UART等待接收时间	
+#define UART_BUF_SIZE CONFIG_BT_NUS_UART_BUFFER_SIZE  // Define UART buffer size
+#define UART_WAIT_FOR_BUF_DELAY K_MSEC(50)  // Define UART buffer-wait delay
+#define UART_WAIT_FOR_RX CONFIG_BT_NUS_UART_RX_WAIT_TIME  // Define UART receive wait time	
 
 /* NCS v3.2.x removed the NUS Kconfig options this sample used;
  * keep fixed fallbacks so the code still builds on the current SDK. */
@@ -80,34 +80,34 @@ LOG_MODULE_REGISTER(LOG_MODULE_NAME);   // 注册日志模块
 #define CONFIG_BT_NUS_UART_RX_WAIT_TIME 50
 #endif
 
-static K_SEM_DEFINE(ble_init_ok, 0, 1);  // 定义BLE初始化信号量	
+static K_SEM_DEFINE(ble_init_ok, 0, 1);  // Define BLE init semaphore	
 
-static struct bt_conn *current_conn;  // 定义当前连接
-static struct bt_conn *auth_conn;  // 定义授权连接
-static struct k_work adv_work;  // 定义广告工作
+static struct bt_conn *current_conn;  // Define current connection
+static struct bt_conn *auth_conn;  // Define authenticated connection
+static struct k_work adv_work;  // Define advertising work item
 
 #if DT_HAS_CHOSEN(nordic_nus_uart)
-#define NUS_UART_NODE DT_CHOSEN(nordic_nus_uart)  // 定义NUS UART节点
+#define NUS_UART_NODE DT_CHOSEN(nordic_nus_uart)  // Define NUS UART node
 #elif DT_HAS_CHOSEN(zephyr_shell_uart)
-#define NUS_UART_NODE DT_CHOSEN(zephyr_shell_uart)  // 定义NUS UART节点	
+#define NUS_UART_NODE DT_CHOSEN(zephyr_shell_uart)  // Define NUS UART node	
 #else
 #error "No NUS UART: add chosen 'nordic,nus-uart' to devicetree (e.g. in a board overlay)."
-#endif  // 定义NUS UART节点
-static const struct device *uart = DEVICE_DT_GET(NUS_UART_NODE);  // 定义UART设备
-static struct k_work_delayable uart_work;  // 定义UART工作
+#endif  // Define NUS UART node
+static const struct device *uart = DEVICE_DT_GET(NUS_UART_NODE);  // Define UART device
+static struct k_work_delayable uart_work;  // Define UART work item
 
-// 定义UART数据结构
+// Define UART data structure
 struct uart_data_t {
 	void *fifo_reserved;
 	uint8_t data[UART_BUF_SIZE];
 	uint16_t len;
 };
 
-// 定义UART FIFO数据结构
+// Define UART FIFO data structure
 static K_FIFO_DEFINE(fifo_uart_tx_data);
 static K_FIFO_DEFINE(fifo_uart_rx_data);
 
-// 定义UART心跳函数
+// Define UART heartbeat function
 static void uart_heartbeat_fn(struct k_timer *timer)
 {
 	struct uart_data_t *tx;
@@ -132,28 +132,28 @@ static void uart_heartbeat_fn(struct k_timer *timer)
 	}
 }
 
-// 定义UART心跳定时器
+// Define UART heartbeat timer
 K_TIMER_DEFINE(uart_heartbeat_timer, uart_heartbeat_fn, NULL);
 
-// 定义蓝牙广告数据
+// Define Bluetooth advertising data
 static const struct bt_data ad[] = {
 	BT_DATA_BYTES(BT_DATA_FLAGS, (BT_LE_AD_GENERAL | BT_LE_AD_NO_BREDR)),
 	BT_DATA(BT_DATA_NAME_COMPLETE, DEVICE_NAME, DEVICE_NAME_LEN),
 };
 
-// 定义蓝牙服务数据
+// Define Bluetooth service data
 static const struct bt_data sd[] = {
 	BT_DATA_BYTES(BT_DATA_UUID128_ALL, BT_UUID_NUS_VAL),
 };
 
-// 定义UART异步适配器
+// Define UART async adapter
 #ifdef CONFIG_UART_ASYNC_ADAPTER
 UART_ASYNC_ADAPTER_INST_DEFINE(async_adapter);
 #else
 #define async_adapter NULL
 #endif
 
-// 定义UART回调函数
+// Define UART callback function
 static void uart_cb(const struct device *dev, struct uart_event *evt, void *user_data)
 {
 	ARG_UNUSED(dev);
@@ -396,7 +396,7 @@ static int uart_init(void)
 	return err;
 }
 
-/* ===== 诊断用：不依赖日志系统，用 LED 闪次数报告启动进度 ===== */
+/* ===== Diagnostics: independent of the logging system, reports boot progress via LED blink count ===== */
 static void diag_blink(int times)
 {
 	for (int i = 0; i < times; i++) {
@@ -726,9 +726,9 @@ int main(void)
 	int blink_status = 0;
 	int err = 0;
 
-	configure_gpio(); //初始化LED
+	configure_gpio(); //Initialize LEDs
 
-	err = uart_init(); //初始化串口，发送欢迎语
+	err = uart_init(); //Initialize serial port and send welcome message
 	if (err) {
 		error();
 	}
@@ -754,7 +754,7 @@ int main(void)
 		}
 	}
 
-	err = bt_enable(NULL); //启用蓝牙
+	err = bt_enable(NULL); //Enable Bluetooth
 	if (err) {
 		error();
 	}
@@ -771,7 +771,7 @@ int main(void)
 		}
 	}
 
-	err = bt_nus_init(&nus_cb); //初始化NUS服务
+	err = bt_nus_init(&nus_cb); //Initialize NUS service
 	if (err) {
 		LOG_ERR("Failed to initialize UART service (err: %d)", err);
 		return 0;
@@ -812,9 +812,9 @@ int main(void)
 
 	k_work_init(&adv_work, adv_work_handler);
 	LOG_INF("[diag] submitting adv_work");
-	advertising_start();// 开始广播
+	advertising_start();// Start advertising
 
-	/* 烧录完成指示:运行灯常亮 1.5 s(固件已写入并启动成功),随后恢复 1 Hz 闪烁 */
+	/* Flash-complete indication: run LED stays on for 1.5 s (firmware written and booted successfully), then returns to 1 Hz blinking */
 	dk_set_led_on(RUN_STATUS_LED);
 	k_sleep(K_MSEC(1500));
 
@@ -824,20 +824,20 @@ int main(void)
 	for (;;) {
 		dk_set_led(RUN_STATUS_LED, (++blink_status) % 2);
 		k_sleep(K_MSEC(RUN_LED_BLINK_INTERVAL));
-	} //主循环（闪LED）
+	} //Main loop (blink LED)
 }
 
 void ble_write_thread(void)
 {
-	//等待BLE初始化完成
+	//Wait for BLE initialization to complete
 	k_sem_take(&ble_init_ok, K_FOREVER);
 	struct uart_data_t nus_data = {
 		.len = 0,
 	};
     
-	// 写线程（接收数据）
+	// Write thread (receive data)
 	for (;;) {
-		// 等待数据发送 over bluetooth
+		// Wait for data to send over bluetooth
 		struct uart_data_t *buf = k_fifo_get(&fifo_uart_rx_data,
 						     K_FOREVER);
 
@@ -845,11 +845,11 @@ void ble_write_thread(void)
 		int loc = 0;
 
 		while (plen > 0) {
-			// 复制数据到nus_data.data
+			// Copy data into nus_data.data
 			memcpy(&nus_data.data[nus_data.len], &buf->data[loc], plen);
-			// 更新nus_data.len
+			// Update nus_data.len
 			nus_data.len += plen;
-			// 更新loc
+			// Update loc
 			loc += plen;
 
 			if (nus_data.len >= sizeof(nus_data.data) ||

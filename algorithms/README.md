@@ -1,29 +1,38 @@
 # WalkEEG Signal Algorithms
 
-平台无关的信号统计算法库。**零第三方依赖，纯 Python 标准库。**
+Platform-neutral signal statistics. **No third-party dependencies — Python
+standard library only.**
 
-## 这是什么
+## What this is
 
-一组可以直接调用的统计函数：输入采样数组，输出结构化指标。不涉及网络、不涉及云服务、不涉及文件系统。
+A set of statistical functions you can call directly: take a sample array, get
+structured metrics back. No network, no cloud services, no file system.
 
-语义定义在 [`docs/algorithms/`](../docs/algorithms) —— 本目录是**实现**，那份是**契约**。两者必须一致；有冲突时以规范为准，并修正实现。
+The semantics live in [`docs/algorithms/`](../docs/algorithms) — that is the
+**contract**, this is the **implementation**. They must agree; when they do not,
+the specification wins and the implementation gets fixed.
 
-## 为什么单独成一个目录
+## Why it is a separate directory
 
-算法和部署是两件事。`07-backend/` 是一套具体的 AWS 部署（SAM 模板、Cognito、S3、Lambda 权限），别人不用 AWS 就整目录无关。但算法本身——频段能量、β/α 比值、RMS、包络、MDF——跟跑在哪台服务器上没关系。
+Algorithms and deployment are different concerns. `07-backend/` is one specific
+AWS deployment (SAM template, Cognito, S3, Lambda permissions) — if you are not on
+AWS, that whole directory is irrelevant to you. But the algorithms themselves —
+band power, beta/alpha ratio, RMS, envelope, MDF — have nothing to do with which
+server runs them.
 
-放在仓库根，含义就很清楚：**要算法，拿走这一个目录；要部署参考，再看 `07-backend/`。**
+At the repository root the meaning is immediate: **want the algorithms? take this
+one directory. Want a deployment reference? look at `07-backend/`.**
 
-## 设计约束
+## Design constraints
 
-| 约束 | 原因 |
+| Constraint | Reason |
 |---|---|
-| **仅标准库** | 服务器上没有 pip 也能跑；Lambda、脚本、Notebook 通用 |
-| **纯函数** | 无全局状态、无隐式 I/O，输入决定输出，可单元测试 |
-| **单位显式** | 输入必须是 µV，函数名和参数都写明；不接受未换算的 LSB |
-| **失败要大声** | 采样率不符、元数据缺失时抛异常，不猜默认值 |
+| **Standard library only** | Runs where pip is unavailable; works in Lambda, scripts and notebooks alike |
+| **Pure functions** | No global state, no implicit I/O — input determines output, unit-testable |
+| **Explicit units** | Input must be µV, stated in signatures and docstrings; raw LSB is rejected |
+| **Fail loudly** | Mismatched sample rate or missing metadata raises, never guesses a default |
 
-## 用法
+## Usage
 
 ```python
 import sys
@@ -31,7 +40,7 @@ sys.path.insert(0, "algorithms/python")
 
 from walkeeg_stats import band_powers, beta_alpha_ratio
 
-# 输入：单通道电压数组（µV），采样率 500 Hz
+# Input: single-channel voltage in µV, 500 Hz sample rate
 powers = band_powers(samples, sample_rate=500)
 print(powers)          # {'theta': ..., 'alpha': ..., 'beta': ...}
 
@@ -39,39 +48,42 @@ ratio = beta_alpha_ratio(powers)
 print(ratio)
 ```
 
-## 目录结构
+## Layout
 
 ```
 algorithms/
-├── README.md              本文件
+├── README.md               this file
 ├── python/
-│   ├── walkeeg_stats.py   算法实现（标准库）
-│   └── conformance_test.py 对着基准向量自检
+│   ├── walkeeg_stats.py    implementation (stdlib only)
+│   └── conformance_test.py self-check against reference vectors
 └── fixtures/
-    ├── synthetic_alpha.csv  合成 10 Hz，用于验证 α
-    ├── synthetic_emg.csv    合成宽带，用于验证 RMS
-    └── expected.json        上述文件的期望输出
+    ├── synthetic_alpha.csv  10 Hz synthetic, validates alpha
+    ├── synthetic_emg.csv    synthetic broadband, validates RMS
+    └── expected.json        expected outputs for the above
 ```
 
-## 当前状态
+## Current status
 
-**框架阶段。** 接口、数据契约、错误处理已定；算法函数体待实现，调用即抛 `NotImplementedError`。
+**Framework stage.** Interfaces, data contracts and error handling are settled;
+algorithm bodies raise `NotImplementedError` until called.
 
-这样做的理由：先把接口和验收方式固定下来，避免实现过程中反复改契约。等 `fixtures/` 建好、基准向量定下来，再填函数体，每个实现都有明确的"通过"标准。
+The reason for the ordering: fixing the interface and acceptance method first
+avoids rewriting the contract mid-implementation. Once `fixtures/` exists and the
+reference vectors are pinned down, each body gets an unambiguous pass criterion.
 
-| 模块 | 状态 |
+| Module | Status |
 |---|---|
-| 数据校验 `_validate` | ✅ 已实现 |
-| `band_powers` | ⬜ 待实现 |
-| `beta_alpha_ratio` | ⬜ 待实现 |
-| `rms` | ⬜ 待实现 |
-| `envelope` | ⬜ 待实现 |
-| `median_frequency` | ⬜ 待实现 |
-| 基准向量 | ⬜ 待生成 |
+| Data validation `_validate` | ✅ Implemented |
+| `band_powers` | ⬜ Pending |
+| `beta_alpha_ratio` | ✅ Implemented |
+| `rms` | ⬜ Pending |
+| `envelope` | ⬜ Pending |
+| `median_frequency` | ⬜ Pending |
+| Reference vectors | ⬜ Pending |
 
-## 相关文档
+## Related documents
 
-- [`docs/algorithms/data-format.md`](../docs/algorithms/data-format.md) — 数据格式与单位
-- [`docs/algorithms/eeg-pipeline.md`](../docs/algorithms/eeg-pipeline.md) — EEG 处理链
-- [`docs/algorithms/emg-pipeline.md`](../docs/algorithms/emg-pipeline.md) — EMG 处理链
-- [`docs/algorithms/conformance.md`](../docs/algorithms/conformance.md) — 一致性判据
+- [`docs/algorithms/data-format.md`](../docs/algorithms/data-format.md) — data format and units
+- [`docs/algorithms/eeg-pipeline.md`](../docs/algorithms/eeg-pipeline.md) — EEG pipeline
+- [`docs/algorithms/emg-pipeline.md`](../docs/algorithms/emg-pipeline.md) — EMG pipeline
+- [`docs/algorithms/conformance.md`](../docs/algorithms/conformance.md) — conformance criteria

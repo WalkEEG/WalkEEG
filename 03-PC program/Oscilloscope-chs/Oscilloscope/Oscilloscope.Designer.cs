@@ -3,14 +3,14 @@
     partial class Oscilloscope
     {
         /// <summary>
-        /// 必需的设计器变量。
+        /// Required designer variable.
         /// </summary>
         private System.ComponentModel.IContainer components = null;
 
         /// <summary>
-        /// 清理所有正在使用的资源。
+        /// Clean up any resources being used.
         /// </summary>
-        /// <param name="disposing">如果应释放托管资源，为 true；否则为 false。</param>
+        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
         protected override void Dispose(bool disposing)
         {
             if (disposing && (components != null))
@@ -20,11 +20,11 @@
             base.Dispose(disposing);
         }
 
-        #region Windows 窗体设计器生成的代码
+        #region Windows Form Designer generated code
 
         /// <summary>
-        /// 设计器支持所需的方法 - 不要
-        /// 使用代码编辑器修改此方法的内容。
+        /// Required method for Designer support - do not modify
+        /// the contents of this method with the code editor.
         /// </summary>
         private void InitializeComponent()
         {
@@ -102,7 +102,7 @@
             this.groupBoxCom.Size = new System.Drawing.Size(1288, 120);
             this.groupBoxCom.TabIndex = 0;
             this.groupBoxCom.TabStop = false;
-            this.groupBoxCom.Text = "串口功能设置";
+            this.groupBoxCom.Text = "Serial port settings";
             // 
             // labelRecByteCount
             // 
@@ -122,7 +122,7 @@
             this.buttonClear.Name = "buttonClear";
             this.buttonClear.Size = new System.Drawing.Size(118, 39);
             this.buttonClear.TabIndex = 4;
-            this.buttonClear.Text = "清除数据";
+            this.buttonClear.Text = "Clear data";
             this.buttonClear.UseVisualStyleBackColor = true;
             this.buttonClear.Click += new System.EventHandler(this.buttonClear_Click);
             // 
@@ -134,7 +134,7 @@
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(82, 15);
             this.label2.TabIndex = 14;
-            this.label2.Text = "收字节数：";
+            this.label2.Text = "Bytes received: ";
             // 
             // labelRecFrameCount
             // 
@@ -154,12 +154,12 @@
             this.labelRecFrameNum.Name = "labelRecFrameNum";
             this.labelRecFrameNum.Size = new System.Drawing.Size(67, 15);
             this.labelRecFrameNum.TabIndex = 12;
-            this.labelRecFrameNum.Text = "收帧数：";
+            this.labelRecFrameNum.Text = "Frames received: ";
             // 
             // labelStatus
             // 
             this.labelStatus.AutoSize = true;
-            this.labelStatus.Font = new System.Drawing.Font("宋体", 12F);
+            this.labelStatus.Font = new System.Drawing.Font("SimSun", 12F);
             this.labelStatus.Location = new System.Drawing.Point(456, 75);
             this.labelStatus.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.labelStatus.Name = "labelStatus";
@@ -189,7 +189,7 @@
             this.labelStopBit.Name = "labelStopBit";
             this.labelStopBit.Size = new System.Drawing.Size(67, 15);
             this.labelStopBit.TabIndex = 9;
-            this.labelStopBit.Text = "停止位：";
+            this.labelStopBit.Text = "Stop bits: ";
             // 
             // comboBoxCheck
             // 
@@ -215,7 +215,7 @@
             this.labelCheck.Name = "labelCheck";
             this.labelCheck.Size = new System.Drawing.Size(67, 15);
             this.labelCheck.TabIndex = 7;
-            this.labelCheck.Text = "校验位：";
+            this.labelCheck.Text = "Parity: ";
             // 
             // comboBoxData
             // 
@@ -239,7 +239,7 @@
             this.labelData.Name = "labelData";
             this.labelData.Size = new System.Drawing.Size(67, 15);
             this.labelData.TabIndex = 5;
-            this.labelData.Text = "数据位：";
+            this.labelData.Text = "Data bits: ";
             // 
             // comboBoxBaudRate
             // 
@@ -267,7 +267,7 @@
             this.labelBaudRate.Name = "labelBaudRate";
             this.labelBaudRate.Size = new System.Drawing.Size(67, 15);
             this.labelBaudRate.TabIndex = 3;
-            this.labelBaudRate.Text = "波特率：";
+            this.labelBaudRate.Text = "Baud rate: ";
             // 
             // comboBoxPort
             // 
@@ -298,7 +298,7 @@
             this.labelPort.Name = "labelPort";
             this.labelPort.Size = new System.Drawing.Size(68, 15);
             this.labelPort.TabIndex = 1;
-            this.labelPort.Text = "端  口：";
+            this.labelPort.Text = "Port: ";
             // 
             // buttonSwitch
             // 
@@ -307,7 +307,7 @@
             this.buttonSwitch.Name = "buttonSwitch";
             this.buttonSwitch.Size = new System.Drawing.Size(100, 29);
             this.buttonSwitch.TabIndex = 0;
-            this.buttonSwitch.Text = "打开串口";
+            this.buttonSwitch.Text = "Open port";
             this.buttonSwitch.UseVisualStyleBackColor = true;
             this.buttonSwitch.Click += new System.EventHandler(this.buttonSwitch_Click);
             // 
@@ -330,7 +330,7 @@
             this.groupBoxgraph.Size = new System.Drawing.Size(1287, 572);
             this.groupBoxgraph.TabIndex = 5;
             this.groupBoxgraph.TabStop = false;
-            this.groupBoxgraph.Text = "波形显示区";
+            this.groupBoxgraph.Text = "Waveform display";
             // 
             // button3
             // 
@@ -338,7 +338,7 @@
             this.button3.Name = "button3";
             this.button3.Size = new System.Drawing.Size(80, 42);
             this.button3.TabIndex = 7;
-            this.button3.Text = "通道三";
+            this.button3.Text = "Channel 3";
             this.button3.UseVisualStyleBackColor = true;
             // 
             // button2
@@ -347,7 +347,7 @@
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(80, 42);
             this.button2.TabIndex = 6;
-            this.button2.Text = "通道二";
+            this.button2.Text = "Channel 2";
             this.button2.UseVisualStyleBackColor = true;
             // 
             // button1
@@ -356,7 +356,7 @@
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(80, 42);
             this.button1.TabIndex = 5;
-            this.button1.Text = "通道一";
+            this.button1.Text = "Channel 1";
             this.button1.UseVisualStyleBackColor = true;
             // 
             // buttonGclear
@@ -367,7 +367,7 @@
             this.buttonGclear.Name = "buttonGclear";
             this.buttonGclear.Size = new System.Drawing.Size(131, 29);
             this.buttonGclear.TabIndex = 4;
-            this.buttonGclear.Text = "清除波形";
+            this.buttonGclear.Text = "Clear waveform";
             this.buttonGclear.UseVisualStyleBackColor = true;
             this.buttonGclear.Click += new System.EventHandler(this.buttonGclear_Click);
             // 
@@ -429,9 +429,9 @@
             chartArea1.Name = "ChartArea1";
             this.chart1.ChartAreas.Add(chartArea1);
             legend1.Name = "Legend1";
-            legend1.Title = "通道曲线：";
+            legend1.Title = "Channel traces: ";
             legend1.TitleBackColor = System.Drawing.Color.White;
-            legend1.TitleFont = new System.Drawing.Font("微软雅黑", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            legend1.TitleFont = new System.Drawing.Font("Microsoft YaHei", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             legend1.TitleSeparator = System.Windows.Forms.DataVisualization.Charting.LegendSeparatorStyle.ThickGradientLine;
             this.chart1.Legends.Add(legend1);
             this.chart1.Location = new System.Drawing.Point(8, 88);
@@ -443,21 +443,21 @@
             series1.Color = System.Drawing.Color.Blue;
             series1.Legend = "Legend1";
             series1.MarkerSize = 100;
-            series1.Name = "通道一";
+            series1.Name = "Channel 1";
             series2.BorderWidth = 2;
             series2.ChartArea = "ChartArea1";
             series2.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
             series2.Color = System.Drawing.Color.Fuchsia;
             series2.Legend = "Legend1";
             series2.MarkerSize = 100;
-            series2.Name = "通道二";
+            series2.Name = "Channel 2";
             series3.BorderWidth = 2;
             series3.ChartArea = "ChartArea1";
             series3.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Spline;
             series3.Color = System.Drawing.Color.Red;
             series3.Legend = "Legend1";
             series3.MarkerSize = 100;
-            series3.Name = "通道三";
+            series3.Name = "Channel 3";
             this.chart1.Series.Add(series1);
             this.chart1.Series.Add(series2);
             this.chart1.Series.Add(series3);
@@ -465,9 +465,9 @@
             this.chart1.TabIndex = 0;
             this.chart1.Text = "chart1";
             title1.BackColor = System.Drawing.Color.Transparent;
-            title1.Font = new System.Drawing.Font("微软雅黑", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            title1.Font = new System.Drawing.Font("Microsoft YaHei", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             title1.Name = "Title1";
-            title1.Text = "多通道AD采样数据波形显示";
+            title1.Text = "Multi-channel ADC sampling waveform";
             this.chart1.Titles.Add(title1);
      
             // 
@@ -481,7 +481,7 @@
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "Oscilloscope";
-            this.Text = "采样波形显示";
+            this.Text = "Sampled waveform display";
             this.groupBoxCom.ResumeLayout(false);
             this.groupBoxCom.PerformLayout();
             this.groupBoxgraph.ResumeLayout(false);
