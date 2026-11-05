@@ -480,6 +480,10 @@ static void disconnected(struct bt_conn *conn, uint8_t reason)
 		current_conn = NULL;
 		dk_set_led_off(CON_STATUS_LED);
 	}
+
+	/* Zephyr 4.x removed the conn_cb.recycled hook; restart advertising here
+	 * so the device is discoverable again after an App disconnect. */
+	advertising_start();
 }
 
 static void recycled_cb(void)
