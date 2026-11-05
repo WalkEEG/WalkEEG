@@ -56,7 +56,7 @@ class WalkEegPacketParser {
 
   /// Per-channel processing scheme (see [FilterMode]).
   late final List<FilterMode> _modes;
-  late final List<_ChannelChain> _chains;
+  late List<_ChannelChain> _chains;
   late QrsDetector _qrs;
 
   /// Rebuilds the filter chains when the firmware sample rate changes.
