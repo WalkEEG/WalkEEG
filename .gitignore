@@ -55,3 +55,29 @@ cmake-build-*/
 *.cmd
 *.lck
 
+
+# =========================
+# Local secrets / config
+# =========================
+.env
+.env.*
+*.local
+05-Flutter program/lib/config/app_config.dart
+06-website/assets/js/config.js
+
+# Flutter
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+*.iml
+build/
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/

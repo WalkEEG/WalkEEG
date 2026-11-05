@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WalkEEG — Open Source EEG Hardware Platform</title>
-  <meta name="description" content="WalkEEG is an open-source, wearable EEG system for brain-computer interface research and education. Full hardware, firmware, and software stack.">
+  <title>WalkEEG — Open Source Wearable EEG Platform</title>
+  <meta name="description" content="WalkEEG is an open-source EEG, ECG and EMG platform — hardware schematics, firmware, a Flutter app for iOS and Android, and a cloud backend. Built for BCI research and teaching.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -25,6 +25,7 @@
         <li><a href="#features">Features</a></li>
         <li><a href="#how-it-works">How It Works</a></li>
         <li><a href="#open-source">Open Source</a></li>
+        <li><a href="/wiki/">Docs</a></li>
         <li><a href="/app/" class="btn btn-sm btn-primary">Data Portal →</a></li>
       </ul>
       <button class="navbar-toggle" id="navToggle" aria-label="Menu">☰</button>
@@ -42,7 +43,7 @@
       <div class="hero-content">
         <div class="hero-badge">
           <span class="hero-badge-dot"></span>
-          Open Source · v1.1
+          Open Source · v3.0
         </div>
         <h1>
           Open Source<br>
@@ -50,7 +51,7 @@
           for Everyone
         </h1>
         <p>
-          WalkEEG is a complete, open-source electroencephalography platform — from the PCB design and firmware to the PC visualization software and MATLAB analysis toolkit. Built for researchers, educators, and BCI enthusiasts.
+          WalkEEG is an open-source <a href="/wiki/#/basic-principle?id=eeg-electroencephalography">EEG</a>, <a href="/wiki/#/basic-principle?id=ecg-electrocardiography">ECG</a> and <a href="/wiki/#/basic-principle?id=emg-electromyography">EMG</a> platform — including hardware schematics, firmware, a Flutter app for both iOS and Android, and a cloud backend for data storage. Built for researchers, educators, and BCI enthusiasts.
         </p>
         <div class="hero-actions">
           <a href="https://github.com/WalkEEG/WalkEEG" target="_blank" class="btn btn-primary btn-lg">
@@ -61,12 +62,16 @@
         </div>
         <div class="hero-stats">
           <div class="hero-stat">
-            <h3>4</h3>
-            <p>Hardware Revisions</p>
+            <h3>80&ndash;120 <span class="unit">dB</span></h3>
+            <p>CMRR</p>
           </div>
           <div class="hero-stat">
-            <h3>3</h3>
-            <p>Software Modules</p>
+            <h3>500&ndash;2 <span class="unit">kHz</span></h3>
+            <p>Live Sampling</p>
+          </div>
+          <div class="hero-stat">
+            <h3>2 <span class="unit">Mbps</span></h3>
+            <p>BLE 5.0 · 2M PHY</p>
           </div>
           <div class="hero-stat">
             <h3>Open</h3>
@@ -80,29 +85,80 @@
   <!-- ===== About ===== -->
   <section class="section" id="about">
     <div class="container">
+        <div class="bio-explainer">
+          <span class="section-label">Primer</span>
+          <h2 class="section-title">What are EEG, ECG and EMG?</h2>
+          <p class="section-subtitle" style="margin:12px 0 0;">Every living cell produces tiny electrical potentials. Those potentials are strong enough to be picked up from the body's surface, and each one tells a different story.</p>
+
+          <div class="bio-grid">
+            <div class="bio-card">
+              <div class="bio-head">
+                <a class="bio-tag" href="/wiki/#/basic-principle">EEG</a>
+                <span class="bio-full">Electroencephalography</span>
+              </div>
+              <div class="bio-signal"><span class="bio-wave bio-wave-eeg"></span></div>
+              <ul class="bio-facts">
+                <li><strong>Source</strong> — millions of cortical neurons firing together</li>
+                <li><strong>Amplitude</strong> — 10 to 100 &micro;V</li>
+                <li><strong>Bandwidth</strong> — 0.5 to 100&nbsp;Hz</li>
+                <li><strong>Reads</strong> — sleep, attention, brain rhythms, BCI intent</li>
+              </ul>
+            </div>
+
+            <div class="bio-card">
+              <div class="bio-head">
+                <a class="bio-tag" href="/wiki/#/basic-principle">ECG</a>
+                <span class="bio-full">Electrocardiography</span>
+              </div>
+              <div class="bio-signal"><span class="bio-wave bio-wave-ecg"></span></div>
+              <ul class="bio-facts">
+                <li><strong>Source</strong> — the electrical sequence that paces every heartbeat</li>
+                <li><strong>Amplitude</strong> — 0.5 to 5 mV</li>
+                <li><strong>Bandwidth</strong> — 0.05 to 150&nbsp;Hz</li>
+                <li><strong>Reads</strong> — heart rate, rhythm, HRV, ischemic patterns</li>
+              </ul>
+            </div>
+
+            <div class="bio-card">
+              <div class="bio-head">
+                <a class="bio-tag" href="/wiki/#/basic-principle">EMG</a>
+                <span class="bio-full">Electromyography</span>
+              </div>
+              <div class="bio-signal"><span class="bio-wave bio-wave-emg"></span></div>
+              <ul class="bio-facts">
+                <li><strong>Source</strong> — motor units firing to contract a muscle</li>
+                <li><strong>Amplitude</strong> — 10 to 1000 &micro;V</li>
+                <li><strong>Bandwidth</strong> — 20 to 500&nbsp;Hz</li>
+                <li><strong>Reads</strong> — muscle force, gestures, prosthetics, fatigue</li>
+              </ul>
+            </div>
+          </div>
+
+        </div>
+
       <div class="preview-section">
         <div class="preview-content">
           <div class="preview-text">
             <span class="section-label">About WalkEEG</span>
             <h2>What is WalkEEG?</h2>
-            <p>WalkEEG is a complete, open-source EEG system designed to make brain-computer interface technology accessible. It captures, transmits, and visualizes electroencephalography signals in real-time.</p>
-            <p>The project covers the entire signal chain — from the analog front-end PCB and nRF-based wireless firmware to the PC oscilloscope application and MATLAB analysis scripts.</p>
+            <p>WalkEEG is a complete, open-source biosignal platform for <a href="/wiki/#/basic-principle?id=eeg-electroencephalography">EEG</a>, <a href="/wiki/#/basic-principle?id=ecg-electrocardiography">ECG</a> and <a href="/wiki/#/basic-principle?id=emg-electromyography">EMG</a>, built to make brain-computer interface technology accessible.</p>
             <div class="tech-stack" style="justify-content:flex-start;margin-top:16px;">
-              <span class="tech-item">C / Firmware</span>
+              <span class="tech-item">nRF52840</span>
+              <span class="tech-item">BLE 5.0</span>
+              <span class="tech-item">Zephyr / NCS</span>
+              <span class="tech-item">Flutter</span>
+              <span class="tech-item">WebSocket</span>
+              <span class="tech-item">KiCad</span>
               <span class="tech-item">LabVIEW</span>
-              <span class="tech-item">MATLAB</span>
-              <span class="tech-item">nRF SoC</span>
-              <span class="tech-item">BLE</span>
             </div>
           </div>
-          <div class="preview-image">
-            <div class="preview-placeholder">
-              <div class="icon">🧠</div>
-              <div class="signal-visualization">
-                <div class="signal-line"></div>
-              </div>
-              <p style="color:var(--text-muted);margin-top:12px;font-size:0.875rem;">EEG Signal Visualization</p>
-            </div>
+          <div class="preview-image preview-image--photo">
+            <img src="/assets/img/ecg-final.png"
+                 srcset="/assets/img/ecg-final@2x.png 2x"
+                 alt="Real ECG recording captured by the WalkEEG app: QRS complexes at 69 bpm on channel CH0, 500 Hz, 2 s window"
+                 loading="lazy"
+                 width="1160" height="800">
+            <p class="preview-caption">Live ECG captured in the WalkEEG app &middot; 69&nbsp;bpm &middot; QRS mode</p>
           </div>
         </div>
       </div>
@@ -120,13 +176,13 @@
       <div class="features-grid">
         <div class="feature-card fade-in stagger-1">
           <div class="feature-icon">🔧</div>
-          <h3>Hardware Design</h3>
-          <p>Complete PCB schematics and layout files for the EEG acquisition board. Analog front-end with instrumentation amplifiers, anti-aliasing filters, and high-precision ADC.</p>
+          <h3><a href="/wiki/#/hardware">Hardware Design</a></h3>
+          <p>Full hardware schematics for the acquisition board. Analog front-end with instrumentation amplifiers, anti-aliasing filters, and high-precision ADC.</p>
         </div>
         <div class="feature-card fade-in stagger-2">
           <div class="feature-icon">📡</div>
-          <h3>Wireless Firmware</h3>
-          <p>nRF52-based firmware with BLE and proprietary RF support. Low-power data streaming from the headset to your computer. Built on Nordic SDK with softdevice integration.</p>
+          <h3><a href="/wiki/#/firmware/README">Wireless Firmware</a></h3>
+          <p>nRF52840 firmware on Zephyr with Nordic Connect SDK. BLE&nbsp;5.0 with 2M PHY (2&nbsp;Mbps raw), Data Length Extension (27&minus;&gt;251&nbsp;byte payload) and a long ATT MTU, so multi-channel biosignals stream at 500&nbsp;Hz without dropped frames.</p>
         </div>
         <div class="feature-card fade-in stagger-3">
           <div class="feature-icon">📊</div>
@@ -135,8 +191,18 @@
         </div>
         <div class="feature-card fade-in stagger-4">
           <div class="feature-icon">🧪</div>
-          <h3>MATLAB Analysis</h3>
-          <p>Comprehensive MATLAB toolchain for offline EEG data analysis. Includes demo scripts, filtering, FFT-based spectral analysis, and customizable signal processing pipelines.</p>
+          <h3><a href="/wiki/#/backend">Cloud Backend</a></h3>
+          <p>Serverless AWS stack (SAM) with Cognito auth, direct S3 upload, and DynamoDB metadata. Record a session on the app, upload it, and retrieve it from any device.</p>
+        </div>
+        <div class="feature-card fade-in stagger-5">
+          <div class="feature-icon">📱</div>
+          <h3><a href="/wiki/#/app">Mobile App</a></h3>
+          <p>Flutter app for iOS and Android. Connects directly over BLE, displays live waveforms with QRS detection and HRV metrics, and can relay raw frames to a local server.</p>
+        </div>
+        <div class="feature-card fade-in stagger-6">
+          <div class="feature-icon">⚡</div>
+          <h3><a href="/wiki/#/realtime">500 Hz Live Dashboard</a></h3>
+          <p>Browser-based real-time viewer. The phone forwards 8-channel data over WebSocket at 500&nbsp;samples/s; open a URL and watch the same signal live — no install, no disk writes.</p>
         </div>
       </div>
     </div>
@@ -148,28 +214,33 @@
       <div class="text-center">
         <span class="section-label">Workflow</span>
         <h2 class="section-title">How It Works</h2>
-        <p class="section-subtitle mx-auto">From electrode to insight — four simple steps.</p>
+        <p class="section-subtitle mx-auto">From electrode to insight — five simple steps.</p>
       </div>
       <div class="steps">
         <div class="step fade-in stagger-1">
           <div class="step-number">1</div>
-          <h3>Acquire</h3>
+          <h3><a href="/wiki/#/basic-principle">Acquire</a></h3>
           <p>EEG electrodes capture brain electrical activity. The analog front-end amplifies and filters the raw signal with precision instrumentation.</p>
         </div>
         <div class="step fade-in stagger-2">
           <div class="step-number">2</div>
-          <h3>Transmit</h3>
-          <p>The nRF SoC digitizes the signal and streams it wirelessly via BLE or proprietary RF to your computer with low latency.</p>
+          <h3><a href="/wiki/#/protocol">Transmit</a></h3>
+          <p>The nRF52840 digitizes the signal and streams it wirelessly over BLE 5.4 to a phone or computer with low latency.</p>
         </div>
         <div class="step fade-in stagger-3">
           <div class="step-number">3</div>
-          <h3>Visualize</h3>
-          <p>The PC oscilloscope application displays real-time EEG waveforms. Monitor multiple channels, adjust gain and timebase, and record sessions.</p>
+          <h3><a href="/wiki/#/app">Visualize</a></h3>
+          <p>See the signal live — in the Flutter app on your phone, the 500&nbsp;Hz browser dashboard, or the desktop oscilloscope. Adjust gain and timebase, and record sessions.</p>
         </div>
         <div class="step fade-in stagger-4">
           <div class="step-number">4</div>
-          <h3>Analyze</h3>
-          <p>Export and process your data with MATLAB scripts — run FFT, filter artifacts, detect brainwave patterns, and build BCI applications.</p>
+          <h3><a href="/wiki/#/backend">Store</a></h3>
+          <p>Upload recorded sessions to the cloud backend, where they are stored securely and can be pulled back down on any device for later review.</p>
+        </div>
+        <div class="step fade-in stagger-5">
+          <div class="step-number">5</div>
+          <h3><a href="/wiki/#/realtime">Share</a></h3>
+          <p>The mobile app streams live frames to a WebSocket relay, so anyone on the network can watch the same 500&nbsp;Hz signal in a browser — or upload sessions to the Data Portal.</p>
         </div>
       </div>
     </div>
@@ -185,20 +256,24 @@
           WalkEEG is free and open-source. Contribute, fork, or build upon it.
         </p>
         <div class="oss-badges">
-          <span class="oss-badge">📦 Hardware · PCB &amp; Schematics</span>
-          <span class="oss-badge">⚙️ Firmware · nRF52 SDK</span>
-          <span class="oss-badge">🖥️ Software · LabVIEW + MATLAB</span>
+          <span class="oss-badge">📦 Hardware · KiCad Schematics</span>
+          <span class="oss-badge">⚙️ Firmware · nRF52840 / Zephyr</span>
+          <span class="oss-badge">📱 App · Flutter</span>
+          <span class="oss-badge">🖥️ Software · Live Web + LabVIEW</span>
+          <span class="oss-badge">☁️ Backend · AWS SAM</span>
         </div>
         <a href="https://github.com/WalkEEG/WalkEEG" target="_blank" class="btn btn-primary btn-lg">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
           Star on GitHub
         </a>
         <div class="tech-stack">
-          <span class="tech-item">altium</span>
-          <span class="tech-item">nRF52</span>
-          <span class="tech-item">BLE 4.0</span>
+          <span class="tech-item">KiCad</span>
+          <span class="tech-item">nRF52840</span>
+          <span class="tech-item">BLE 5.4</span>
+          <span class="tech-item">Zephyr</span>
+          <span class="tech-item">Flutter</span>
+          <span class="tech-item">WebSocket</span>
           <span class="tech-item">LabVIEW</span>
-          <span class="tech-item">MATLAB</span>
           <span class="tech-item">C</span>
         </div>
       </div>
@@ -212,6 +287,7 @@
       <p>Download the source, build your own EEG, and start exploring brain activity today.</p>
       <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;">
         <a href="https://github.com/WalkEEG/WalkEEG" target="_blank" class="btn btn-primary btn-lg">Get the Source</a>
+        <a href="/wiki/" class="btn btn-secondary btn-lg">Read the Docs</a>
         <a href="/app/" class="btn btn-secondary btn-lg">Upload Your Data</a>
       </div>
     </div>

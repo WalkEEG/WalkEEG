@@ -5,11 +5,13 @@ import 'package:flutter/material.dart';
 import 'auth/cognito_auth.dart';
 import 'ble/walkeeg_ble.dart';
 import 'dsp/eeg_analyzer.dart';
+import 'dsp/emg_analyzer.dart';
 import 'protocol/packet_parser.dart';
 import 'relay/relay_service.dart';
 import 'storage/recording_service.dart';
 import 'storage/sync_service.dart';
 import 'ui/eeg_page.dart';
+import 'ui/emg_page.dart';
 import 'ui/login_page.dart';
 import 'ui/waveform_painter.dart';
 
@@ -46,7 +48,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  static const _sampleRateHz = 500;
+  int _sampleRateHz = 2000;
 
   /// Y-axis display: AC auto (monitor-style autoscale) or fixed unsigned
   /// ranges for 8/10/12/14/16-bit ADC modes.
@@ -61,13 +63,14 @@ class _HomePageState extends State<HomePage> {
 
   /// Oscilloscope-style time base: visible window.
   /// First row: seconds; second row: milliseconds (at 2 kHz).
-  static const _windowsSec = <int>[1, 2, 5, 10];
-  static const _windowsMs = <int>[500, 250, 100, 50];
+  /// Display window options, 250 ms .. 2 s.
+  static const _windowOptionsMs = <int>[250, 500, 1000, 2000];
 
   final _ble = WalkEegBleController();
   final _recording = RecordingService();
   final _relay = RelayService();
-  final _eeg = EegAnalyzer(sampleRate: _sampleRateHz);
+  EegAnalyzer _eeg = EegAnalyzer(sampleRate: 2000);
+  EmgAnalyzer _emg = EmgAnalyzer(sampleRate: 2000);
   final _sync = SyncService();
   final _auth = CognitoAuth();
   final Set<int> _selected = {0, 1};
@@ -78,7 +81,9 @@ class _HomePageState extends State<HomePage> {
   BleLinkState _state = BleLinkState.idle;
   double _yMax = -1; // -1 = AC auto
   int _windowMs = 2000;
-  FilterMode _mode = FilterMode.notchLp;
+  FilterMode _mode = FilterMode.raw;
+  /// Per-channel processing modes, mirrored into the parser.
+  final Map<int, FilterMode> _chModes = {for (var i = 0; i < 8; i++) i: FilterMode.raw};
   CognitoSession? _session;
   String _syncStatus = '';
   bool _syncing = false;
@@ -120,6 +125,7 @@ class _HomePageState extends State<HomePage> {
       });
       _relay.onFrame(seq, relayCh, n);
       _eeg.addSamples(perCh[0], n);
+      _emg.addSamples(perCh[0], n);
     };
     _relay.addListener(_onRelayChanged);
     _tickSub = _ble.tickStream.listen((_) {
@@ -198,6 +204,20 @@ class _HomePageState extends State<HomePage> {
           actions: [
             TextButton(
               onPressed: () async {
+                setD(() => _relay.status = 'discovering…');
+                final found = await RelayService.discover();
+                if (found != null) {
+                  hostCtl.text = found.host;
+                  portCtl.text = '${found.port}';
+                  setD(() => _relay.status = 'found ${found.host}:${found.port}');
+                } else {
+                  setD(() => _relay.status = 'not found（检查同一 Wi-Fi / 服务器已启动）');
+                }
+              },
+              child: const Text('Discover'),
+            ),
+            TextButton(
+              onPressed: () async {
                 await _relay.disconnect();
                 setD(() {});
               },
@@ -219,6 +239,16 @@ class _HomePageState extends State<HomePage> {
     );
     hostCtl.dispose();
     portCtl.dispose();
+  }
+
+  Future<void> _setRate(int hz) async {
+    setState(() {
+      _sampleRateHz = hz;
+      _eeg = EegAnalyzer(sampleRate: hz);
+      _emg = EmgAnalyzer(sampleRate: hz);
+    });
+    await _ble.sendCommand('SET_RATE $hz\n');
+    _relay.setSampleRate(hz);
   }
 
   Future<void> _toggleRecording() async {
@@ -306,6 +336,7 @@ class _HomePageState extends State<HomePage> {
     _relay.removeListener(_onRelayChanged);
     _relay.dispose();
     _eeg.dispose();
+    _emg.dispose();
     _ble.dispose();
     super.dispose();
   }
@@ -323,10 +354,31 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  void _setMode(FilterMode m) {
+  /// Sets the processing mode for one channel, or for every channel when
+  /// [channel] is null.
+  /// Compact summary of active per-channel filters, e.g. "CH0:QRS CH1:50Hz+LP".
+  String _modeSummary() {
+    final parts = <String>[];
+    for (final ch in _selected.toList()..sort()) {
+      final m = _chModes[ch] ?? FilterMode.raw;
+      parts.add('CH$ch:${_modeLabels[m]}');
+    }
+    return parts.join('  ');
+  }
+
+  void _setMode(FilterMode m, {int? channel}) {
     setState(() {
-      _mode = m;
-      _ble.parser.mode = m; // parser resets filter/QRS state on change
+      if (channel == null) {
+        _mode = m;
+        for (var ch = 0; ch < 8; ch++) {
+          _chModes[ch] = m;
+        }
+        _ble.parser.setModeForAll(m);
+      } else {
+        _chModes[channel] = m;
+        if (channel == 0) _mode = m;
+        _ble.parser.setModeFor(channel, m);
+      }
     });
   }
 
@@ -399,6 +451,11 @@ class _HomePageState extends State<HomePage> {
               if (v.startsWith('y:')) {
                 final max = double.tryParse(v.substring(2));
                 if (max != null) setState(() => _yMax = max);
+                return;
+              }
+              if (v.startsWith('rate:')) {
+                final hz = int.tryParse(v.substring(5));
+                if (hz != null) _setRate(hz);
               }
             },
             itemBuilder: (ctx) => [
@@ -418,6 +475,21 @@ class _HomePageState extends State<HomePage> {
                         const SizedBox(width: 16),
                       const SizedBox(width: 8),
                       Text(label),
+                    ],
+                  ),
+                ),
+              const PopupMenuDivider(),
+              for (final hz in const [500, 1000, 2000, 4000])
+                PopupMenuItem(
+                  value: 'rate:$hz',
+                  child: Row(
+                    children: [
+                      if (_sampleRateHz == hz)
+                        const Icon(Icons.check, size: 16)
+                      else
+                        const SizedBox(width: 16),
+                      const SizedBox(width: 8),
+                      Text('$hz Hz'),
                     ],
                   ),
                 ),
@@ -451,7 +523,7 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('$_status  ·  relay=${_relay.status}',
+            Text('$_status  ·  ${_sampleRateHz}Hz  ·  relay=${_relay.status}',
                 style: Theme.of(context).textTheme.bodyMedium),
             const SizedBox(height: 4),
             Text(
@@ -461,19 +533,40 @@ class _HomePageState extends State<HomePage> {
               style: Theme.of(context).textTheme.bodySmall,
             ),
             const SizedBox(height: 8),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => EegPage(analyzer: _eeg),
-                    ),
-                  );
-                },
-                icon: const Icon(Icons.insights),
-                label: const Text('EEG alpha/beta'),
-              ),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => EegPage(analyzer: _eeg),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.insights),
+                    label: const Text('EEG alpha/beta'),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => EmgPage(
+                            analyzer: _emg,
+                            sampleRate: _sampleRateHz,
+                            onRateChanged: _setRate,
+                          ),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.show_chart),
+                    label: const Text('EMG envelope'),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 8),
             Row(
@@ -515,17 +608,77 @@ class _HomePageState extends State<HomePage> {
               Text(_syncStatus, style: Theme.of(context).textTheme.bodySmall),
             ],
             const SizedBox(height: 8),
-            Wrap(
-              spacing: 6,
-              children: List.generate(8, (ch) {
-                final on = _selected.contains(ch);
-                return FilterChip(
-                  label: Text('CH$ch'),
-                  selected: on,
-                  selectedColor: _colors[ch].withOpacity(0.35),
-                  onSelected: (_) => _toggleChannel(ch),
-                );
-              }),
+            // Per-channel filter rows. PopupMenuButton is used instead of
+            // DropdownButton: a DropdownButton whose entry is removed mid-route
+            // triggers an inherited-widget assertion (_dependents.isEmpty).
+            Column(
+              key: const ValueKey('ch-filter-rows'),
+              children: [
+                for (final ch in _selected.toList()..sort())
+                  Padding(
+                    key: ValueKey('ch-row-$ch'),
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: Row(
+                      children: [
+                        FilterChip(
+                          label: Text('CH$ch'),
+                          selected: true,
+                          selectedColor: _colors[ch].withOpacity(0.35),
+                          onSelected: (_) => _toggleChannel(ch),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: PopupMenuButton<FilterMode>(
+                              initialValue: _chModes[ch] ?? FilterMode.raw,
+                              onSelected: (m) => _setMode(m, channel: ch),
+                              itemBuilder: (ctx) => [
+                                for (final m in FilterMode.values)
+                                  PopupMenuItem<FilterMode>(
+                                    value: m,
+                                    child: Text(_modeLabels[m]!),
+                                  ),
+                              ],
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 6),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: _colors[ch]
+                                      .withOpacity(0.5)),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      _modeLabels[_chModes[ch] ??
+                                          FilterMode.raw]!,
+                                      style: const TextStyle(fontSize: 13),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    const Icon(Icons.arrow_drop_down, size: 18),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                Wrap(
+                  spacing: 6,
+                  children: List.generate(8, (ch) {
+                    final on = _selected.contains(ch);
+                    if (on) return const SizedBox.shrink();
+                    return ActionChip(
+                      label: Text('CH$ch', style: const TextStyle(fontSize: 12)),
+                      onPressed: () => _toggleChannel(ch),
+                    );
+                  }),
+                ),
+              ],
             ),
             const SizedBox(height: 8),
             if (metrics.isNotEmpty)
@@ -553,43 +706,49 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             const SizedBox(height: 8),
-            SegmentedButton<FilterMode>(
-              segments: [
-                for (final m in FilterMode.values)
-                  ButtonSegment(value: m, label: Text(_modeLabels[m]!)),
+            // Global shortcut: apply one mode to every channel at once.
+            Row(
+              children: [
+                Text('All channels:',
+                    style: Theme.of(context).textTheme.bodySmall),
+                const SizedBox(width: 8),
+                PopupMenuButton<FilterMode>(
+                  initialValue: _mode,
+                  onSelected: _setMode,
+                  itemBuilder: (ctx) => [
+                    for (final m in FilterMode.values)
+                      PopupMenuItem<FilterMode>(
+                        value: m,
+                        child: Text(_modeLabels[m]!),
+                      ),
+                  ],
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.white24),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(_modeLabels[_mode]!,
+                            style: const TextStyle(fontSize: 13)),
+                        const SizedBox(width: 4),
+                        const Icon(Icons.arrow_drop_down, size: 18),
+                      ],
+                    ),
+                  ),
+                ),
               ],
-              selected: {_mode},
-              onSelectionChanged: (sel) => _setMode(sel.first),
-              showSelectedIcon: false,
-              style: const ButtonStyle(
-                visualDensity: VisualDensity.compact,
-              ),
             ),
             const SizedBox(height: 8),
             SegmentedButton<int>(
               segments: [
-                for (final s in _windowsSec)
-                  ButtonSegment(
-                    value: s * 1000,
-                    label: Text('${s}s'),
-                  ),
-              ],
-              selected: {_windowMs},
-              onSelectionChanged: (sel) {
-                setState(() => _windowMs = sel.first);
-              },
-              showSelectedIcon: false,
-              style: const ButtonStyle(
-                visualDensity: VisualDensity.compact,
-              ),
-            ),
-            const SizedBox(height: 4),
-            SegmentedButton<int>(
-              segments: [
-                for (final ms in _windowsMs)
+                for (final ms in _windowOptionsMs)
                   ButtonSegment(
                     value: ms,
-                    label: Text('${ms}ms'),
+                    label: Text(ms >= 1000 ? '${ms ~/ 1000}s' : '${ms}ms'),
                   ),
               ],
               selected: {_windowMs},
@@ -606,7 +765,7 @@ class _HomePageState extends State<HomePage> {
               'Y: ${_yMax < 0 ? "AC auto" : "0 … ${_yMax.round()}"}  ·  window '
               '${_windowMs >= 1000 ? "${_windowMs ~/ 1000}s" : "${_windowMs}ms"}  ·  '
               '8ch × 16-bit @ ${_sampleRateHz}Hz  ·  '
-              'mode:${_modeLabels[_mode]}',
+              '${_modeSummary()}',
               style: Theme.of(context).textTheme.bodySmall,
               textAlign: TextAlign.center,
             ),

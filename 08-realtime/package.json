@@ -12,6 +12,7 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "bonjour": "^3.5.1",
     "ws": "^8.22.0"
   }
 }

@@ -30,6 +30,12 @@
 	<string>WALKEEG needs Bluetooth to receive EEG stream from the nRF52840.</string>
 	<key>NSBluetoothPeripheralUsageDescription</key>
 	<string>WALKEEG needs Bluetooth to receive EEG stream from the nRF52840.</string>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_walkeeg._tcp</string>
+	</array>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>用于自动发现局域网内的 WalkEEG relay 服务器</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -30,6 +31,7 @@ class WalkEegBleController {
 
   BleLinkState state = BleLinkState.idle;
   BluetoothDevice? device;
+  BluetoothCharacteristic? _rx;
   StreamSubscription<List<int>>? _notifySub;
   StreamSubscription<BluetoothConnectionState>? _connSub;
   String statusText = 'Idle';
@@ -135,11 +137,15 @@ class WalkEegBleController {
       final services = await d.discoverServices();
 
       BluetoothCharacteristic? tx;
+      BluetoothCharacteristic? rx;
       for (final s in services) {
         if (s.uuid.str128.toLowerCase() != kNusServiceUuid) continue;
         for (final c in s.characteristics) {
           if (c.uuid.str128.toLowerCase() == kNusTxUuid) {
             tx = c;
+          }
+          if (c.uuid.str128.toLowerCase() == kNusRxUuid) {
+            rx = c;
           }
         }
       }
@@ -149,6 +155,7 @@ class WalkEegBleController {
         return;
       }
 
+      _rx = rx;
       await tx.setNotifyValue(true);
       _notifySub?.cancel();
       _notifySub = tx.onValueReceived.listen((value) {
@@ -162,7 +169,19 @@ class WalkEegBleController {
     }
   }
 
+  Future<bool> sendCommand(String cmd) async {
+    final rx = _rx;
+    if (rx == null) return false;
+    try {
+      await rx.write(utf8.encode(cmd));
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
   Future<void> disconnect() async {
+    _rx = null;
     await _notifySub?.cancel();
     _notifySub = null;
     await _connSub?.cancel();

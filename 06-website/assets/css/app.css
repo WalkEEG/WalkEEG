@@ -612,3 +612,62 @@
 
 /* ===== Hidden ===== */
 .hidden { display: none !important; }
+
+/* ===== Auth screen: exit affordances ===== */
+.auth-page {
+  cursor: default;
+}
+
+/* Clicking the backdrop leaves the app — make that discoverable. */
+.auth-page:hover {
+  cursor: pointer;
+}
+
+.auth-card,
+.auth-card * {
+  cursor: auto;
+}
+
+.auth-card input,
+.auth-card textarea,
+.auth-card select {
+  cursor: text;
+}
+
+.auth-card button,
+.auth-card a,
+.auth-card [role="button"] {
+  cursor: pointer;
+}
+
+/* Back arrow pinned to the card's top-left corner */
+.auth-card {
+  position: relative;
+}
+
+.auth-back {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  line-height: 1;
+  color: var(--text-muted);
+  text-decoration: none;
+  border-radius: 8px;
+  transition: color .18s, background .18s, transform .18s;
+}
+
+.auth-back:hover {
+  color: var(--text-primary, #f1f5f9);
+  background: rgba(255, 255, 255, .07);
+  transform: translateX(-2px);
+}
+
+.auth-back:active {
+  transform: translateX(-2px) scale(.94);
+}

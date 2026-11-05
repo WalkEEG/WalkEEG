@@ -39,38 +39,53 @@ class WalkEegPacketParser {
     this.channelCapacity = 20000,
     FilterMode filterMode = FilterMode.notchLp,
     int sampleRate = 500,
-  }) : _mode = filterMode {
+  }) {
     channels = List.generate(
       8,
       (_) => ChannelBuffer(capacity: channelCapacity),
     );
-    _notch = MainsNotchFilter(sampleRate: sampleRate);
-    _lowpass = ButterworthLowPass();
-    _hp05 =
-        ButterworthSecondOrder.highPass(sampleRate: sampleRate, cutoffHz: 0.5);
+    // One independent filter chain per channel so each channel can run its
+    // own mode without sharing state.
+    _chains = List.generate(
+      numChannels,
+      (_) => _ChannelChain(sampleRate: sampleRate),
+    );
+    _modes = List<FilterMode>.filled(numChannels, filterMode);
     _qrs = QrsDetector(sampleRate: sampleRate);
   }
 
-  /// Processing scheme for CH0 (see [FilterMode]). CH1 (12-bit calibration
-  /// sawtooth) and the zero channels are always left raw.
-  FilterMode _mode;
-  FilterMode get mode => _mode;
-  set mode(FilterMode v) {
-    if (_mode != v) {
-      _mode = v;
-      // Clear all filter/QRS state on change so nothing jumps or false-triggers.
-      _notch.reset();
-      _lowpass.reset();
-      _hp05.reset();
+  /// Per-channel processing scheme (see [FilterMode]).
+  late final List<FilterMode> _modes;
+  late final List<_ChannelChain> _chains;
+  late QrsDetector _qrs;
+
+  /// Processing mode for a single channel.
+  FilterMode modeFor(int channel) =>
+      (channel >= 0 && channel < numChannels) ? _modes[channel] : FilterMode.raw;
+
+  /// Sets the processing mode for one channel, clearing that channel's filter
+  /// state so the trace neither jumps nor false-triggers.
+  void setModeFor(int channel, FilterMode v) {
+    if (channel < 0 || channel >= numChannels) return;
+    if (_modes[channel] == v) return;
+    _modes[channel] = v;
+    _chains[channel].reset();
+    if (channel == 0) {
       _qrs.reset();
       _beatIndices.clear();
     }
   }
 
-  late final MainsNotchFilter _notch;
-  late final ButterworthLowPass _lowpass;
-  late final ButterworthSecondOrder _hp05;
-  late final QrsDetector _qrs;
+  /// Applies one mode to every channel.
+  void setModeForAll(FilterMode v) {
+    for (var ch = 0; ch < numChannels; ch++) {
+      setModeFor(ch, v);
+    }
+  }
+
+  /// Backwards-compatible single value: reads CH0, writes all channels.
+  FilterMode get mode => _modes[0];
+  set mode(FilterMode v) => setModeForAll(v);
 
   /// Sample indices (into [channels] buffer) of detected QRS beats, most
   /// recent first. Populated in [FilterMode.qrs] and [FilterMode.hrv].
@@ -107,9 +122,9 @@ class WalkEegPacketParser {
     droppedFrames = 0;
     lastSeq = null;
     lastNSamples = null;
-    _notch.reset();
-    _lowpass.reset();
-    _hp05.reset();
+    for (final chain in _chains) {
+      chain.reset();
+    }
     _qrs.reset();
     _beatIndices.clear();
     for (final ch in channels) {
@@ -200,17 +215,17 @@ class WalkEegPacketParser {
     }
 
     for (var ch = 0; ch < numChannels; ch++) {
-      if (ch == 0 && _mode != FilterMode.raw) {
-        // Processing chain on the real ECG channel only. The raw values are
-        // 0..65535 unsigned; the filters are linear with unity DC gain, so
-        // output stays in range, but clamp defensively.
-        final chain = _chainFor(_mode);
+      final m = _modes[ch];
+      if (m == FilterMode.raw) {
+        channels[ch].addAll(perCh[ch]);
+      } else {
+        // Filters are linear with unity DC gain, but output is stored
+        // unsigned, so clamp defensively.
+        final chain = _chains[ch].functionFor(m);
         channels[ch].addAll(perCh[ch].map((v) {
           final y = chain(v.toDouble());
           return y.round().clamp(0, 65535);
         }));
-      } else {
-        channels[ch].addAll(perCh[ch]);
       }
     }
 
@@ -219,7 +234,7 @@ class WalkEegPacketParser {
 
     // QRS detection runs on the RAW channel 0 (Pan-Tompkins band-passes
     // internally), parallel to the display chain.
-    if (_mode == FilterMode.qrs || _mode == FilterMode.hrv) {
+    if (_modes[0] == FilterMode.qrs || _modes[0] == FilterMode.hrv) {
       final ch0 = perCh[0];
       for (final v in ch0) {
         if (_qrs.process(v.toDouble())) {
@@ -232,13 +247,33 @@ class WalkEegPacketParser {
     }
   }
 
+}
+
+/// Independent filter state for one channel.
+///
+/// Chains containing the 0.5 Hz high-pass remove the DC baseline, so the
+/// result is centred on 0 and would be clamped away by the unsigned
+/// 0..65535 storage. Those chains re-centre on half full-scale (+32768) so
+/// the AC waveform survives without clipping its negative half.
+class _ChannelChain {
+  _ChannelChain({required int sampleRate})
+      : _notch = MainsNotchFilter(sampleRate: sampleRate),
+        _lowpass = ButterworthLowPass(),
+        _hp05 = ButterworthSecondOrder.highPass(
+            sampleRate: sampleRate, cutoffHz: 0.5);
+
+  final MainsNotchFilter _notch;
+  final ButterworthLowPass _lowpass;
+  final ButterworthSecondOrder _hp05;
+
+  void reset() {
+    _notch.reset();
+    _lowpass.reset();
+    _hp05.reset();
+  }
+
   /// Builds the display chain for a mode: 0.5 Hz HP -> 50 Hz notch -> 100 Hz LP.
-  ///
-  /// Chains containing the 0.5 Hz high-pass remove the DC baseline, so the
-  /// result is centered on 0 and would be clamped away by the unsigned
-  /// 0..65535 storage. We re-center on half full-scale (+32768) so the full
-  /// AC waveform survives (negative half no longer clips to 0).
-  double Function(double) _chainFor(FilterMode m) {
+  double Function(double) functionFor(FilterMode m) {
     switch (m) {
       case FilterMode.raw:
         return (x) => x;

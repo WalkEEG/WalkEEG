@@ -20,6 +20,7 @@
 #include <bluetooth/services/nus.h>
 #include <zephyr/logging/log.h>
 #include <string.h>
+#include <errno.h>
 
 LOG_MODULE_REGISTER(walkeeg_stream, LOG_LEVEL_INF);
 
@@ -39,7 +40,8 @@ static uint16_t ring_count;
 static struct k_mutex ring_mutex;
 static struct k_sem samples_sem;
 
-static uint16_t ramp_i;   /* 0..499 within second (CH1 sawtooth) */
+static uint16_t ramp_i;   /* 0..sample_hz-1 within second (CH1 sawtooth) */
+static uint16_t sample_hz = WALKEEG_DEFAULT_SAMPLE_HZ;
 
 static atomic_t streaming; /* connected && notify enabled */
 static atomic_t notify_on;
@@ -107,7 +109,9 @@ static void ring_reset(void)
 	}
 }
 
-/* 500 Hz tick: only wakes the sampler thread (no blocking work in timer ctx). */
+/* Sample tick (1/sample_hz): only wakes the sampler thread (no blocking
+ * work in timer ctx). Dual front-end reads ADS1293 only on DRDY, so the
+ * ADS1293 ODR must be <= sample_hz or samples are dropped. */
 static void sample_timer_handler(struct k_timer *timer)
 {
 	ARG_UNUSED(timer);
@@ -136,7 +140,49 @@ static void sampler_thread(void *p1, void *p2, void *p3)
 			continue;
 		}
 
-#if WALKEEG_ADS1293_AVAILABLE
+#if defined(CONFIG_WALKEEG_DUAL_FRONTEND) && WALKEEG_ADS1293_AVAILABLE
+		{
+			/* CH0 = AD8232 (SAADC, runtime rate)
+			 * CH1/CH2 = ADS1293 ECG1/ECG2 (own ODR, held between DRDY)
+			 */
+			static uint32_t last3[ADS1293_NUM_CH];
+			static uint8_t lod_bits;
+			static bool have3;
+			struct walkeeg_adc_sample s;
+			struct ads1293_sample s3;
+
+			err = walkeeg_adc_read(&s);
+			if (err) {
+				LOG_WRN("adc_read err %d", err);
+				continue;
+			}
+
+			/* Never block the sampler thread: only read when DRDY fired. */
+			if (walkeeg_ads1293_wait(0) == 0) {
+				if (walkeeg_ads1293_read(&s3) == 0) {
+					last3[0] = s3.ch[0];
+					last3[1] = s3.ch[1];
+					last3[2] = s3.ch[2];
+					lod_bits = s3.lod;
+					have3 = true;
+				}
+			}
+
+			memset(tp.ch, 0, sizeof(tp.ch));
+			tp.ch[0] = s.value;
+
+			if (have3) {
+				tp.ch[1] = (int16_t)((last3[0] - 0x400000U) >> 8);
+				tp.ch[2] = (int16_t)((last3[1] - 0x400000U) >> 8);
+			}
+
+			/* bits0-1 = AD8232 LO+/LO-, bits2-3 = ADS1293 IN1/IN2 */
+			tp.flags = (s.lo_plus ? 0x01 : 0) |
+				   (s.lo_minus ? 0x02 : 0) |
+				   ((lod_bits & 0x01) ? 0 : 0x04) |
+				   ((lod_bits & 0x02) ? 0 : 0x08);
+		}
+#elif WALKEEG_ADS1293_AVAILABLE
 		{
 			struct ads1293_sample s3;
 
@@ -177,10 +223,10 @@ static void sampler_thread(void *p1, void *p2, void *p3)
 			tp.ch[0] = s.value;
 
 			/* CH1 = sawtooth test signal, 0..4095 over 1 s (same range as 12-bit ADC) */
-			ramp_val = (int32_t)ramp_i * 4095 / (WALKEEG_SAMPLE_HZ - 1);
+			ramp_val = (int32_t)ramp_i * 4095 / (sample_hz - 1);
 			tp.ch[1] = (int16_t)ramp_val;
 			ramp_i++;
-			if (ramp_i >= WALKEEG_SAMPLE_HZ) {
+			if (ramp_i >= sample_hz) {
 				ramp_i = 0;
 			}
 
@@ -254,6 +300,34 @@ static int send_frame(struct bt_conn *conn, const struct sample_tp *tps, uint8_t
 	return 0;
 }
 
+int walkeeg_stream_set_rate(uint16_t hz)
+{
+	if (hz != 500 && hz != 1000 && hz != 2000 && hz != 4000) {
+		return -EINVAL;
+	}
+
+	bool was_streaming = atomic_get(&streaming) != 0;
+	if (was_streaming) {
+		k_timer_stop(&sample_timer);
+	}
+
+	sample_hz = hz;
+	ramp_i = 0;
+	ring_reset();
+
+	if (was_streaming) {
+		k_timer_start(&sample_timer, K_USEC(1000000U / sample_hz),
+			      K_USEC(1000000U / sample_hz));
+	}
+	LOG_INF("WalkEEG sample rate set to %u Hz", sample_hz);
+	return 0;
+}
+
+uint16_t walkeeg_stream_get_rate(void)
+{
+	return sample_hz;
+}
+
 static void update_streaming_flag(void)
 {
 	bool on = (stream_conn != NULL) && atomic_get(&notify_on);
@@ -263,9 +337,9 @@ static void update_streaming_flag(void)
 	if (on) {
 		frame_seq = 0;
 		ring_reset();
-		k_timer_start(&sample_timer, K_USEC(1000U * 1000U / WALKEEG_SAMPLE_HZ),
-			      K_USEC(1000U * 1000U / WALKEEG_SAMPLE_HZ));
-		LOG_INF("WalkEEG ECG stream started (%d Hz)", WALKEEG_SAMPLE_HZ);
+		k_timer_start(&sample_timer, K_USEC(1000000U / sample_hz),
+			      K_USEC(1000000U / sample_hz));
+		LOG_INF("WalkEEG ECG stream started (%d Hz)", sample_hz);
 	} else {
 		k_timer_stop(&sample_timer);
 		ring_reset();

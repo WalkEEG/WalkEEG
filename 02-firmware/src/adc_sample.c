@@ -49,7 +49,7 @@ static struct adc_sequence adc_seq = {
 	.buffer      = &adc_buf,
 	.buffer_size = sizeof(adc_buf),
 	.resolution  = ADC_RES,
-	.oversampling = 4,   /* average 16 samples -> less noise */
+	.oversampling = 2,   /* 4-sample average; enough for 2–4 kSPS */
 };
 
 int walkeeg_adc_init(void)

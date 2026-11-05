@@ -344,14 +344,23 @@ img { max-width: 100%; height: auto; }
 
 .hero-stats {
   display: flex;
-  gap: 48px;
+  gap: 40px;
   padding-top: 32px;
   border-top: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.hero-stat h3 .unit {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-left: 2px;
 }
 
 .hero-stat h3 {
-  font-size: 1.75rem;
+  font-size: 1.6rem;
   font-weight: 800;
+  white-space: nowrap;
   color: var(--text-primary);
 }
 
@@ -410,7 +419,7 @@ img { max-width: 100%; height: auto; }
 /* ===== How It Works ===== */
 .steps {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 24px;
   margin-top: 48px;
   position: relative;
@@ -732,6 +741,8 @@ img { max-width: 100%; height: auto; }
 .stagger-2 { transition-delay: 0.2s; }
 .stagger-3 { transition-delay: 0.3s; }
 .stagger-4 { transition-delay: 0.4s; }
+.stagger-5 { transition-delay: 0.5s; }
+.stagger-6 { transition-delay: 0.6s; }
 
 /* ===== Signal visualization ===== */
 .signal-visualization {
@@ -757,4 +768,200 @@ img { max-width: 100%; height: auto; }
 @keyframes signal-sweep {
   0% { transform: translateX(0); }
   100% { transform: translateX(-50%); }
+}
+
+/* ===== Biosignal primer (About) ===== */
+.bio-explainer {
+  padding: 0 0 8px;
+  margin-top: 0;
+}
+
+/* Primer 在前，About 卡片在后 */
+.bio-explainer + .preview-section {
+  margin-top: 44px;
+}
+
+.bio-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+  margin-top: 36px;
+}
+
+.bio-card {
+  background: var(--bg-elevated, rgba(255,255,255,0.03));
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg, 14px);
+  padding: 24px 22px 20px;
+  transition: transform .25s ease, border-color .25s ease;
+}
+
+.bio-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--primary, #6366f1);
+}
+
+.bio-head {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 16px;
+}
+
+.bio-tag {
+  font-family: var(--font-mono, "JetBrains Mono", monospace);
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  color: var(--accent, #06b6d4);
+}
+
+.bio-full {
+  font-size: .72rem;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--text-muted);
+}
+
+.bio-signal {
+  height: 54px;
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.bio-wave {
+  display: block;
+  width: 100%;
+  height: 40px;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  opacity: .85;
+}
+
+/* EEG: small irregular rhythm */
+.bio-wave-eeg {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 60' preserveAspectRatio='none'><path d='M0 30 Q10 12 20 30 T40 30 Q50 42 60 30 T80 28 Q90 16 100 30 T120 32 Q130 40 140 30 T160 29 Q170 14 180 30 T200 31 Q210 44 220 30 T240 28 Q250 18 260 30 T280 30 Q290 38 300 30' fill='none' stroke='%2306b6d4' stroke-width='2'/></svg>");
+}
+
+/* ECG: QRS complexes */
+.bio-wave-ecg {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 60' preserveAspectRatio='none'><path d='M0 38 L20 36 Q26 26 32 36 L46 37 L52 40 L58 8 L64 52 L70 36 L86 35 Q96 24 106 35 L126 36 L132 39 L138 10 L144 51 L150 35 L166 34 Q176 25 186 35 L206 36 L212 40 L218 9 L224 50 L230 35 L246 34 Q256 24 266 35 L286 36 L300 36' fill='none' stroke='%23f87171' stroke-width='2'/></svg>");
+}
+
+/* EMG: dense bursts */
+.bio-wave-emg {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 60' preserveAspectRatio='none'><path d='M0 30 L6 18 L10 40 L14 22 L18 38 L22 16 L26 42 L30 24 L34 36 L38 20 L42 40 L46 26 L52 30 L58 28 L62 14 L66 44 L70 18 L74 40 L78 22 L82 38 L86 16 L90 42 L94 24 L98 36 L102 20 L106 40 L110 26 L118 30 L124 30 L130 12 L134 46 L138 16 L142 42 L146 20 L150 38 L154 14 L158 44 L162 22 L166 38 L170 18 L174 42 L178 24 L182 36 L186 16 L190 44 L194 20 L198 40 L202 24 L206 36 L210 18 L214 42 L218 26 L222 34 L228 30 L234 30 L240 28 L244 24 L248 34 L252 28 L256 32 L260 26 L264 34 L268 28 L272 32 L276 26 L280 34 L284 28 L288 32 L292 30 L296 30 L300 30' fill='none' stroke='%23a78bfa' stroke-width='1.6'/></svg>");
+}
+
+.bio-facts {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bio-facts li {
+  font-size: .82rem;
+  line-height: 1.5;
+  color: var(--text-secondary, #94a3b8);
+}
+
+.bio-facts li strong {
+  color: var(--text-primary, #f1f5f9);
+  font-weight: 600;
+}
+
+
+@media (max-width: 768px) {
+  .bio-explainer { padding: 40px 20px 4px; }
+  .bio-grid { grid-template-columns: 1fr; }
+}
+
+
+/* 实测 ECG 截图 */
+.preview-image--photo {
+  position: relative;
+  padding: 0;
+  background: #0d1117;
+  overflow: hidden;
+}
+
+.preview-image--photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.preview-caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: 0;
+  padding: 28px 18px 12px;
+  font-size: .75rem;
+  letter-spacing: .02em;
+  text-align: center;
+  color: rgba(255, 255, 255, .78);
+  background: linear-gradient(to top, rgba(8, 12, 20, .92), rgba(8, 12, 20, 0));
+  pointer-events: none;
+}
+
+/* ===== Links into the wiki ===== */
+.bio-tag {
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color .18s, color .18s;
+}
+
+.bio-tag:hover {
+  border-bottom-color: currentColor;
+}
+
+.feature-card h3 a,
+.step h3 a {
+  color: inherit;
+  text-decoration: none;
+  transition: color .18s;
+}
+
+.feature-card h3 a:hover,
+.step h3 a:hover {
+  color: var(--accent, #06b6d4);
+}
+
+/* subtle arrow on hover, using the ::after pseudo-element */
+.feature-card h3 a::after,
+.step h3 a::after {
+  content: " \2197";
+  font-size: .72em;
+  opacity: 0;
+  transition: opacity .18s;
+}
+
+.feature-card h3 a:hover::after,
+.step h3 a:hover::after {
+  opacity: 1;
+}
+
+/* Inline text links into the wiki (EEG / ECG / EMG in body copy) */
+.hero-content p a,
+.preview-text p a {
+  color: var(--accent, #06b6d4);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(6, 182, 212, .35);
+  padding-bottom: 1px;
+  transition: border-color .18s, color .18s;
+}
+
+.hero-content p a:hover,
+.preview-text p a:hover {
+  color: #22d3ee;
+  border-bottom-color: #22d3ee;
 }

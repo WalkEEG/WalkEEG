@@ -26,6 +26,7 @@ let totalSamples = 0;
 let totalFrames = 0;
 let lastSeq = null;
 let drops = 0;
+let sourceRateHz = 2000;
 let startedAt = Date.now();
 
 const server = http.createServer((req, res) => {
@@ -40,7 +41,7 @@ const server = http.createServer((req, res) => {
       lastSeq,
       drops,
       clients: live.size,
-      sourceRateHz: 500,
+      sourceRateHz,
       ringSamples: ring.length,
     }));
     return;
@@ -126,13 +127,28 @@ wss.on('connection', (ws) => {
   const isLive = ws._path === '/live';
   if (isLive) {
     live.add(ws);
+    ws.send(JSON.stringify({ type: 'config', rate: sourceRateHz }));
     sendSnapshot(ws);
     ws.on('close', () => live.delete(ws));
     ws.on('error', () => live.delete(ws));
     return;
   }
 
-  ws.on('message', (data) => {
+  ws.on('message', (data, isBinary) => {
+    if (!isBinary) {
+      try {
+        const msg = JSON.parse(data.toString());
+        if (msg && msg.type === 'config' && Number(msg.rate) > 0) {
+          sourceRateHz = Number(msg.rate);
+          const cfg = JSON.stringify({ type: 'config', rate: sourceRateHz });
+          for (const client of live) {
+            if (client.readyState === 1) client.send(cfg);
+          }
+          console.log('sample rate config:', sourceRateHz);
+        }
+      } catch (_) {}
+      return;
+    }
     const parsed = parseIngest(Buffer.from(data));
     if (!parsed) return;
     totalFrames++;
@@ -158,3 +174,21 @@ setInterval(() => {
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`WalkEEG relay on http://0.0.0.0:${PORT}  (ws /ingest, /live)`);
 });
+
+// ---- mDNS 广播:App 可自动发现本机，不再依赖固定 IP ----
+// 服务类型 _walkeeg._tcp，服务名 WalkEEG Relay
+try {
+  const bonjour = require('bonjour')();
+  const svc = bonjour.publish({
+    name: 'WalkEEG Relay',
+    type: 'walkeeg',
+    port: PORT,
+    txt: { path: '/ingest' },
+  });
+  console.log(`mDNS: _walkeeg._tcp.local -> port ${PORT}  (可用 App「Discover」自动发现)`);
+  const bye = () => { try { svc.stop(() => process.exit(0)); } catch (_) { process.exit(0); } };
+  process.on('SIGINT', bye);
+  process.on('SIGTERM', bye);
+} catch (e) {
+  console.warn('mDNS advertise skipped:', e.message);
+}

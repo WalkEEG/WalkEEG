@@ -20,8 +20,9 @@ For the iPad, open `http://<mac-lan-ip>:8787` and point the app relay to
 
 `magic 'W'(0x57) | version 1 | seq u16 LE | t_ms u64 LE | n u8 | ch[8][n] u16 LE` (13-byte header)
 
-- 500 Hz, 8 channels; n=50 per batch (100 ms), ~10 frames/s.
+- Default 2000 Hz (500/1000/2000/4000 adjustable); 8 channels; n=50 per batch.
 - `t_ms` is added by the app when it receives the BLE frame.
+The app sends `{"type":"config","rate":2000}` as text to /ingest after connecting; the server broadcasts it to /live so the web time axis follows the sample rate.
 - Server keeps 5000 samples (10 s); a new `/live` client gets the last 2 s.
 
 ## Endpoints
