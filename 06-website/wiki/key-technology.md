@@ -198,13 +198,13 @@ The 24-bit result is truncated to 16 bits in the frame — see [Protocol](protoc
 
 ### The problem CMRR solves
 
-An electrode pair never sees only the signal you want. Both electrodes also pick up whatever the body is floating at — mains hum coupled through the air, the power supply of the laptop next to you, the switching noise of an LED driver. That shared, identical voltage is the **common-mode signal**.
+An electrode pair never sees only the signal you want. Both electrodes also pick up whatever the body is floating at — [mains hum](https://en.wikipedia.org/wiki/Mains_hum) coupled through the air, the power supply of the laptop next to you, the switching noise of an LED driver. That shared, identical voltage is the **common-mode signal**.
 
 The signal you actually want — the potential difference *between* the electrodes — is the **differential signal**.
 
 A real amplifier cannot separate the two perfectly. Part of the common-mode voltage leaks into the output as if it were a genuine differential signal. That leak is an error, and in biosignal recording it is usually the dominant error.
 
-**CMRR** quantifies how well the amplifier suppresses it.
+**CMRR** — [common-mode rejection ratio](https://en.wikipedia.org/wiki/Common-mode_rejection_ratio) — quantifies how well the amplifier suppresses it.
 
 ### Definition
 
@@ -214,6 +214,8 @@ CMRR = 20 · log₁₀ ( A_d / A_cm )   [dB]
 
 - `A_d` — differential gain (what you want: ~1000×)
 - `A_cm` — common-mode gain (what you don't: ideally 0)
+
+That ratio is the whole reason a [differential amplifier](https://en.wikipedia.org/wiki/Differential_amplifier) or [instrumentation amplifier](https://en.wikipedia.org/wiki/Instrumentation_amplifier) sits at the front of every biosignal chain: it amplifies the difference and, ideally, ignores the shared part.
 
 A CMRR of 80 dB means the differential gain is 10,000 times the common-mode gain. A 100 dB CMRR means 100,000 times. **Every 20 dB is a factor of 10.**
 
@@ -250,7 +252,7 @@ Real CMRR is frequency-dependent — it falls as frequency rises, because parasi
 An amplifier's own CMRR is only the starting point. In a built system, the dominant limitation is usually not the chip:
 
 **1. Electrode impedance mismatch — the big one**
-CMRR of the *whole front end* degrades roughly as:
+[Electrode](https://en.wikipedia.org/wiki/Electrode) impedance mismatch destroys CMRR faster than any other single factor. CMRR of the *whole front end* degrades roughly as:
 
 ```
 CMRR_system ≈ CMRR_amp + 20·log₁₀( Z_electrode / ΔZ )
@@ -271,19 +273,21 @@ Passive electrodes rely entirely on the amplifier. An active right-leg drive (RL
 Any capacitance from the electrode cable to ground converts common-mode voltage into a differential current. Shielding and guarding matter more at high impedance.
 
 **4. Power supply rejection is a different number**
-PSRR (typically ~90 dB on ADS129x) describes sensitivity to supply ripple — not to body-borne common mode. Don't confuse them.
+[PSRR](https://en.wikipedia.org/wiki/Power_supply_rejection_ratio) — power supply rejection ratio (typically ~90 dB on ADS129x) — describes sensitivity to supply ripple, not to body-borne common mode. Don't confuse them.
 
 ### Practical implications for WalkEEG
 
 | Signal | Amplitude | CMRR needed for a clean trace |
 |---|---|---|
 | EMG | 100 – 1000 µV | 60–80 dB is often enough |
-| ECG | 0.5 – 5 mV | 80 dB workable, 100 dB comfortable |
+| [ECG](https://en.wikipedia.org/wiki/Electrocardiography) | 0.5 – 5 mV | 80 dB workable, 100 dB comfortable |
 | EEG | 10 – 100 µV | **100 dB+**, and electrode hygiene does as much as the chip |
 
 This is why the website states **80–120 dB** rather than a single number: the AD8232 path (80 dB, single lead, low cost) and the ADS1293 path (24-bit, integrated RLD) sit at opposite ends of the same platform.
 
 **The engineering rule:** fix the electrodes and add right-leg drive before hunting for a better amplifier. At 80 dB, a 1 kΩ impedance mismatch costs you more than any part upgrade will recover.
+
+**Further reading** — [Common-mode rejection ratio](https://en.wikipedia.org/wiki/Common-mode_rejection_ratio) · [Differential amplifier](https://en.wikipedia.org/wiki/Differential_amplifier) · [Instrumentation amplifier](https://en.wikipedia.org/wiki/Instrumentation_amplifier) · [Mains hum](https://en.wikipedia.org/wiki/Mains_hum) · [Power supply rejection ratio](https://en.wikipedia.org/wiki/Power_supply_rejection_ratio)
 
 ---
 
@@ -538,7 +542,7 @@ Frequency analysis turns an unreadable waveform into a set of numbers you can th
 
 Two labs recording "alpha over the occipital lobe" must be measuring the same location, or their results cannot be compared. Before 10–20, electrode placement was ad hoc — each clinic used its own scheme, and cross-study comparison was impossible.
 
-The **International 10–20 system** (Jasper, 1958) fixed that. It defines electrode positions as fractions of measurable distances on the skull, so any technician anywhere can reproduce the same montage.
+The **International [10–20 system](https://en.wikipedia.org/wiki/10%E2%80%9320_system_%28EEG%29)** (Jasper, 1958) fixed that. It defines electrode positions as fractions of measurable distances on the skull, so any technician anywhere can reproduce the same montage.
 
 ### The geometry
 
@@ -546,7 +550,7 @@ Four anatomical landmarks anchor the grid:
 
 | Landmark | Location |
 |---|---|
-| **Nasion** | Bridge of the nose, between the eyes |
+| **[Nasion](https://en.wikipedia.org/wiki/Nasion)** | Bridge of the nose, between the eyes |
 | **Inion** | Bump at the back of the skull |
 | **Pre-auricular points** | Just in front of each ear |
 
@@ -593,7 +597,7 @@ This table is why BCI work usually starts with `C3`/`C4`: motor imagery is stron
 
 ### Beyond 10–20
 
-The 10–20 grid has 21 electrodes. Higher-density research uses the **10–10** (≈ 70 positions) or **10–5** systems, which subdivide the same intervals further and add names like `FC3` (fronto-central) or `CP4`.
+The 10–20 grid has 21 electrodes. Higher-density research uses the **10–10** (≈ 70 positions) or **10–5** systems, which subdivide the same intervals further and add names like `FC3` (fronto-central) or `CP4`. See the [10–20 system overview](https://en.wikipedia.org/wiki/10%E2%80%9320_system_%28EEG%29#Higher-density_descriptions) for how the finer grids derive from the same landmarks.
 
 More electrodes give better spatial resolution, but each one adds a channel, a wire, and another source of contact noise. WalkEEG's 8-channel front end sits at the sparse end of this spectrum by design — enough for a research montage over the regions that matter, not a full-head cap.
 
@@ -605,4 +609,4 @@ More electrodes give better spatial resolution, but each one adds a channel, a w
 
 **The reference electrode is a design decision.** Every differential measurement needs one. In a classic 10–20 montage it is `Cz` or the linked mastoids; here it is the RLD electrode (see [RLD](#rld--right-leg-drive)). Where you place it changes what the common-mode rejection actually rejects.
 
-**Further reading** — [10–20 system](https://en.wikipedia.org/wiki/10%E2%80%9320_system_%28EEG%29) · [EEG electrode nomenclature](https://en.wikipedia.org/wiki/Electroencephalography#Electrode_placement) · [Nasion](https://en.wikipedia.org/wiki/Nasion)
+**Further reading** — [10–20 system](https://en.wikipedia.org/wiki/10%E2%80%9320_system_%28EEG%29) · [EEG electrode nomenclature](https://en.wikipedia.org/wiki/Electroencephalography#Electrode_placement) · [Nasion](https://en.wikipedia.org/wiki/Nasion) · [Electroencephalography](https://en.wikipedia.org/wiki/Electroencephalography)

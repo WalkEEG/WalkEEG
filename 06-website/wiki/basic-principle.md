@@ -52,7 +52,7 @@ Alpha is the easiest to observe: close your eyes and a roughly 10 Hz rhythm appe
 
 ### Electrode placement
 
-The **International 10–20 system** is the standard method for describing scalp electrode positions. Landmarks (nasion, inion, pre-auricular points) define a coordinate grid; electrodes sit at 10 % and 20 % intervals along lines between them. Names encode location: `Fp` = frontal pole, `F` = frontal, `C` = central, `P` = parietal, `O` = occipital, `T` = temporal — with odd numbers on the left hemisphere and even on the right, `z` on the midline.
+The **International [10–20 system](https://en.wikipedia.org/wiki/10%E2%80%9320_system_%28EEG%29)** is the standard method for describing scalp electrode positions. Landmarks ([nasion](https://en.wikipedia.org/wiki/Nasion), inion, pre-auricular points) define a coordinate grid; electrodes sit at 10 % and 20 % intervals along lines between them. Names encode location: `Fp` = frontal pole, `F` = frontal, `C` = central, `P` = parietal, `O` = occipital, `T` = temporal — with odd numbers on the left hemisphere and even on the right, `z` on the midline.
 
 Consistent naming matters because it lets a recording be compared against another one made in a different lab with different equipment.
 
@@ -66,7 +66,7 @@ EEG is a mature clinical tool, particularly for **epilepsy** — interictal spik
 
 EEG is the most demanding target for a wireless front end:
 
-- **Amplitude is tiny.** 10 µV of signal against millivolts of electrode offset and mains hum means CMRR and electrode impedance dominate the design.
+- **Amplitude is tiny.** 10 µV of signal against millivolts of electrode offset and [mains hum](https://en.wikipedia.org/wiki/Mains_hum) means [CMRR](https://en.wikipedia.org/wiki/Common-mode_rejection_ratio) and electrode impedance dominate the design.
 - **Bandwidth is modest.** 100 Hz is enough — 500 Hz sampling leaves generous headroom and a margin for gamma.
 - **Artifacts are everywhere.** Eye blinks produce large, slow frontal deflections; jaw and neck muscles contribute broadband EMG that overlaps the gamma band entirely.
 
