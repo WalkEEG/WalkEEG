@@ -58,7 +58,6 @@ class EmgPage extends StatelessWidget {
           final env = s?.envelope ?? 0;
           final act = s?.activation ?? 0;
           final rms = s?.rms ?? 0;
-          final maxEnv = env > 1 ? env : 1.0;
 
           return ListView(
             padding: const EdgeInsets.all(16),

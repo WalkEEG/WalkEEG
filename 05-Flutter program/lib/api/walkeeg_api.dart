@@ -4,11 +4,20 @@ import 'package:http/http.dart' as http;
 
 import '../auth/cognito_auth.dart';
 import '../config/app_config.dart';
+import '../config/cloud_not_configured.dart';
 
 class WalkeegApi {
   WalkeegApi(this.session);
 
   final CognitoSession session;
+
+  /// Fail fast with a readable message instead of issuing a request against
+  /// a placeholder API URL and timing out.
+  void _requireConfigured() {
+    if (!AppConfig.isConfigured) {
+      throw const CloudNotConfiguredException('API');
+    }
+  }
 
   Map<String, String> get _headers => {
         'Content-Type': 'application/json',
@@ -16,6 +25,7 @@ class WalkeegApi {
       };
 
   Future<Map<String, dynamic>> getMe() async {
+    _requireConfigured();
     final res = await http.get(
       Uri.parse('${AppConfig.apiBaseUrl}/me'),
       headers: _headers,
@@ -24,6 +34,7 @@ class WalkeegApi {
   }
 
   Future<List<Map<String, dynamic>>> listSignals() async {
+    _requireConfigured();
     final res = await http.get(
       Uri.parse('${AppConfig.apiBaseUrl}/signals'),
       headers: _headers,
@@ -33,6 +44,7 @@ class WalkeegApi {
   }
 
   Future<Map<String, dynamic>> createSignal(Map<String, dynamic> body) async {
+    _requireConfigured();
     final res = await http.post(
       Uri.parse('${AppConfig.apiBaseUrl}/signals'),
       headers: _headers,

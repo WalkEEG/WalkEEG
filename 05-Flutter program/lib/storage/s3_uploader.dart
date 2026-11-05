@@ -4,6 +4,7 @@ import 'package:aws_client/s3_2006_03_01.dart';
 
 import '../auth/cognito_auth.dart';
 import '../config/app_config.dart';
+import '../config/cloud_not_configured.dart';
 
 class S3Uploader {
   Future<void> uploadBytes({
@@ -12,6 +13,9 @@ class S3Uploader {
     required Uint8List bytes,
     String contentType = 'text/csv',
   }) async {
+    if (!AppConfig.isConfigured) {
+      throw const CloudNotConfiguredException('S3 upload');
+    }
     final s3 = S3(
       region: AppConfig.region,
       credentials: AwsClientCredentials(

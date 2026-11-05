@@ -623,7 +623,7 @@ class _HomePageState extends State<HomePage> {
                         FilterChip(
                           label: Text('CH$ch'),
                           selected: true,
-                          selectedColor: _colors[ch].withOpacity(0.35),
+                          selectedColor: _colors[ch].withValues(alpha: 0.35),
                           onSelected: (_) => _toggleChannel(ch),
                         ),
                         const SizedBox(width: 8),
@@ -645,7 +645,7 @@ class _HomePageState extends State<HomePage> {
                                     horizontal: 10, vertical: 6),
                                 decoration: BoxDecoration(
                                   border: Border.all(color: _colors[ch]
-                                      .withOpacity(0.5)),
+                                      .withValues(alpha: 0.5)),
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Row(
