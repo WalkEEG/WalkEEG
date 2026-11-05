@@ -7,13 +7,11 @@ class EmgPage extends StatelessWidget {
   const EmgPage({
     super.key,
     required this.analyzer,
-    required this.sampleRate,
-    required this.onRateChanged,
+    this.sampleRate = 2000,
   });
 
   final EmgAnalyzer analyzer;
   final int sampleRate;
-  final ValueChanged<int> onRateChanged;
 
   Future<void> _copyCsv(BuildContext context) async {
     final rows = <String>['time,envelope,activation,rms,artifact'];
@@ -66,18 +64,7 @@ class EmgPage extends StatelessWidget {
                 children: [
                   const Text('Sample rate'),
                   const SizedBox(width: 12),
-                  DropdownButton<int>(
-                    value: sampleRate,
-                    items: const [
-                      DropdownMenuItem(value: 500, child: Text('500 Hz')),
-                      DropdownMenuItem(value: 1000, child: Text('1000 Hz')),
-                      DropdownMenuItem(value: 2000, child: Text('2000 Hz')),
-                      DropdownMenuItem(value: 4000, child: Text('4000 Hz')),
-                    ],
-                    onChanged: (v) {
-                      if (v != null) onRateChanged(v);
-                    },
-                  ),
+                  Text('$sampleRate Hz'),
                 ],
               ),
               const SizedBox(height: 8),

@@ -48,7 +48,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  int _sampleRateHz = 2000;
+  static const int _sampleRateHz = 2000;
 
   /// Y-axis display: AC auto (monitor-style autoscale) or fixed unsigned
   /// ranges for 8/10/12/14/16-bit ADC modes.
@@ -69,8 +69,8 @@ class _HomePageState extends State<HomePage> {
   final _ble = WalkEegBleController();
   final _recording = RecordingService();
   final _relay = RelayService();
-  EegAnalyzer _eeg = EegAnalyzer(sampleRate: 2000);
-  EmgAnalyzer _emg = EmgAnalyzer(sampleRate: 2000);
+  final EegAnalyzer _eeg = EegAnalyzer(sampleRate: 2000);
+  final EmgAnalyzer _emg = EmgAnalyzer(sampleRate: 2000);
   final _sync = SyncService();
   final _auth = CognitoAuth();
   final Set<int> _selected = {0, 1};
@@ -240,17 +240,6 @@ class _HomePageState extends State<HomePage> {
     );
     hostCtl.dispose();
     portCtl.dispose();
-  }
-
-  Future<void> _setRate(int hz) async {
-    setState(() {
-      _sampleRateHz = hz;
-      _eeg = EegAnalyzer(sampleRate: hz);
-      _emg = EmgAnalyzer(sampleRate: hz);
-      _ble.parser.setSampleRate(hz);
-    });
-    await _ble.sendCommand('SET_RATE $hz\n');
-    _relay.setSampleRate(hz);
   }
 
   Future<void> _toggleRecording() async {
@@ -455,10 +444,6 @@ class _HomePageState extends State<HomePage> {
                 if (max != null) setState(() => _yMax = max);
                 return;
               }
-              if (v.startsWith('rate:')) {
-                final hz = int.tryParse(v.substring(5));
-                if (hz != null) _setRate(hz);
-              }
             },
             itemBuilder: (ctx) => [
               PopupMenuItem(
@@ -481,20 +466,6 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
               const PopupMenuDivider(),
-              for (final hz in const [500, 1000, 2000, 4000])
-                PopupMenuItem(
-                  value: 'rate:$hz',
-                  child: Row(
-                    children: [
-                      if (_sampleRateHz == hz)
-                        const Icon(Icons.check, size: 16)
-                      else
-                        const SizedBox(width: 16),
-                      const SizedBox(width: 8),
-                      Text('$hz Hz'),
-                    ],
-                  ),
-                ),
             ],
           ),
           IconButton(
@@ -536,29 +507,6 @@ class _HomePageState extends State<HomePage> {
             ),
             const SizedBox(height: 8),
             Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text('Rate', style: Theme.of(context).textTheme.bodyMedium),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Wrap(
-                    spacing: 6,
-                    runSpacing: 4,
-                    children: [
-                      for (final hz in const [500, 1000, 2000, 4000])
-                        ChoiceChip(
-                          label: Text(hz >= 1000 ? '${hz ~/ 1000}k' : '$hz'),
-                          selected: _sampleRateHz == hz,
-                          visualDensity: VisualDensity.compact,
-                          onSelected: (_) => _setRate(hz),
-                        ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
@@ -582,11 +530,7 @@ class _HomePageState extends State<HomePage> {
                     onPressed: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (_) => EmgPage(
-                            analyzer: _emg,
-                            sampleRate: _sampleRateHz,
-                            onRateChanged: _setRate,
-                          ),
+                          builder: (_) => EmgPage(analyzer: _emg),
                         ),
                       );
                     },
