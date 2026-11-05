@@ -73,7 +73,7 @@ class _HomePageState extends State<HomePage> {
   final EmgAnalyzer _emg = EmgAnalyzer(sampleRate: 2000);
   final _sync = SyncService();
   final _auth = CognitoAuth();
-  final Set<int> _selected = {0, 1};
+  final Set<int> _selected = {0, 1, 2};
   StreamSubscription<void>? _tickSub;
   StreamSubscription<String>? _statusSub;
   StreamSubscription<BleLinkState>? _stateSub;
