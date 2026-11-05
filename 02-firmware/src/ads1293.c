@@ -74,7 +74,7 @@ static struct spi_config spi_cfg = {
 /* DRDYB: active-low data-ready interrupt */
 static struct gpio_callback drdy_cb_data;
 static K_SEM_DEFINE(drdy_sem, 0, 4);
-static uint16_t ads1293_odr_hz = 533;
+static uint16_t ads1293_odr_hz = 2133;
 
 static void drdy_cb(const struct device *dev, struct gpio_callback *cb,
 		    gpio_port_pins_t pins)
@@ -216,12 +216,12 @@ int walkeeg_ads1293_init(void)
 	k_sleep(K_MSEC(20)); /* crystal start-up ~15 ms */
 
 	err  = ads1293_reg_write(REG_OSC_CN, 0x04);        /* STRTCLK=1 */
-	err |= ads1293_reg_write(REG_AFE_RES, 0x00);       /* FS=102.4kHz, low-power */
+	err |= ads1293_reg_write(REG_AFE_RES, 0x38);       /* FS=204.8kHz, low-power */
 	err |= ads1293_reg_write(REG_AFE_SHDN_CN, 0x00);   /* all channels on */
 	err |= ads1293_reg_write(REG_R2_RATE, 0x01);       /* R2=4 */
-	err |= ads1293_reg_write(REG_R3_RATE_CH1, 0x08);   /* R3=12 */
-	err |= ads1293_reg_write(REG_R3_RATE_CH2, 0x08);
-	err |= ads1293_reg_write(REG_R3_RATE_CH3, 0x08);
+	err |= ads1293_reg_write(REG_R3_RATE_CH1, 0x02);   /* R3=6 */
+	err |= ads1293_reg_write(REG_R3_RATE_CH2, 0x02);
+	err |= ads1293_reg_write(REG_R3_RATE_CH3, 0x02);
 	err |= ads1293_reg_write(REG_R1_RATE, 0x00);       /* R1=4 (standard) */
 	err |= ads1293_reg_write(REG_DRDYB_SRC, DRDYB_SRC_CH1_ECG);
 	err |= ads1293_reg_write(REG_CH_CNFG, CH_CNFG_ECG_ALL);
@@ -258,7 +258,7 @@ int walkeeg_ads1293_init(void)
 		}
 	}
 
-	LOG_INF("ADS1293 init OK (3-lead ECG, 533 sps, DRDY P1.%u)",
+	LOG_INF("ADS1293 init OK (3-lead ECG, 2133 sps, DRDY P1.%u)",
 		drdy.pin);
 	return 0;
 }

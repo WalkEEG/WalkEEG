@@ -189,11 +189,8 @@ static void sampler_thread(void *p1, void *p2, void *p3)
 			struct ads1293_sample s3;
 			struct walkeeg_adc_sample sa;
 
-			/* ADS1293-only path: only emit a frame when new data is ready. */
-			if (walkeeg_ads1293_wait(0) != 0) {
-				continue;
-			}
-
+			/* Read the latest ADS1293 registers on every timer tick; the
+			 * AD8232 CH2 sample is independent and must always be read. */
 			err = walkeeg_ads1293_read(&s3);
 			if (err) {
 				LOG_WRN("ads1293_read err %d", err);
