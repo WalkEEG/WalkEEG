@@ -187,6 +187,7 @@ static void sampler_thread(void *p1, void *p2, void *p3)
 #elif WALKEEG_ADS1293_AVAILABLE
 		{
 			struct ads1293_sample s3;
+			struct walkeeg_adc_sample sa;
 
 			/* ADS1293-only path: only emit a frame when new data is ready. */
 			if (walkeeg_ads1293_wait(0) != 0) {
@@ -199,13 +200,13 @@ static void sampler_thread(void *p1, void *p2, void *p3)
 				continue;
 			}
 
-			/* CH0..2 = Lead I/II/III. ADS1293 24-bit code is offset
-			 * binary (0V diff input = 0x400000); convert to int16
-			 * centered at 0: (raw - 0x400000) >> 8  ->  +/-0x8000. */
+			/* CH0/CH1 = ADS1293 Lead I/II; CH2 = AD8232 SAADC at 2 kHz. */
 			memset(tp.ch, 0, sizeof(tp.ch));
 			tp.ch[0] = (int16_t)((s3.ch[0] - 0x400000U) >> 8);
 			tp.ch[1] = (int16_t)((s3.ch[1] - 0x400000U) >> 8);
-			tp.ch[2] = (int16_t)((s3.ch[2] - 0x400000U) >> 8);
+			if (walkeeg_adc_read(&sa) == 0) {
+				tp.ch[2] = sa.value;
+			}
 
 			/* Lead-off: ERROR_LOD bit set = lead off. Map IN1->bit0,
 			 * IN2->bit1 as "attached" to match AD8232 flag semantics. */
