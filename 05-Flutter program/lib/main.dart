@@ -63,8 +63,8 @@ class _HomePageState extends State<HomePage> {
 
   /// Oscilloscope-style time base: visible window.
   /// First row: seconds; second row: milliseconds (at 2 kHz).
-  /// Display window options, 250 ms .. 2 s.
-  static const _windowOptionsMs = <int>[250, 500, 1000, 2000];
+  /// Display window options, 500 ms .. 5 s.
+  static const _windowOptionsMs = <int>[500, 1000, 2000, 5000];
 
   final _ble = WalkEegBleController();
   final _recording = RecordingService();
