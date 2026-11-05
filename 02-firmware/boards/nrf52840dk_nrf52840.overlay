@@ -117,6 +117,6 @@
 		reg = <0>;
 		spi-max-frequency = <4000000>;
 		drdy-gpios = <&gpio1 4 GPIO_ACTIVE_LOW>;
-		reset-gpios = <&gpio1 5 GPIO_ACTIVE_LOW>;
+		/* CJMCU-1293 has no RESET pin; the driver uses CONFIG=0 soft reset. */
 	};
 };

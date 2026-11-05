@@ -91,3 +91,6 @@ __pycache__/
 *.user
 *.suo
 .vs/
+
+# KiCad local history
+**/.history/

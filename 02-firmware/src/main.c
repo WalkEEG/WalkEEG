@@ -794,11 +794,21 @@ int main(void)
 	err = walkeeg_ads1293_init();
 	if (err) {
 		LOG_ERR("ADS1293 init failed (err: %d)", err);
+	} else {
+		err = walkeeg_ads1293_set_rate(WALKEEG_DEFAULT_SAMPLE_HZ);
+		if (err) {
+			LOG_WRN("ADS1293 default rate failed (err: %d)", err);
+		}
 	}
 #elif WALKEEG_ADS1293_AVAILABLE
 	err = walkeeg_ads1293_init();
 	if (err) {
 		LOG_ERR("ADS1293 init failed (err: %d)", err);
+	} else {
+		err = walkeeg_ads1293_set_rate(WALKEEG_DEFAULT_SAMPLE_HZ);
+		if (err) {
+			LOG_WRN("ADS1293 default rate failed (err: %d)", err);
+		}
 	}
 #else
 	err = walkeeg_adc_init();

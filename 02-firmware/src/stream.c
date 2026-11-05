@@ -1,9 +1,9 @@
 /*
- * WalkEEG: AD8232 ECG framing + NUS Notify stream.
+ * WalkEEG: AD8232 + ADS1293 framing + NUS Notify stream.
  *
- * 1 analog channel (SAADC AIN0 = P0.02) sampled at 500 Hz;
- * lead-off flags (LO+/LO-) are packed into the frame header flags byte:
- *   bit0 = LO+ (1 = lead attached), bit1 = LO- (1 = lead attached)
+ * Dual front-end: CH0 = AD8232 (SAADC, runtime rate), CH1/CH2 = ADS1293
+ * (SPI, nearest ODR, held between DRDY events). Runtime frame rate is
+ * 500/1000/2000/4000 Hz; lead-off flags are packed into the header flags.
  */
 
 #include "stream.h"
@@ -157,8 +157,10 @@ static void sampler_thread(void *p1, void *p2, void *p3)
 				continue;
 			}
 
-			/* Never block the sampler thread: only read when DRDY fired. */
-			if (walkeeg_ads1293_wait(0) == 0) {
+			/* Never block the sampler thread: drain every pending DRDY and
+			 * keep only the newest sample. CH1/CH2 are held between DRDYs
+			 * while CH0 follows the stream timer. */
+			while (walkeeg_ads1293_wait(0) == 0) {
 				if (walkeeg_ads1293_read(&s3) == 0) {
 					last3[0] = s3.ch[0];
 					last3[1] = s3.ch[1];
@@ -185,6 +187,11 @@ static void sampler_thread(void *p1, void *p2, void *p3)
 #elif WALKEEG_ADS1293_AVAILABLE
 		{
 			struct ads1293_sample s3;
+
+			/* ADS1293-only path: only emit a frame when new data is ready. */
+			if (walkeeg_ads1293_wait(0) != 0) {
+				continue;
+			}
 
 			err = walkeeg_ads1293_read(&s3);
 			if (err) {
@@ -314,6 +321,12 @@ int walkeeg_stream_set_rate(uint16_t hz)
 	sample_hz = hz;
 	ramp_i = 0;
 	ring_reset();
+
+#if WALKEEG_ADS1293_AVAILABLE
+	if (walkeeg_ads1293_set_rate(hz)) {
+		LOG_WRN("ADS1293 rate update failed for %u Hz", hz);
+	}
+#endif
 
 	if (was_streaming) {
 		k_timer_start(&sample_timer, K_USEC(1000000U / sample_hz),

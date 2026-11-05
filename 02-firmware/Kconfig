@@ -40,10 +40,12 @@ config WALKEEG_USE_ADS1293
 	bool "Use TI ADS1293 3-channel ECG AFE (SPI) instead of AD8232"
 	default y
 	help
-	  Streams 3 ECG leads (Lead I/II/III, 24-bit, 533 sps) from the TI
-	  ADS1293 over SPI1. The AD8232 SAADC path stays compiled in but is
-	  not sampled. Requires the ads1293 SPI node in the board overlay
-	  (already present for nrf52840dk). Set to n to go back to AD8232.
+	  Streams 3 ECG leads (Lead I/II/III, 24-bit) from the TI
+	  ADS1293 over SPI1. ODR is selected at runtime and mapped to the
+	  nearest hardware rate (533/1067/2133/4267 sps). The AD8232 SAADC
+	  path stays compiled in but is not sampled. Requires the ads1293
+	  SPI node in the board overlay (already present for nrf52840dk).
+	  Set to n to go back to AD8232.
 
 config WALKEEG_DUAL_FRONTEND
 	bool "Run AD8232 (SAADC) and ADS1293 (SPI) at the same time"
@@ -53,8 +55,8 @@ config WALKEEG_DUAL_FRONTEND
 	  Both front-ends are plugged into the same board:
 	    frame CH0     = AD8232 OUT via SAADC (AIN0 / P0.02)
 	    frame CH1..CH2 = ADS1293 ECG channel 1 and 2
-	  The AD8232 runs at the runtime stream rate (SET_RATE), the ADS1293
-	  keeps its own ODR; its samples are held between DRDY events, so the
-	  CH1/CH2 traces step at the ADS1293 ODR instead of the frame rate.
+	  The AD8232 runs at the runtime stream rate (SET_RATE); the ADS1293
+	  is programmed to the nearest ODR (533/1067/2133/4267) and its samples
+	  are held between DRDY events, so CH1/CH2 step at the ADS1293 ODR.
 
 endmenu

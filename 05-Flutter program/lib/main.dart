@@ -113,6 +113,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    _ble.parser.setSampleRate(_sampleRateHz);
     _ble.parser.onFrame = (seq, perCh, n) {
       _recording.onFrame(perCh, n);
       // relay: CH0 uses the displayed value of the current filter mode (matching the app screen); raw CH0 is kept on CH7
@@ -246,6 +247,7 @@ class _HomePageState extends State<HomePage> {
       _sampleRateHz = hz;
       _eeg = EegAnalyzer(sampleRate: hz);
       _emg = EmgAnalyzer(sampleRate: hz);
+      _ble.parser.setSampleRate(hz);
     });
     await _ble.sendCommand('SET_RATE $hz\n');
     _relay.setSampleRate(hz);

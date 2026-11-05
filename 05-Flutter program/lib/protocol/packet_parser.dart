@@ -59,6 +59,16 @@ class WalkEegPacketParser {
   late final List<_ChannelChain> _chains;
   late QrsDetector _qrs;
 
+  /// Rebuilds the filter chains when the firmware sample rate changes.
+  void setSampleRate(int sampleRate) {
+    _chains = List.generate(
+      numChannels,
+      (_) => _ChannelChain(sampleRate: sampleRate),
+    );
+    _qrs = QrsDetector(sampleRate: sampleRate);
+    _beatIndices.clear();
+  }
+
   /// Processing mode for a single channel.
   FilterMode modeFor(int channel) =>
       (channel >= 0 && channel < numChannels) ? _modes[channel] : FilterMode.raw;

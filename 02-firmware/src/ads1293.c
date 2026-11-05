@@ -65,17 +65,16 @@ LOG_MODULE_REGISTER(walkeeg_ads1293, LOG_LEVEL_INF);
 
 static const struct device *spi_dev;
 
-static struct spi_cs_control spi_cs = SPI_CS_CONTROL_INIT(ADS1293_NODE, 0);
-
 static struct spi_config spi_cfg = {
 	.frequency = 4000000, /* well below 20 MHz max */
 	.operation = SPI_OP_MODE_MASTER | SPI_WORD_SET(8) | SPI_TRANSFER_MSB,
-	.cs = &spi_cs,
+	.cs = SPI_CS_CONTROL_INIT(ADS1293_NODE, 0),
 };
 
 /* DRDYB: active-low data-ready interrupt */
 static struct gpio_callback drdy_cb_data;
 static K_SEM_DEFINE(drdy_sem, 0, 4);
+static uint16_t ads1293_odr_hz = 533;
 
 static void drdy_cb(const struct device *dev, struct gpio_callback *cb,
 		    gpio_port_pins_t pins)
@@ -261,6 +260,81 @@ int walkeeg_ads1293_init(void)
 
 	LOG_INF("ADS1293 init OK (3-lead ECG, 533 sps, DRDY P1.%u)",
 		drdy.pin);
+	return 0;
+}
+
+uint16_t walkeeg_ads1293_get_odr(void)
+{
+	return ads1293_odr_hz;
+}
+
+int walkeeg_ads1293_set_rate(uint16_t hz)
+{
+	uint8_t afe_res;
+	uint8_t r1_rate;
+	uint8_t r3_rate;
+	uint16_t odr;
+	int err;
+
+	/* ADS1293 cannot hit 500/1000/2000/4000 exactly. Pick the closest
+	 * standard ODR; the stream layer resamples by holding the latest
+	 * ADS1293 sample between its DRDY events. */
+	switch (hz) {
+	case 500:
+		afe_res = 0x00; /* FS = 102.4 kHz */
+		r1_rate = 0x00; /* R1 = 4 */
+		r3_rate = 0x08; /* R3 = 12 -> 533 Hz */
+		odr = 533;
+		break;
+	case 1000:
+		afe_res = 0x00;
+		r1_rate = 0x00;
+		r3_rate = 0x02; /* R3 = 6 -> 1067 Hz */
+		odr = 1067;
+		break;
+	case 2000:
+		afe_res = 0x38; /* FS = 204.8 kHz */
+		r1_rate = 0x00;
+		r3_rate = 0x02; /* R3 = 6 -> 2133 Hz */
+		odr = 2133;
+		break;
+	case 4000:
+		afe_res = 0x38;
+		r1_rate = 0x07; /* R1 = 2 for all channels */
+		r3_rate = 0x02; /* R3 = 6 -> 4267 Hz */
+		odr = 4267;
+		break;
+	default:
+		return -EINVAL;
+	}
+
+	/* Decimation registers 0x11/0x12/0x13/0x21-0x29 lock while START_CON=1. */
+	err  = ads1293_reg_write(REG_CONF, 0x00);
+	err |= ads1293_reg_write(REG_AFE_RES, afe_res);
+	err |= ads1293_reg_write(REG_R2_RATE, 0x01); /* R2 = 4 */
+	err |= ads1293_reg_write(REG_R3_RATE_CH1, r3_rate);
+	err |= ads1293_reg_write(REG_R3_RATE_CH2, r3_rate);
+	err |= ads1293_reg_write(REG_R3_RATE_CH3, r3_rate);
+	err |= ads1293_reg_write(REG_R1_RATE, r1_rate);
+	if (err) {
+		LOG_ERR("ADS1293 rate config failed: %d", err);
+		return err;
+	}
+
+	err = ads1293_reg_write(REG_CONF, CONF_START_CON);
+	if (err) {
+		LOG_ERR("ADS1293 rate restart failed: %d", err);
+		return err;
+	}
+
+	ads1293_odr_hz = odr;
+	/* Let the SINC filters settle (5 x R1 x R2 x R3 / fS), then drop
+	 * the samples generated while the clocks/decimators changed. */
+	k_sleep(K_MSEC(20));
+	while (k_sem_take(&drdy_sem, K_NO_WAIT) == 0) {
+	}
+
+	LOG_INF("ADS1293 ODR: target %u Hz -> actual %u Hz", hz, odr);
 	return 0;
 }
 

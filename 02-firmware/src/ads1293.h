@@ -45,4 +45,12 @@ int walkeeg_ads1293_wait(int32_t timeout_ms);
 /** Blocking read of the latest 3-channel sample. Returns 0 on success. */
 int walkeeg_ads1293_read(struct ads1293_sample *s);
 
+/** Reconfigure the ADS1293 ODR to the nearest rate for 500/1000/2000/4000 Hz.
+ *  Stops conversion, updates AFE_RES/R1/R2/R3, restarts, and drains stale DRDY.
+ *  Returns 0 on success, -EINVAL for an unsupported request. */
+int walkeeg_ads1293_set_rate(uint16_t hz);
+
+/** Actual ADS1293 ODR after the last set_rate() (e.g. 533 for a 500 Hz request). */
+uint16_t walkeeg_ads1293_get_odr(void);
+
 #endif /* WALKEEG_ADS1293_H_ */
