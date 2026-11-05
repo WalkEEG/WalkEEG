@@ -6,9 +6,10 @@ import 'package:flutter/services.dart';
 import '../dsp/eeg_analyzer.dart';
 
 class EegPage extends StatefulWidget {
-  const EegPage({super.key, required this.analyzer});
+  const EegPage({super.key, required this.analyzer, this.sampleRate = 2000});
 
   final EegAnalyzer analyzer;
+  final int sampleRate;
 
   @override
   State<EegPage> createState() => _EegPageState();
@@ -135,7 +136,7 @@ class _EegPageState extends State<EegPage> {
                     ? 'Waiting for CH0 samples…'
                     : (s.artifact
                         ? 'Artifact — hold still / check electrodes'
-                        : 'Signal OK · 500 Hz · 2 s window'),
+                        : 'Signal OK · ${widget.sampleRate} Hz · 2 s window'),
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               const SizedBox(height: 12),

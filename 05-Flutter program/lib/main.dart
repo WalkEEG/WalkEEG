@@ -536,13 +536,39 @@ class _HomePageState extends State<HomePage> {
             ),
             const SizedBox(height: 8),
             Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text('Rate', style: Theme.of(context).textTheme.bodyMedium),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Wrap(
+                    spacing: 6,
+                    runSpacing: 4,
+                    children: [
+                      for (final hz in const [500, 1000, 2000, 4000])
+                        ChoiceChip(
+                          label: Text(hz >= 1000 ? '${hz ~/ 1000}k' : '$hz'),
+                          selected: _sampleRateHz == hz,
+                          visualDensity: VisualDensity.compact,
+                          onSelected: (_) => _setRate(hz),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (_) => EegPage(analyzer: _eeg),
+                          builder: (_) => EegPage(
+                            analyzer: _eeg,
+                            sampleRate: _sampleRateHz,
+                          ),
                         ),
                       );
                     },
