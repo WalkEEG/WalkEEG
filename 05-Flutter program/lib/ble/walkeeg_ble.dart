@@ -72,6 +72,17 @@ class WalkEegBleController {
 
     await FlutterBluePlus.stopScan();
 
+    // Drop any stale WalkEEG link left by a previous app run. On iOS a
+    // connection can survive an app restart, which makes the next connect
+    // attempt time out while the old central still owns the peripheral.
+    try {
+      for (final d in FlutterBluePlus.connectedDevices) {
+        if (d.platformName.trim() == kDeviceName) {
+          await d.disconnect();
+        }
+      }
+    } catch (_) {}
+
     BluetoothDevice? found;
     final sub = FlutterBluePlus.scanResults.listen((results) {
       for (final r in results) {
@@ -127,7 +138,7 @@ class WalkEegBleController {
     });
 
     try {
-      await d.connect(timeout: const Duration(seconds: 10));
+      await d.connect(timeout: const Duration(seconds: 20));
       // requestMtu is Android-only; iOS negotiates MTU automatically.
       if (Platform.isAndroid) {
         await d.requestMtu(512);
@@ -165,6 +176,9 @@ class WalkEegBleController {
 
       _setState(BleLinkState.streaming, 'Streaming');
     } catch (e) {
+      try {
+        await d.disconnect();
+      } catch (_) {}
       _setState(BleLinkState.error, 'Connect failed: $e');
     }
   }
