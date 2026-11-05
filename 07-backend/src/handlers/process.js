@@ -1,6 +1,14 @@
 /**
- * S3 event handler — placeholder for FFT / signal processing pipeline.
- * Triggered when a .csv file is uploaded to walkeeg-data.
+ * S3 event handler — offline batch entry point.
+ *
+ * Deliberately thin. Numeric work belongs in ../../algorithms/, which is
+ * cloud-agnostic and testable on its own. This handler only does what a
+ * Lambda uniquely can: read the uploaded object and persist results.
+ *
+ * Contracts:
+ *   docs/algorithms/eeg-pipeline.md
+ *   docs/algorithms/emg-pipeline.md
+ *   docs/algorithms/data-format.md  (unit and metadata requirements)
  */
 import { updateSignalStatus } from '../lib/signals.js';
 
@@ -21,7 +29,10 @@ export async function handler(event) {
 
     const userId = parts[0];
 
-    // TODO: Run FFT analysis, update metadata with spectral bands
+    // TODO: fetch the object, convert LSB -> uV using the recorded lsb_uv,
+    // then call the shared statistics module in ../../algorithms/.
+    // Refuse to process when sample_rate or lsb_uv is missing rather than
+    // assuming defaults — see docs/algorithms/data-format.md section 5.
     // For now, mark any matching signal as processed
   }
 

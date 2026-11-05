@@ -27,10 +27,10 @@
 
 | 文档 | 内容 | 状态 |
 |---|---|---|
-| [data-format.md](data-format.md) | CSV / BLE 帧 / 单位与量纲 | 待编写 |
-| [emg-pipeline.md](emg-pipeline.md) | EMG：带通 → 整流 → 包络 → RMS / MDF | 待编写 |
-| [eeg-pipeline.md](eeg-pipeline.md) | EEG：θ/α/β 频段能量、β/α 比值 | 待编写 |
-| [conformance.md](conformance.md) | 基准向量与跨实现一致性测试 | 待编写 |
+| [data-format.md](data-format.md) | CSV / BLE 帧 / 单位与量纲 | 已定稿 |
+| [emg-pipeline.md](emg-pipeline.md) | EMG：带通 → 整流 → 包络 → RMS / MDF | 已定稿 |
+| [eeg-pipeline.md](eeg-pipeline.md) | EEG：θ/α/β 频段能量、β/α 比值 | 已定稿 |
+| [conformance.md](conformance.md) | 基准向量与跨实现一致性测试 | 判据已定稿 |
 
 ## 三条硬性约定
 

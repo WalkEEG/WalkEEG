@@ -117,4 +117,4 @@ ema = 0.8 * ema_prev + 0.2 * value
 |---|---|---|
 | Dart | `05-Flutter program/lib/dsp/eeg_analyzer.dart` | 已实现 |
 | Node | `07-backend/src/handlers/process.js` | 骨架（TODO） |
-| Python | `docs/algorithms/reference/` | 待编写 |
+| Python | `algorithms/python/walkeeg_stats.py` | 骨架（接口已定，函数体待填） |

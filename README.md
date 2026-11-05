@@ -36,8 +36,9 @@ walkeeg/
 ├── 04-MATLAB program/ Analysis scripts (legacy, optional)
 ├── 05-Flutter program/ iOS + Android app
 ├── 06-website/      www.walkeeg.com (static, S3 + CloudFront)
-├── 07-backend/      AWS SAM — Cognito, S3, DynamoDB, API Gateway
+├── 07-backend/      AWS SAM — one deployment example, not the platform
 ├── 08-realtime/     500 Hz WebSocket relay + live browser dashboard
+├── algorithms/      Platform-neutral signal statistics (stdlib Python)
 └── docs/            Design notes and interface specs
      └── algorithms/ Algorithm contracts + conformance tests
 ```
@@ -151,10 +152,11 @@ magic 'W' (0x57) | version (1) | seq (u16 LE) | t_ms (u64 LE) | n (u8) | ch[8][n
 | [`02-firmware/`](02-firmware) | Zephyr application, board overlays, Kconfig switches |
 | [`05-Flutter program/`](05-Flutter%20program) | Cross-platform app, BLE link, relay service |
 | [`06-website/`](06-website) | Static site source, deployed to S3 + CloudFront |
-| [`07-backend/`](07-backend) | SAM template, Lambda handlers, IAM policy |
+| [`07-backend/`](07-backend) | AWS SAM deployment example (optional if you're not on AWS) |
 | [`08-realtime/`](08-realtime) | WebSocket relay and browser charting |
+| [`algorithms/`](algorithms) | Reusable signal statistics — stdlib Python, no cloud SDK |
 | [`docs/`](docs) | Interface specs, migration notes, hardware revisions |
-| [`docs/algorithms/`](docs/algorithms) | Platform-neutral signal processing contracts (see below) |
+| [`docs/algorithms/`](docs/algorithms) | Platform-neutral signal processing contracts |
 
 ---
 
@@ -168,13 +170,25 @@ Issues and pull requests are welcome. Before opening a PR:
 
 ## Where does algorithm code belong?
 
-Signal processing is specified once in [`docs/algorithms/`](docs/algorithms) and implemented per platform. That directory is the single source of truth for data formats, filter definitions, and acceptance criteria.
+Signal processing is specified once in [`docs/algorithms/`](docs/algorithms) and
+implemented once in [`algorithms/`](algorithms). That pair is the only place the
+math should exist.
 
-- **Real-time** algorithms live next to the data (app DSP, relay) — latency forbids a network round trip.
-- **Offline / batch** algorithms belong in `07-backend` Lambda handlers or analysis scripts.
-- Every implementation must satisfy [`docs/algorithms/conformance.md`](docs/algorithms/conformance.md) against the same fixtures.
+- **Real-time** algorithms run next to the data (app DSP, relay) — latency
+  forbids a network round trip. They reimplement the contract for performance,
+  and must match it.
+- **Offline / batch** algorithms belong in `algorithms/`. `07-backend/` is just
+  one way to run them, on one cloud. Swap it for cron, a Kubernetes job, or a
+  laptop script without touching the math.
+- Every implementation must satisfy
+  [`docs/algorithms/conformance.md`](docs/algorithms/conformance.md) against the
+  same fixtures.
 
-Do not duplicate a filter definition in code without pointing at its spec section.
+Run the contract tests at any time:
+
+```bash
+python3 algorithms/python/conformance_test.py
+```
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for details (coming soon).
 

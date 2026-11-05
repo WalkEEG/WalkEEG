@@ -144,4 +144,4 @@ $$
 |---|---|---|
 | Dart | `05-Flutter program/lib/dsp/emg_analyzer.dart` | RMS 已实现，MDF 未实现 |
 | Node | `07-backend/src/handlers/process.js` | 骨架（TODO） |
-| Python | `docs/algorithms/reference/` | 待编写（跨平台基准） |
+| Python | `algorithms/python/walkeeg_stats.py` | 骨架（接口已定，函数体待填） |

@@ -1,6 +1,28 @@
-# WalkEEG Backend
+# WalkEEG Backend — AWS deployment example
+
+> **This directory is one deployment, not the platform.** It assumes AWS
+> (Cognito, S3, DynamoDB, API Gateway, Lambda). If you are not on AWS, skip it.
+>
+> The signal processing it calls lives in [`../algorithms/`](../algorithms) and has
+> no cloud dependency — take that directory on its own.
 
 AWS SAM stack: Cognito auth, S3 data storage, DynamoDB metadata, API Gateway + Lambda.
+
+## Where the algorithms actually are
+
+`src/handlers/process.js` is deliberately thin: it reads S3, calls the shared
+statistics module, writes results. All numeric work belongs in
+[`../algorithms/`](../algorithms), which is standard-library Python with no AWS
+imports, so the same functions run in a Lambda, a cron script, or a notebook.
+
+Rules of thumb:
+
+- **Real-time** processing never comes through here — live display needs a round
+trip that doesn't exist. That runs on the device.
+- **Offline batch** analysis is what this stack is for.
+- Before changing a filter or a metric, change the contract in
+  [`docs/algorithms/`](../docs/algorithms) first, then the implementation, then
+the tests in [`algorithms/python/conformance_test.py`](../algorithms/python/conformance_test.py).
 
 ## Prerequisites
 
@@ -88,16 +110,15 @@ sam local start-api
 
 ## Process Lambda
 
-`src/handlers/process.js` is triggered on `.csv` uploads. Currently a skeleton for future FFT processing.
+`src/handlers/process.js` is triggered on `.csv` uploads. It is a skeleton: the
+handler shape exists, the numeric pipeline does not.
 
-> **Algorithm contracts live in [`docs/algorithms/`](../docs/algorithms), not here.**
-> This service implements offline/batch algorithms only; anything needed for live display
-> runs on the device. When implementing the FFT skeleton, follow
-> [`docs/algorithms/eeg-pipeline.md`](../docs/algorithms/eeg-pipeline.md) and
-> [`docs/algorithms/emg-pipeline.md`](../docs/algorithms/emg-pipeline.md), and validate
-> against [`docs/algorithms/conformance.md`](../docs/algorithms/conformance.md).
-> The spec is platform-neutral on purpose — a Python or MATLAB implementation of the
-> same pipeline must produce matching numbers.
+When filling it in, implement the algorithms in [`../algorithms/`](../algorithms)
+against the contracts below — do not write a second copy of the math here:
+
+- [`docs/algorithms/eeg-pipeline.md`](../docs/algorithms/eeg-pipeline.md)
+- [`docs/algorithms/emg-pipeline.md`](../docs/algorithms/emg-pipeline.md)
+- [`docs/algorithms/conformance.md`](../docs/algorithms/conformance.md)
 
 ## Integration
 
