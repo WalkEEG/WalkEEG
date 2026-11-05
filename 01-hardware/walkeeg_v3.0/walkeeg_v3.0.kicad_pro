@@ -574,62 +574,7 @@
       "version": 5
     },
     "net_colors": null,
-    "netclass_assignments": {
-      "+3V3": [
-        "Power"
-      ],
-      "/MotherBroad/P0.02{slash}AIN0": [
-        "Analog"
-      ],
-      "/MotherBroad/P0.03{slash}AIN1": [
-        "Analog"
-      ],
-      "/MotherBroad/P0.04{slash}AIN2": [
-        "Analog"
-      ],
-      "/MotherBroad/P0.05{slash}AIN3": [
-        "Analog"
-      ],
-      "/MotherBroad/P0.28{slash}AIN4": [
-        "Analog"
-      ],
-      "/MotherBroad/P0.29{slash}AIN5": [
-        "Analog"
-      ],
-      "/MotherBroad/P0.30{slash}AIN6": [
-        "Analog"
-      ],
-      "/MotherBroad/P0.31{slash}AIN7": [
-        "Analog"
-      ],
-      "/Peripherals/CH340_D+": [
-        "USB"
-      ],
-      "/Peripherals/CH340_D-": [
-        "USB"
-      ],
-      "/Peripherals/VBUS": [
-        "Power"
-      ],
-      "D+": [
-        "USB"
-      ],
-      "D-": [
-        "USB"
-      ],
-      "GND": [
-        "Power"
-      ],
-      "Net-(J13-GND)": [
-        "Power"
-      ],
-      "Net-(J13-ID)": [
-        "Power"
-      ],
-      "Net-(J13-VBUS)": [
-        "Power"
-      ]
-    },
+    "netclass_assignments": null,
     "netclass_patterns": []
   },
   "pcbnew": {
@@ -773,7 +718,7 @@
         "uuid": "e697d0ae-258a-4ffe-a80f-5c30fd5207ba"
       }
     ],
-    "used_designators": "J14-15,C13-14,U1-2",
+    "used_designators": "U1-2,C13-14,J14-15",
     "variants": []
   },
   "sheets": [
@@ -788,6 +733,10 @@
     [
       "9766c2eb-3f8b-46e1-9f2f-ff532d770e9c",
       "Peripherals"
+    ],
+    [
+      "9f6c6db2-0878-448f-a610-614e342a47b3",
+      "AD8232"
     ]
   ],
   "text_variables": {},

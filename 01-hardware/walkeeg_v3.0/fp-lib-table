@@ -1,0 +1,4 @@
+(fp_lib_table
+	(version 7)
+	(lib (name "AD8232ACPZ-RL")(type "KiCad")(uri "${KIPRJMOD}/../lib/AD8232ACPZ-RL.pretty")(options "")(descr "AD8232 LFCSP-20 4x4mm P0.5mm"))
+)

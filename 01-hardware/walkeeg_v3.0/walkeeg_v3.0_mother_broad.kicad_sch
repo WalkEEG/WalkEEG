@@ -3552,6 +3552,14 @@
 		(color 0 0 0 0)
 		(uuid "50bc29ca-2792-4e5c-aa73-a267e1d4a5d1")
 	)
+	(no_connect
+		(at 256.54 62.23)
+		(uuid "37d8167b-c5bc-436d-85e1-206edd04f3fd")
+	)
+	(no_connect
+		(at 243.84 62.23)
+		(uuid "8dbf804e-e7f4-460f-bda5-364e154055ec")
+	)
 	(wire
 		(pts
 			(xy 54.61 119.38) (xy 50.8 119.38)
@@ -4652,6 +4660,16 @@
 		)
 		(uuid "1b902ca6-ba7f-49fc-a866-8d89756ce2ca")
 	)
+	(label "P0.19{slash}LED2"
+		(at 49.53 185.42 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "1c3201be-26ed-4cd4-a8aa-bbc7e395bed7")
+	)
 	(label "P0.11"
 		(at 114.3 129.54 0)
 		(effects
@@ -5140,6 +5158,16 @@
 		)
 		(uuid "7f8e9a99-f74d-4853-91bb-4187c07d5965")
 	)
+	(label "P1.01"
+		(at 76.2 160.02 180)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify right)
+		)
+		(uuid "843192b6-2870-4df1-ab80-75b9ce9893b9")
+	)
 	(label "P0.07/LO+"
 		(at 210.82 147.32 180)
 		(effects
@@ -5149,6 +5177,16 @@
 			(justify right)
 		)
 		(uuid "85d09e51-0720-4045-ab0e-3c5498df2d11")
+	)
+	(label "P0.17{slash}LED1"
+		(at 30.48 185.42 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "8afaf917-f9ac-4f94-969e-732f9e487de7")
 	)
 	(label "P0.00"
 		(at 114.3 104.14 0)
@@ -5916,16 +5954,6 @@
 			)
 		)
 	)
-	(label "P0.19{slash}LED2"
-		(at 49.53 185.42 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "1c3201be-26ed-4cd4-a8aa-bbc7e395bed7")
-	)
 	(global_label "GND"
 		(shape passive)
 		(at 99.06 172.72 0)
@@ -6341,26 +6369,6 @@
 				)
 			)
 		)
-	)
-	(label "P1.01"
-		(at 76.2 160.02 180)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "843192b6-2870-4df1-ab80-75b9ce9893b9")
-	)
-	(label "P0.17{slash}LED1"
-		(at 30.48 185.42 0)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "8afaf917-f9ac-4f94-969e-732f9e487de7")
 	)
 	(global_label "P0.26"
 		(shape passive)
@@ -13454,23 +13462,5 @@
 				)
 			)
 		)
-	)
-
-
-
-
-
-
-
-
-
-	(no_connect
-		(at 243.84 62.23)
-		(uuid "8dbf804e-e7f4-460f-bda5-364e154055ec")
-	)
-
-	(no_connect
-		(at 256.54 62.23)
-		(uuid "37d8167b-c5bc-436d-85e1-206edd04f3fd")
 	)
 )

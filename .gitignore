@@ -81,3 +81,6 @@ npm-debug.log*
 __pycache__/
 *.py[cod]
 .venv/
+
+# KiCad local history (editor backups)
+**/.history/

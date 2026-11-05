@@ -150,6 +150,51 @@
 			)
 		)
 	)
+	(sheet
+		(at 161.27 135)
+		(size 45.72 30.48)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 255 255 255 0)
+		)
+		(uuid "9f6c6db2-0878-448f-a610-614e342a47b3")
+		(property "Sheetname" "AD8232"
+			(at 13.97 -2.032 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "ad8232.kicad_sch"
+			(at 15.24 -27.94 0)
+			(show_name no)
+			(do_not_autoplace no)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "walkeeg_v3.0"
+				(path "/e697d0ae-258a-4ffe-a80f-5c30fd5207ba"
+					(page "4")
+				)
+			)
+		)
+	)
 	(sheet_instances
 		(path "/"
 			(page "1")
