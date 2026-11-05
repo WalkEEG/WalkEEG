@@ -81,3 +81,13 @@ npm-debug.log*
 __pycache__/
 *.py[cod]
 .venv/
+
+# =========================
+# .NET / Visual Studio (03-PC program)
+# =========================
+# Build output — never commit binaries or MSBuild caches.
+[Oo]bj/
+[Bb]in/
+*.user
+*.suo
+.vs/
